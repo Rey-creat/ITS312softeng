@@ -10,7 +10,19 @@ import Dashboard from "./components/Dashboard/dashboard.jsx";
 import CreateRequest from "./components/CreateRequest/createRequest.jsx";
 import MyRequest from "./components/MyRequest/myRequest.jsx";
 import Reports from "./components/Reports/reports.jsx";
+import AdminSidebar from "./components/Admin/AdminSidebar.jsx";
+import AdminDashboard from "./components/Admin/AdminDashboard.jsx";
+import DeptHeadPage from "./components/Admin/DeptHeadPage.jsx";
+import VPFGSPage from "./components/Admin/VPFGSPage.jsx";
+import PersonnelPage from "./components/Admin/PersonnelPage.jsx";
+ import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
+import VPAA from "./components/Admin/VPAA.jsx";
+import President from "./components/Admin/President.jsx"; 
 
+
+
+
+const root = createRoot(document.getElementById("root"));
 
 
 createRoot(document.getElementById("root")).render(
@@ -28,7 +40,15 @@ createRoot(document.getElementById("root")).render(
         <Route path="/createRequest" element={<CreateRequest />} />
         <Route path="/myRequest" element={<MyRequest />} />
         <Route path="/reports" element={<Reports />} />
-
+         {/* Admin Routes */}
+      <Route path="/AdminSidebar" element={<AdminSidebar />} />
+      <Route path="/AdminDashboard" element={<AdminDashboard />} />
+      <Route path="/DeptHeadPage" element={<DeptHeadPage />} />
+      <Route path="/VPFGS" element={<VPFGSPage />} />
+      <Route path="/PersonnelPage" element={<PersonnelPage />} />
+      <Route path="/PPGSHeadPage" element={<PPGSHeadPage />} />
+       <Route path="/VPAA" element={<VPAA />} />
+      <Route path="/President" element={<President />} />
       </Routes>
     </Router>
   </StrictMode>

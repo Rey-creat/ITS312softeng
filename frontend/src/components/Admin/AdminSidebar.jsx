@@ -1,22 +1,25 @@
-// Sidebar.jsx
+// AdminSidebar.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Sidebar({ role }) {
+export default function AdminSidebar({ role }) {
   const navigate = useNavigate();
 
-  // Sidebar menu items for Teachers, Faculty, and Staff
+  // Admin menu items
   const menu = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Create Request", path: "/createRequest" },
-    { name: "My Requests", path: "/myRequest" },
-    { name: "Reports", path: "/reports" },
+    { name: "Dashboard", path: "/AdminDashboard" },
+    { name: "Dept. Office Head", path: "/DeptHeadPage" },
+    { name: "VPFGS", path: "/VPFGS" },
+    { name: "Personnel in Charge", path: "/PersonnelPage" },
+    { name: "Head of PPGS", path: "/PPGSHeadPage" },
+    { name: "VPAA", path: "/VPAA" },
+    { name: "School President", path: "/President" },
   ];
 
   // Logout handler
   const handleLogout = () => {
-    // Example: Clear tokens if you store them
-    // localStorage.removeItem("token");
+    // Clear session or token if needed
+    // localStorage.removeItem("adminToken");
 
     navigate("/login"); // Redirect to login
   };
@@ -27,7 +30,7 @@ export default function Sidebar({ role }) {
       <div className="p-6 text-center border-b border-blue-700">
         <h1 className="text-xl font-bold">School Facilities</h1>
         <p className="text-sm">Repair Management System</p>
-        <p className="mt-1 text-gray-300 font-bold">Role: {role}</p>
+        <p className="mt-1 text-gray-300 font-bold">Role: {role || "Admin"}</p>
       </div>
 
       {/* Navigation Links */}
@@ -36,7 +39,7 @@ export default function Sidebar({ role }) {
           <div key={index} className="mb-7">
             <Link
               to={item.path}
-              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl" // bigger font
+              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-lg"
             >
               {item.name}
             </Link>
@@ -48,7 +51,7 @@ export default function Sidebar({ role }) {
       <div className="p-4 border-t border-blue-700">
         <button
           onClick={handleLogout}
-          className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg font-bold text-lg" // logout font slightly big too
+          className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg font-bold"
         >
           Logout
         </button>

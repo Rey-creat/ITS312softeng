@@ -9,7 +9,7 @@ export default function AdminSidebar({ role }) {
   const menu = [
     { name: "Dashboard", path: "/AdminDashboard" },
     { name: "Dept. Office Head", path: "/DeptHeadPage" },
-    { name: "VPFGS", path: "/VPFGS" },
+    { name: "VPFGS", path: "/VPFGSPage" },
     { name: "Personnel in Charge", path: "/PersonnelPage" },
     { name: "Head of PPGS", path: "/PPGSHeadPage" },
     { name: "VPAA", path: "/VPAA" },

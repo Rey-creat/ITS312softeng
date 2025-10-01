@@ -44,25 +44,25 @@ export default function AdminDashboard() {
               🏢 Dept. Office Head
             </a>
             <a
-              href="/admin/vpfgs"
+              href="/VPFGSPage"
               className="bg-yellow-500 text-white px-6 py-3 rounded-lg shadow hover:bg-yellow-600 font-bold"
             >
               💼 VPFGS
             </a>
             <a
-              href="/admin/personnel"
+              href="/PersonnelPage"
               className="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 font-bold"
             >
               👷 Personnel in Charge
             </a>
             <a
-              href="/admin/vpaa"
+              href="/VPAA"
               className="bg-purple-600 text-white px-6 py-3 rounded-lg shadow hover:bg-purple-700 font-bold"
             >
               📘 VPAA
             </a>
             <a
-              href="/admin/president"
+              href="/President"
               className="bg-red-600 text-white px-6 py-3 rounded-lg shadow hover:bg-red-700 font-bold"
             >
               🎓 School President

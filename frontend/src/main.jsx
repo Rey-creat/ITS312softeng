@@ -44,7 +44,7 @@ createRoot(document.getElementById("root")).render(
       <Route path="/AdminSidebar" element={<AdminSidebar />} />
       <Route path="/AdminDashboard" element={<AdminDashboard />} />
       <Route path="/DeptHeadPage" element={<DeptHeadPage />} />
-      <Route path="/VPFGS" element={<VPFGSPage />} />
+      <Route path="/VPFGSPage" element={<VPFGSPage />} />
       <Route path="/PersonnelPage" element={<PersonnelPage />} />
       <Route path="/PPGSHeadPage" element={<PPGSHeadPage />} />
        <Route path="/VPAA" element={<VPAA />} />

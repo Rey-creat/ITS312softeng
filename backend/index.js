@@ -3,6 +3,9 @@ const express = require("express");
 const app = express();
 const PORT = 5000;
 
+const db = require ('./db.js');
+const mysql = require ('mysql2');
+
 // Middleware to parse JSON
 app.use(express.json());
 

@@ -1,224 +1,120 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import backgroundImg from "../images/background.jpg";
-import logo from "../images/logo.png"; 
+import logo from "../images/logo.png";
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "", // ✅ role added
-  });
-
+export default function Register() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ fullname: "", email: "", password: "", role: "" });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
+    const { fullname, email, password, role } = formData;
     const newErrors = {};
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
-    if (!formData.role) newErrors.role = "Role is required"; // ✅ validate role
+    if (!fullname) newErrors.fullname = "Fullname required";
+    if (!email) newErrors.email = "Email required";
+    if (!password) newErrors.password = "Password required";
+    if (!role) newErrors.role = "Role required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setIsLoading(false);
+      setLoading(false);
       return;
     }
 
     try {
-      console.log("Register data:", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      alert(`Registration successful! Role: ${formData.role}`);
-    } catch (error) {
-      setErrors({ general: "Registration failed. Please try again." });
+      await axios.post("http://localhost:5000/api/register", formData);
+      alert("Registered successfully!");
+      navigate("/login");
+    } catch (err) {
+      setErrors({ general: err.response?.data?.message || "Registration failed" });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side with Background */}
-      <div
-        className="hidden lg:flex w-1/2 bg-cover bg-center"
-        style={{ backgroundImage: `url(${backgroundImg})` }}
-      ></div>
+      <div className="hidden lg:flex w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImg})` }} />
 
-      {/* Right Side with Register Form */}
-       {/* Right Side with Login Form */}
-             <div className="flex w-full lg:w-1/2 items-start justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-             <div className="max-w-md w-full space-y-8">
-               {/* Logo + Title */}
-               <div className="text-center">
-                 <img
-                   src={logo}
-                   alt="School Logo"
-                   className="mx-auto h-30 w-30 mb-2"
-                  />
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Create your account
-            </h2>
+      <div className="flex w-full lg:w-1/2 items-start justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full space-y-8 mt-12">
+          <div className="text-center">
+            <img src={logo} alt="Logo" className="mx-auto h-30 w-30 mb-2" />
+            <h2 className="text-3xl font-extrabold text-gray-900">Create your account</h2>
           </div>
 
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              {errors.general && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                  {errors.general}
-                </div>
-              )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {errors.general && <div className="text-red-600">{errors.general}</div>}
 
-              {/* Name */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.name ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-              </div>
+            <input
+              name="fullname"
+              placeholder="Fullname"
+              value={formData.fullname}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+            {errors.fullname && <p className="text-red-500">{errors.fullname}</p>}
 
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.email ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-              </div>
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+            {errors.email && <p className="text-red-500">{errors.email}</p>}
 
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.password ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                />
-                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
-              </div>
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+            {errors.password && <p className="text-red-500">{errors.password}</p>}
 
-              {/* Confirm Password */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.confirmPassword ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                )}
-              </div>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            >
+              <option value="">-- Choose role --</option>
+              <option value="Admin">Admin</option>
+              <option value="Teacher">Teacher</option>
+              <option value="Staff">Staff</option>
+            </select>
+            {errors.role && <p className="text-red-500">{errors.role}</p>}
 
-              {/* Role Selection */}
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                  Select Role
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  required
-                  className={`mt-1 block w-full px-3 py-2 border ${
-                    errors.role ? "border-red-300" : "border-gray-300"
-                  } rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-                  value={formData.role}
-                  onChange={handleChange}
-                >
-                  <option value="">-- Choose Role --</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Teacher">Teacher</option>
-                  <option value="Faculty">Faculty</option>
-                  <option value="Staff">Staff</option>
-                </select>
-                {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
-              </div>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-2 rounded"
+            >
+              {loading ? "Registering..." : "Register"}
+            </button>
 
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent 
-                text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
-                disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
-              >
-                {isLoading ? "Registering..." : "Register"}
-              </button>
-            </div>
-
-            {/* Login Redirect */}
             <div className="text-center">
-              <span className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
-                  Sign in
-                </Link>
-              </span>
+              <Link to="/login" className="text-blue-600">
+                Have an account? Sign in
+              </Link>
             </div>
           </form>
         </div>
       </div>
     </div>
   );
-};
-
-export default Register;
+}

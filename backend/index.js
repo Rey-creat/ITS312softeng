@@ -1,20 +1,18 @@
-// server.js
 const express = require("express");
+const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
+const requestRoutes = require("./routes/requestRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+
 const app = express();
-const PORT = 5000;
 
-const db = require ('./db.js');
-const mysql = require ('mysql2');
-
-// Middleware to parse JSON
+app.use(cors());
 app.use(express.json());
 
-// Sample route
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
+app.get("/", (req, res) => res.send("Backend running!"));
+app.use("/api", authRoutes);
+app.use("/api", requestRoutes);
+app.use("/api", dashboardRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+const PORT = 5000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

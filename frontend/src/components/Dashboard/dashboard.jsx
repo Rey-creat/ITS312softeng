@@ -148,10 +148,10 @@ export default function Dashboard() {
                 onChange={handleChange}
                 className="w-full border p-2 rounded mb-3"
               >
-                <option value="Electrical">Electrical</option>
-                <option value="Plumbing">Plumbing</option>
-                <option value="Air Conditioning">Air Conditioning</option>
-                <option value="Carpentry">Carpentry</option>
+                <option value="Repair">Repair</option>
+                <option value="Construction">Construction</option>
+                <option value="Maintenance">Maintenance</option>
+               
               </select>
 
               <label className="block mb-2 font-medium">Description:</label>

@@ -51,13 +51,13 @@ export default function CreateRequest() {
           <input type="date" name="date_filed" value={formData.date_filed} readOnly className="w-full border p-2 rounded-lg" />
           <input type="date" name="date_needed" value={formData.date_needed} onChange={handleChange} required className="w-full border p-2 rounded-lg" />
           <select name="type_of_concern" value={formData.type_of_concern} onChange={handleChange} required className="w-full border p-2 rounded-lg">
-            <option value="">-- Select Concern --</option>
-            <option value="Electrical">Electrical</option>
-            <option value="Plumbing">Plumbing</option>
-            <option value="Carpentry">Carpentry</option>
-            <option value="Aircon Technicians">Aircon Technicians</option>
+            <option value="">-- Specific Concern --</option>
+            <option value="Repair">Repair</option>
+            <option value="Construction">Construction</option>
+            <option value="Maintenance">Maintenance</option>
+           
           </select>
-          <textarea name="description" value={formData.description} onChange={handleChange} rows="4" required className="w-full border p-2 rounded-lg" placeholder="Describe the issue..." />
+          <textarea name="description" value={formData.description} onChange={handleChange} rows="4" required className="w-full border p-2 rounded-lg" placeholder="Brief Description of the Request" />
           <button type="submit" disabled={submitting} className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 font-semibold">
             {submitting ? "Submitting..." : "Submit Request"}
           </button>

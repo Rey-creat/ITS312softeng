@@ -1,10 +1,47 @@
 const db = require("../db");
 
-// ✅ CREATE
-exports.createRequest = (req, res) => {
-  const { user_id, date_filed, date_needed, type_of_concern, description, requested_by } = req.body;
+// ✅ FETCH ALL REQUESTS (Admin can see all, users see only theirs)
+exports.getRequests = (req, res) => {
+  const userId = req.query.user_id;
+  const role = req.query.role;
 
-  if (!user_id || !date_filed || !date_needed || !type_of_concern || !description || !requested_by) {
+  let query = "SELECT * FROM requests ORDER BY date_filed DESC";
+  let values = [];
+
+  // If not admin, filter only by user_id
+  if (role !== "Admin" && userId) {
+    query = "SELECT * FROM requests WHERE user_id = ? ORDER BY date_filed DESC";
+    values = [userId];
+  }
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error("❌ Fetch error:", err);
+      return res.status(500).json({ message: "DB error", error: err });
+    }
+    res.status(200).json(results);
+  });
+};
+
+// ✅ CREATE REQUEST
+exports.createRequest = (req, res) => {
+  const {
+    user_id,
+    date_filed,
+    date_needed,
+    type_of_concern,
+    description,
+    requested_by,
+  } = req.body;
+
+  if (
+    !user_id ||
+    !date_filed ||
+    !date_needed ||
+    !type_of_concern ||
+    !description ||
+    !requested_by
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -13,12 +50,14 @@ exports.createRequest = (req, res) => {
     [user_id, date_filed, date_needed, type_of_concern, description, requested_by],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
-      res.status(201).json({ message: "Request created successfully", requestId: result.insertId });
+      res
+        .status(201)
+        .json({ message: "Request created successfully", requestId: result.insertId });
     }
   );
 };
 
-// ✅ UPDATE
+// ✅ UPDATE REQUEST
 exports.updateRequest = (req, res) => {
   const { id } = req.params;
   const { date_needed, type_of_concern, description } = req.body;
@@ -43,7 +82,7 @@ exports.updateRequest = (req, res) => {
   );
 };
 
-// ✅ DELETE
+// ✅ DELETE REQUEST
 exports.deleteRequest = (req, res) => {
   const { id } = req.params;
 

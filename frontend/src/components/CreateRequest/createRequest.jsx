@@ -8,7 +8,7 @@ export default function CreateRequest() {
   const currentUser = JSON.parse(localStorage.getItem("user")) || {};
 
   const [formData, setFormData] = useState({
-    date_filed: new Date().toISOString().slice(0, 10),
+    date_filed: "",       // user will select
     date_needed: "",
     type_of_concern: "",
     description: "",
@@ -22,6 +22,7 @@ export default function CreateRequest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.date_filed) return alert("Please select Date Filed");
     setSubmitting(true);
 
     try {
@@ -48,17 +49,57 @@ export default function CreateRequest() {
       <div className="flex-1 bg-gray-100 p-6">
         <h1 className="text-2xl font-bold mb-6">Create New Request</h1>
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          <input type="date" name="date_filed" value={formData.date_filed} readOnly className="w-full border p-2 rounded-lg" />
-          <input type="date" name="date_needed" value={formData.date_needed} onChange={handleChange} required className="w-full border p-2 rounded-lg" />
-          <select name="type_of_concern" value={formData.type_of_concern} onChange={handleChange} required className="w-full border p-2 rounded-lg">
+          
+          <label>Date Filed:</label>
+          <input
+            type="date"
+            name="date_filed"
+            value={formData.date_filed}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded-lg"
+          />
+
+          <label>Date Needed:</label>
+          <input
+            type="date"
+            name="date_needed"
+            value={formData.date_needed}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded-lg"
+          />
+
+          <label>Type of Concern:</label>
+          <select
+            name="type_of_concern"
+            value={formData.type_of_concern}
+            onChange={handleChange}
+            required
+            className="w-full border p-2 rounded-lg"
+          >
             <option value="">-- Specific Concern --</option>
             <option value="Repair">Repair</option>
             <option value="Construction">Construction</option>
             <option value="Maintenance">Maintenance</option>
-           
           </select>
-          <textarea name="description" value={formData.description} onChange={handleChange} rows="4" required className="w-full border p-2 rounded-lg" placeholder="Brief Description of the Request" />
-          <button type="submit" disabled={submitting} className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 font-semibold">
+
+          <label>Description:</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="4"
+            required
+            className="w-full border p-2 rounded-lg"
+            placeholder="Brief Description of the Request"
+          />
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700 font-semibold"
+          >
             {submitting ? "Submitting..." : "Submit Request"}
           </button>
         </form>

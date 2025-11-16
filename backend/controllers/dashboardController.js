@@ -1,5 +1,7 @@
 const db = require("../db");
 
+const formatDate = (date) => date.toISOString().split("T")[0];
+
 exports.getDashboardStats = (req, res) => {
   const userId = req.query.user_id;
   if (!userId) return res.status(400).json({ message: "user_id is required" });
@@ -27,7 +29,13 @@ exports.getDashboardStats = (req, res) => {
     db.query(recentQuery, [userId], (err, recentResult) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
 
-      res.json({ counts: countsResult[0], recent: recentResult });
+      const recentFormatted = recentResult.map(r => ({
+        ...r,
+        date_filed: formatDate(r.date_filed),
+        date_needed: formatDate(r.date_needed),
+      }));
+
+      res.json({ counts: countsResult[0], recent: recentFormatted });
     });
   });
 };

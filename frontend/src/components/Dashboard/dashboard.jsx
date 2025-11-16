@@ -12,6 +12,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Helper to format date YYYY-MM-DD
+  const formatDate = (isoDate) => {
+    return new Date(isoDate).toISOString().split("T")[0];
+  };
+
   const fetchDashboard = async () => {
     setLoading(true);
     try {
@@ -34,6 +39,7 @@ export default function Dashboard() {
   };
 
   useEffect(() => { fetchDashboard(); }, []);
+
   useEffect(() => {
     if (location?.state?.refresh) {
       fetchDashboard();
@@ -86,13 +92,25 @@ export default function Dashboard() {
 
         {/* Stats */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white shadow-md rounded-lg p-6 text-center"><p>Total Requests</p><p className="text-3xl font-bold">{stats.counts.total}</p></div>
-          <div className="bg-white shadow-md rounded-lg p-6 text-center"><p>Pending</p><p className="text-3xl font-bold text-yellow-600">{stats.counts.pending}</p></div>
-          <div className="bg-white shadow-md rounded-lg p-6 text-center"><p>Completed</p><p className="text-3xl font-bold text-green-600">{stats.counts.completed}</p></div>
-          <div className="bg-white shadow-md rounded-lg p-6 text-center"><p>Rejected</p><p className="text-3xl font-bold text-red-600">{stats.counts.rejected}</p></div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <p>Total Requests</p>
+            <p className="text-3xl font-bold">{stats.counts.total}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <p>Pending</p>
+            <p className="text-3xl font-bold text-yellow-600">{stats.counts.pending}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <p>Completed</p>
+            <p className="text-3xl font-bold text-green-600">{stats.counts.completed}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <p>Rejected</p>
+            <p className="text-3xl font-bold text-red-600">{stats.counts.rejected}</p>
+          </div>
         </section>
 
-        {/* Recent Requests with Scroll */}
+        {/* Recent Requests */}
         <section className="flex-1 overflow-y-auto">
           <h2 className="text-2xl font-bold mb-4">Recent Requests</h2>
           <div className="space-y-4">
@@ -100,8 +118,8 @@ export default function Dashboard() {
               <div key={req.id} className="bg-white shadow-md rounded-lg p-4 flex justify-between items-center">
                 <div>
                   <p className="font-semibold">{req.type_of_concern}</p>
-                  <p className="text-sm text-gray-500">Date Filed: {new Date(req.date_filed).toLocaleDateString()}</p>
-                  <p className="text-sm text-gray-500">Date Needed: {req.date_needed}</p>
+                  <p className="text-sm text-gray-500">Date Filed: {formatDate(req.date_filed)}</p>
+                  <p className="text-sm text-gray-500">Date Needed: {formatDate(req.date_needed)}</p>
                   <p className="text-sm text-gray-500">Description: {req.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -109,7 +127,7 @@ export default function Dashboard() {
                     onClick={() => {
                       setForm({
                         id: req.id,
-                        date_needed: req.date_needed,
+                        date_needed: formatDate(req.date_needed),
                         type_of_concern: req.type_of_concern,
                         description: req.description,
                       });
@@ -128,7 +146,7 @@ export default function Dashboard() {
 
         {/* Edit Modal */}
         {editing && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
             <div className="bg-gray-100 p-6 rounded-lg shadow-lg w-96 border border-gray-300">
               <h2 className="text-xl font-bold mb-4">Edit Request</h2>
 
@@ -151,7 +169,6 @@ export default function Dashboard() {
                 <option value="Repair">Repair</option>
                 <option value="Construction">Construction</option>
                 <option value="Maintenance">Maintenance</option>
-               
               </select>
 
               <label className="block mb-2 font-medium">Description:</label>

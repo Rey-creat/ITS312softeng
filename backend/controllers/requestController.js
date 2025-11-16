@@ -1,6 +1,9 @@
 const db = require("../db");
 
-// ✅ FETCH ALL REQUESTS (Admin can see all, users see only theirs)
+// Helper to format date as YYYY-MM-DD
+const formatDate = (date) => date.toISOString().split("T")[0];
+
+// FETCH ALL REQUESTS
 exports.getRequests = (req, res) => {
   const userId = req.query.user_id;
   const role = req.query.role;
@@ -8,40 +11,28 @@ exports.getRequests = (req, res) => {
   let query = "SELECT * FROM requests ORDER BY date_filed DESC";
   let values = [];
 
-  // If not admin, filter only by user_id
   if (role !== "Admin" && userId) {
     query = "SELECT * FROM requests WHERE user_id = ? ORDER BY date_filed DESC";
     values = [userId];
   }
 
   db.query(query, values, (err, results) => {
-    if (err) {
-      console.error("❌ Fetch error:", err);
-      return res.status(500).json({ message: "DB error", error: err });
-    }
-    res.status(200).json(results);
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+
+    const formatted = results.map(r => ({
+      ...r,
+      date_filed: formatDate(r.date_filed),
+      date_needed: formatDate(r.date_needed),
+    }));
+
+    res.status(200).json(formatted);
   });
 };
 
-// ✅ CREATE REQUEST
+// CREATE REQUEST
 exports.createRequest = (req, res) => {
-  const {
-    user_id,
-    date_filed,
-    date_needed,
-    type_of_concern,
-    description,
-    requested_by,
-  } = req.body;
-
-  if (
-    !user_id ||
-    !date_filed ||
-    !date_needed ||
-    !type_of_concern ||
-    !description ||
-    !requested_by
-  ) {
+  const { user_id, date_filed, date_needed, type_of_concern, description, requested_by } = req.body;
+  if (!user_id || !date_filed || !date_needed || !type_of_concern || !description || !requested_by) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -50,14 +41,12 @@ exports.createRequest = (req, res) => {
     [user_id, date_filed, date_needed, type_of_concern, description, requested_by],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
-      res
-        .status(201)
-        .json({ message: "Request created successfully", requestId: result.insertId });
+      res.status(201).json({ message: "Request created successfully", requestId: result.insertId });
     }
   );
 };
 
-// ✅ UPDATE REQUEST
+// UPDATE REQUEST
 exports.updateRequest = (req, res) => {
   const { id } = req.params;
   const { date_needed, type_of_concern, description } = req.body;
@@ -70,30 +59,19 @@ exports.updateRequest = (req, res) => {
     "UPDATE requests SET date_needed = ?, type_of_concern = ?, description = ? WHERE id = ?",
     [date_needed, type_of_concern, description, id],
     (err, result) => {
-      if (err) {
-        console.error("❌ Update error:", err);
-        return res.status(500).json({ message: "DB error", error: err });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Request not found" });
-      }
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
       res.status(200).json({ message: "Request updated successfully" });
     }
   );
 };
 
-// ✅ DELETE REQUEST
+// DELETE REQUEST
 exports.deleteRequest = (req, res) => {
   const { id } = req.params;
-
   db.query("DELETE FROM requests WHERE id = ?", [id], (err, result) => {
-    if (err) {
-      console.error("❌ Delete error:", err);
-      return res.status(500).json({ message: "DB error", error: err });
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Request not found" });
-    }
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
     res.status(200).json({ message: "Request deleted successfully" });
   });
 };

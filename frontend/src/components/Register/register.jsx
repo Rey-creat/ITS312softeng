@@ -50,8 +50,8 @@ export default function Register() {
       <div className="flex w-full lg:w-1/2 items-start justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full space-y-8 mt-12">
           <div className="text-center">
-            <img src={logo} alt="Logo" className="mx-auto h-30 w-30 mb-2" />
-            <h2 className="text-3xl font-extrabold text-gray-900">Create your account</h2>
+            <img src={logo} alt="Logo" className="mx-auto h-24 w-24 mb-2" />
+            <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,14 +102,15 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded"
+              className="w-full bg-blue-600 text-white py-2 rounded font-bold"
             >
-              {loading ? "Registering..." : "Register"}
+              {loading ? "Registering..." : "Sign Up"}
             </button>
 
             <div className="text-center">
+              <span className="text-black">Have an account? </span>
               <Link to="/login" className="text-blue-600">
-                Have an account? Sign in
+                Sign in
               </Link>
             </div>
           </form>

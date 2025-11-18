@@ -45,30 +45,40 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left background */}
-      <div className="hidden lg:flex w-1/2 bg-cover bg-center" style={{ backgroundImage: `url(${backgroundImg})` }} />
+      {/* Left background - Same as Login.jsx */}
+      <div
+        className="hidden lg:flex w-1/2 bg-cover bg-center"
+        style={{ backgroundImage: `url(${backgroundImg})` }}
+      ></div>
 
-      {/* Right form */}
+      {/* Right form container - Same as Login.jsx */}
       <div className="flex w-full lg:w-1/2 items-center justify-center bg-gray-50 px-6">
         <div className="max-w-md w-full space-y-8">
-          {/* Logo and heading */}
+          {/* Logo and heading - Adjusted to match the style and size of Login.jsx */}
           <div className="text-center">
-            <img src={logo} alt="Logo" className="mx-auto h-30 w-30 mb-2" />
-            <h2 className="text-3xl font-extrabold text-gray-900">Create your account</h2>
+            {/* Logo size: h-24 w-24 mb-2 from Login.jsx */}
+            <img src={logo} alt="Logo" className="mx-auto h-24 w-24 mb-2" /> 
+            {/* Title font: text-3xl font-bold text-gray-900 from Login.jsx */}
+            <h2 className="text-3xl font-bold text-gray-900">Create your account</h2> 
+            {/* Subtitle font: mt-2 text-sm text-gray-600 from Login.jsx */}
+            <p className="mt-2 text-sm text-gray-600">Register for the Repair Management System</p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             {errors.general && <div className="text-red-600">{errors.general}</div>}
 
+            {/* Input fields - Adjusted classNames to match Login.jsx style */}
             <input
               name="fullname"
               placeholder="Fullname"
               value={formData.fullname}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
+              // Added border-md for consistent style
+              className="w-full px-3 py-2 border rounded-md" 
+              required
             />
-            {errors.fullname && <p className="text-red-500">{errors.fullname}</p>}
+            {errors.fullname && <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>}
 
             <input
               name="email"
@@ -77,8 +87,9 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
+              required
             />
-            {errors.email && <p className="text-red-500">{errors.email}</p>}
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
 
             <input
               name="password"
@@ -87,34 +98,42 @@ export default function Register() {
               value={formData.password}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
+              required
             />
-            {errors.password && <p className="text-red-500">{errors.password}</p>}
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
 
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
+              required
             >
               <option value="">-- Choose role --</option>
               <option value="Admin">Admin</option>
               <option value="Teacher">Teacher</option>
               <option value="Staff">Staff</option>
             </select>
-            {errors.role && <p className="text-red-500">{errors.role}</p>}
+            {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
 
+            {/* Submit button - Adjusted classNames to match Login.jsx style */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 rounded"
+              // Used the exact button classes from Login.jsx
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded-md" 
             >
               {loading ? "Registering..." : "Sign Up"}
             </button>
 
+            {/* Link to Login - Adjusted style to match Login.jsx */}
             <div className="text-center">
-              <Link to="/login" className="text-blue-600">
-                Have an account? Sign in
-              </Link>
+              <p>
+                Have an account?{" "}
+                <Link to="/login" className="text-blue-600">
+                  Sign in
+                </Link>
+              </p>
             </div>
           </form>
         </div>

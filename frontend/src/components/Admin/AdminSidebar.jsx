@@ -12,17 +12,11 @@ export default function Sidebar() {
     Admin: [
       { name: "Dashboard", path: "/AdminDashboard" },
       { name: "Dept. Office Head", path: "/DeptHeadPage" },
-      { name: "VPFGS", path: "/VPFGSPage" },
-      { name: "Personnel in Charge", path: "/PersonnelPage" },
       { name: "Head of PPGS", path: "/PPGSHeadPage" },
-      { name: "VPAA", path: "/VPAA" },
       { name: "School President", path: "/President" },
     ],
     DeptHead: [{ name: "Dashboard", path: "/DeptHeadPage" }],
-    VPFGS: [{ name: "Dashboard", path: "/VPFGSPage" }],
-    Personnel: [{ name: "Dashboard", path: "/PersonnelPage" }],
     PPGSHead: [{ name: "Dashboard", path: "/PPGSHeadPage" }],
-    VPAA: [{ name: "Dashboard", path: "/VPAA" }],
     President: [{ name: "Dashboard", path: "/President" }],
     User: [
       { name: "Dashboard", path: "/dashboard" },

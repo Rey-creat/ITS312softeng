@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "../Sidebar/sidebar.jsx";
 
-export default function Dashboard() {
+export default function MyRequest() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     counts: { total: 0, pending: 0, completed: 0, rejected: 0 },
@@ -13,19 +12,28 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     id: "",
+    date_filed: "",
     date_needed: "",
     type_of_concern: "",
     description: "",
   });
-  const navigate = useNavigate();
-  const location = useLocation();
+
+  // Format ISO → MM/DD/YYYY
+  const formatShortDate = (dateString) => {
+    const date = new Date(dateString);
+    if (isNaN(date)) return "";
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const currentUser = JSON.parse(localStorage.getItem("user"));
-      if (!currentUser?.id) return navigate("/login");
+      if (!currentUser?.id) return;
 
       setUser(currentUser);
 
@@ -50,13 +58,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboard();
   }, []);
-
-  useEffect(() => {
-    if (location?.state?.refresh) {
-      fetchDashboard();
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location?.state?.refresh, navigate, location.pathname]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this request?")) return;
@@ -93,27 +94,30 @@ export default function Dashboard() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
-        Loading Dashboard...
+        Loading Requests...
       </div>
     );
 
   return (
     <div className="flex h-screen">
       <Sidebar role={user.role} />
-      <div className="flex-1 bg-gray-100 p-6 overflow-hidden">
+      <div className="flex-1 bg-gray-100 p-6 overflow-auto">
+
+        {/* HEADER */}
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800">My Requests</h1>
         </header>
 
-        {/* Table Section */}
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        {/* TABLE */}
+        <div className="bg-white shadow-md rounded-lg overflow-auto">
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-gray-100 text-gray-700 text-left text-sm uppercase tracking-wider">
-                <th className="px-6 py-3 font-semibold">Reference Code</th>
+                <th className="px-6 py-3 font-semibold whitespace-nowrap">Reference Code</th>
                 <th className="px-6 py-3 font-semibold">Date Filed</th>
-                <th className="px-6 py-3 font-semibold">Date Needed</th>
+                <th className="px-6 py-3 font-semibold whitespace-nowrap">Date Needed</th>
                 <th className="px-6 py-3 font-semibold">Concern</th>
+                <th className="px-6 py-3 font-semibold">Description</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold">Actions</th>
               </tr>
@@ -121,23 +125,22 @@ export default function Dashboard() {
             <tbody>
               {stats.recent.length > 0 ? (
                 stats.recent.map((req) => (
-                  <tr
-                    key={req.id}
-                    className="border-t hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-gray-700">
+                  <tr key={req.id} className="border-t hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
                       {req.reference_code || `REQ-${req.id}`}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {new Date(req.date_filed).toLocaleDateString()}
+                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                      {formatShortDate(req.date_filed)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {req.date_needed}
+                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                      {formatShortDate(req.date_needed)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {req.type_of_concern}
+                    <td className="px-6 py-4 text-gray-700">{req.type_of_concern}</td>
+                    <td className="px-6 py-4 text-gray-700 break-words max-w-xs">
+                      {req.description.split(" ").slice(0, 10).join(" ")}
+                      {req.description.split(" ").length > 10 && "…"}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 rounded text-sm font-medium ${
                           req.status === "Completed"
@@ -158,6 +161,7 @@ export default function Dashboard() {
                           onClick={() => {
                             setForm({
                               id: req.id,
+                              date_filed: req.date_filed,
                               date_needed: req.date_needed,
                               type_of_concern: req.type_of_concern,
                               description: req.description,
@@ -180,10 +184,7 @@ export default function Dashboard() {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="text-center py-6 text-gray-500 italic"
-                  >
+                  <td colSpan="7" className="text-center py-6 text-gray-500 italic">
                     No requests found.
                   </td>
                 </tr>
@@ -192,48 +193,67 @@ export default function Dashboard() {
           </table>
         </div>
 
-        {/* Edit Modal */}
+        {/* EDIT MODAL */}
         {editing && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-95">
-            <div className="bg-white p-6 rounded-lg shadow-md w-96 border border-gray-300">
+          <div className="fixed inset-0 flex items-center justify-center bg-blue bg-opacity-40 backdrop-blur-sm z-50 overflow-auto p-4">
+            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg border border-gray-300">
               <h2 className="text-xl font-bold mb-4">Edit Request</h2>
 
-              <label className="block mb-2 font-medium">Date Needed:</label>
-              <input
-                type="date"
-                name="date_needed"
-                value={form.date_needed}
-                onChange={handleChange}
-                className="w-full border p-2 rounded mb-3"
-              />
+              <div className="space-y-3">
+                <div>
+                  <label className="block mb-1 font-medium">Date Filed:</label>
+                  <input
+                    type="text"
+                    value={formatShortDate(form.date_filed)}
+                    readOnly
+                    className="w-full border p-2 rounded bg-gray-100"
+                  />
+                </div>
 
-              <label className="block mb-2 font-medium">Type of Concern:</label>
-              <select
-                name="type_of_concern"
-                value={form.type_of_concern}
-                onChange={handleChange}
-                className="w-full border p-2 rounded mb-3"
-              >
-                <option value="Repair">Repair</option>
-                <option value="Construction">Construction</option>
-                <option value="Maintenance">Maintenance</option>
-              </select>
+                <div>
+                  <label className="block mb-1 font-medium">Date Needed:</label>
+                  <input
+                    type="date"
+                    name="date_needed"
+                    value={form.date_needed}
+                    onChange={handleChange}
+                    className="w-full border p-2 rounded"
+                  />
+                </div>
 
-              <label className="block mb-2 font-medium">Description:</label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className="w-full border p-2 rounded mb-4"
-              />
+                <div>
+                  <label className="block mb-1 font-medium">Type of Concern:</label>
+                  <select
+                    name="type_of_concern"
+                    value={form.type_of_concern}
+                    onChange={handleChange}
+                    className="w-full border p-2 rounded"
+                  >
+                    <option value="Repair">Repair</option>
+                    <option value="Construction">Construction</option>
+                    <option value="Maintenance">Maintenance</option>
+                  </select>
+                </div>
 
-              <div className="flex justify-end gap-2">
+                <div>
+                  <label className="block mb-1 font-medium">Description:</label>
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    className="w-full border p-2 rounded"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
                 <button
                   onClick={() => setEditing(false)}
                   className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
                 >
                   Cancel
                 </button>
+
                 <button
                   onClick={handleUpdate}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -244,6 +264,7 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );

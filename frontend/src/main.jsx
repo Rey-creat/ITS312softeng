@@ -18,10 +18,7 @@ import Reports from "./components/Reports/reports.jsx";
 // Admin / Role Pages
 import AdminDashboard from "./components/Admin/AdminDashboard.jsx";
 import DeptHeadPage from "./components/Admin/DeptHeadPage.jsx";
-import VPFGSPage from "./components/Admin/VPFGSPage.jsx";
-import PersonnelPage from "./components/Admin/PersonnelPage.jsx";
 import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
-import VPAA from "./components/Admin/VPAA.jsx";
 import President from "./components/Admin/President.jsx";
 
 // --------------------
@@ -81,20 +78,8 @@ createRoot(document.getElementById("root")).render(
           element={<RoleRoute element={DeptHeadPage} allowedRoles={["DeptHead"]} />}
         />
         <Route
-          path="/VPFGSPage"
-          element={<RoleRoute element={VPFGSPage} allowedRoles={["VPFGS"]} />}
-        />
-        <Route
-          path="/PersonnelPage"
-          element={<RoleRoute element={PersonnelPage} allowedRoles={["Personnel"]} />}
-        />
-        <Route
           path="/PPGSHeadPage"
           element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGSHead"]} />}
-        />
-        <Route
-          path="/VPAA"
-          element={<RoleRoute element={VPAA} allowedRoles={["VPAA"]} />}
         />
         <Route
           path="/President"

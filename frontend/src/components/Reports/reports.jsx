@@ -31,7 +31,7 @@ export default function Reports() {
         });
         setReports(res.data || []);
       } catch (err) {
-        console.error("Failed to fetch reports:", err);
+        console.error("Failed to fetch report:", err);
         setReports([]);
       } finally {
         setLoading(false);
@@ -40,27 +40,6 @@ export default function Reports() {
 
     fetchReports();
   }, []);
-
-  const exportToCSV = () => {
-    const headers = ["Reference Code", "Filed By", "Concern", "Status", "Approved By"];
-    const rows = reports.map((r) => [
-      r.referenceCode || r.refCode || "",
-      r.filedBy || r.requested_by || r.requester || "",
-      r.concern || r.type_of_concern || "",
-      r.status || "",
-      r.approvedBy || r.approver || "",
-    ]);
-    let csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers, ...rows].map((e) => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "school_facility_reports.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   if (loading)
     return (
@@ -76,20 +55,12 @@ export default function Reports() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Reports Overview</h1>
-          <button
-            onClick={exportToCSV}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow-sm"
-          >
-            Export CSV
-          </button>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-700">
-              Total Reports
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-700">Total Reports</h2>
             <p className="text-4xl font-bold text-blue-600 mt-2">
               {reports.length}
             </p>
@@ -128,16 +99,12 @@ export default function Reports() {
                     className="border-t hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 font-medium text-gray-800">
-                      {report.referenceCode ||
-                        report.refCode ||
-                        `REQ-${report.id || report._id}`}
+                      {report.referenceCode || `REQ-${report.id || report._id}`}
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      {report.filedBy || report.requested_by || ""}
+                      {report.filedBy || ""}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {report.concern || report.type_of_concern || ""}
-                    </td>
+                    <td className="px-6 py-4 text-gray-600">{report.concern || ""}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
@@ -148,16 +115,13 @@ export default function Reports() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
-                      {report.approvedBy || report.approver || ""}
+                      {report.approvedBy || ""}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-8 text-gray-500 italic"
-                  >
+                  <td colSpan="5" className="text-center py-8 text-gray-500 italic">
                     No reports available.
                   </td>
                 </tr>

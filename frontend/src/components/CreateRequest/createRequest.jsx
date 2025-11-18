@@ -8,13 +8,24 @@ export default function CreateRequest() {
   const currentUser = JSON.parse(localStorage.getItem("user")) || {};
 
   const [formData, setFormData] = useState({
-    date_filed: "",       // user will select
+    date_filed: "",
     date_needed: "",
     type_of_concern: "",
     description: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  // FORMAT: Month Day, Year
+  const formatDatePretty = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,8 +59,10 @@ export default function CreateRequest() {
       <Sidebar role={currentUser.role || "Teacher"} />
       <div className="flex-1 bg-gray-100 p-6">
         <h1 className="text-2xl font-bold mb-6">Create New Request</h1>
+
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-4">
-          
+
+          {/* DATE FILED */}
           <label>Date Filed:</label>
           <input
             type="date"
@@ -59,7 +72,14 @@ export default function CreateRequest() {
             required
             className="w-full border p-2 rounded-lg"
           />
+          {/* MONTH DAY YEAR PREVIEW */}
+          {formData.date_filed && (
+            <p className="text-sm text-gray-600">
+              📅 Selected: <span className="font-semibold">{formatDatePretty(formData.date_filed)}</span>
+            </p>
+          )}
 
+          {/* DATE NEEDED */}
           <label>Date Needed:</label>
           <input
             type="date"
@@ -69,7 +89,14 @@ export default function CreateRequest() {
             required
             className="w-full border p-2 rounded-lg"
           />
+          {/* MONTH DAY YEAR PREVIEW */}
+          {formData.date_needed && (
+            <p className="text-sm text-gray-600">
+              📅 Selected: <span className="font-semibold">{formatDatePretty(formData.date_needed)}</span>
+            </p>
+          )}
 
+          {/* TYPE OF CONCERN */}
           <label>Type of Concern:</label>
           <select
             name="type_of_concern"
@@ -84,6 +111,7 @@ export default function CreateRequest() {
             <option value="Maintenance">Maintenance</option>
           </select>
 
+          {/* DESCRIPTION */}
           <label>Description:</label>
           <textarea
             name="description"
@@ -95,6 +123,7 @@ export default function CreateRequest() {
             placeholder="Brief Description of the Request"
           />
 
+          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             disabled={submitting}

@@ -9,6 +9,7 @@ export default function AdminDashboard() {
     completed: 0,
     rejected: 0,
   });
+
   const [recentRequests, setRecentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,17 +18,20 @@ export default function AdminDashboard() {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id || 1;
 
-      // ✅ Fetch dashboard stats
+      // Dashboard stats
       const statsRes = await axios.get(
-        `http://localhost:5000/api/dashboard-stats?user_id=${userId}`
+        "http://localhost:5000/api/dashboard-stats",
+        { params: { user_id: userId } }
       );
       setStats(statsRes.data.counts);
 
-      // ✅ Fetch all requests (admin can see all)
+      // ADMIN: fetch ALL requests
       const requestsRes = await axios.get(
-        `http://localhost:5000/api/requests?role=Admin`
+        "http://localhost:5000/api/requests",
+        { params: { role: "Admin" } }
       );
       setRecentRequests(requestsRes.data);
+
     } catch (err) {
       console.error("Error loading admin dashboard:", err);
     } finally {
@@ -48,14 +52,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <AdminSidebar role="Admin" />
 
-      {/* Main content */}
       <div className="flex-1 bg-gray-100 p-6 overflow-y-auto">
         <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
-        {/* Overview Cards */}
+        {/* STAT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Total Requests</h2>
@@ -63,25 +65,19 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Pending</h2>
-            <p className="text-3xl font-semibold text-yellow-500">
-              {stats.pending}
-            </p>
+            <p className="text-3xl font-semibold text-yellow-500">{stats.pending}</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Completed</h2>
-            <p className="text-3xl font-semibold text-green-600">
-              {stats.completed}
-            </p>
+            <p className="text-3xl font-semibold text-green-600">{stats.completed}</p>
           </div>
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Rejected</h2>
-            <p className="text-3xl font-semibold text-red-600">
-              {stats.rejected}
-            </p>
+            <p className="text-3xl font-semibold text-red-600">{stats.rejected}</p>
           </div>
         </div>
 
-        {/* Recent Activity Table */}
+        {/* ALL REQUEST TABLE */}
         <div className="mt-10">
           <h2 className="text-2xl font-bold mb-4">All User Requests</h2>
           <div className="overflow-x-auto">
@@ -102,9 +98,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-2">{req.id}</td>
                       <td className="px-4 py-2">{req.requested_by}</td>
                       <td className="px-4 py-2">{req.type_of_concern}</td>
-                      <td className="px-4 py-2">
-                        {new Date(req.date_filed).toLocaleDateString()}
-                      </td>
+                      <td className="px-4 py-2">{req.date_filed}</td>
                       <td
                         className={`px-4 py-2 font-bold ${
                           req.status === "Pending"
@@ -129,6 +123,7 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+
       </div>
     </div>
   );

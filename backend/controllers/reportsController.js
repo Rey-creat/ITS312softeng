@@ -1,10 +1,11 @@
 const db = require("../db");
 
-exports.getReports = (req, res) => {
+// GET all reports
+exports.getAllReports = (req, res) => {
   const query = `
     SELECT
       id AS referenceCode, -- Assuming 'id' is the correct column name
-      filed_by AS filedBy,
+      user_id AS filedBy, -- Updated to use 'user_id' instead of 'filed_by'
       concern,
       description,
       status,
@@ -17,11 +18,15 @@ exports.getReports = (req, res) => {
     ORDER BY date_reported DESC
   `;
 
+  console.log("[DEBUG] Executing query to fetch all reports:", query); // Debug log
+
   db.query(query, (err, results) => {
     if (err) {
-      console.error("DB query error:", err); // <-- log full error
+      console.error("[DEBUG] Error fetching reports:", err); // Debug log
       return res.status(500).json({ message: "DB error", error: err });
     }
+
+    console.log("[DEBUG] Query results:", results); // Debug log
     res.json(results);
   });
 };

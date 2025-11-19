@@ -15,6 +15,7 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
+      console.log("[DEBUG] Fetching dashboard stats...");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id || 1;
 
@@ -23,15 +24,21 @@ export default function AdminDashboard() {
         "http://localhost:5000/api/dashboard-stats",
         { params: { user_id: userId } }
       );
+      console.log("[DEBUG] Stats response:", statsRes.data);
+
       setStats(statsRes.data.counts);
 
-      // ADMIN: fetch ALL requests
+      // ADMIN — fetch ALL requests
       const requestsRes = await axios.get(
         "http://localhost:5000/api/requests",
         { params: { role: "Admin" } }
       );
-      setRecentRequests(requestsRes.data);
+      console.log("[DEBUG] Requests response:", requestsRes.data);
 
+      // ✅ SORT IDs ASCENDING (12, 25, 30, 37, 40…)
+      const sortedRequests = requestsRes.data.sort((a, b) => a.id - b.id);
+
+      setRecentRequests(sortedRequests);
     } catch (err) {
       console.error("Error loading admin dashboard:", err);
     } finally {
@@ -63,14 +70,17 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold">Total Requests</h2>
             <p className="text-3xl font-semibold text-blue-600">{stats.total}</p>
           </div>
+
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Pending</h2>
             <p className="text-3xl font-semibold text-yellow-500">{stats.pending}</p>
           </div>
+
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Completed</h2>
             <p className="text-3xl font-semibold text-green-600">{stats.completed}</p>
           </div>
+
           <div className="bg-white shadow-md rounded-lg p-6 text-center">
             <h2 className="text-lg font-bold">Rejected</h2>
             <p className="text-3xl font-semibold text-red-600">{stats.rejected}</p>
@@ -80,6 +90,7 @@ export default function AdminDashboard() {
         {/* ALL REQUEST TABLE */}
         <div className="mt-10">
           <h2 className="text-2xl font-bold mb-4">All User Requests</h2>
+
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-lg shadow-md">
               <thead>
@@ -91,6 +102,7 @@ export default function AdminDashboard() {
                   <th className="px-4 py-2">Status</th>
                 </tr>
               </thead>
+
               <tbody>
                 {recentRequests.length > 0 ? (
                   recentRequests.map((req) => (
@@ -99,6 +111,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-2">{req.requested_by}</td>
                       <td className="px-4 py-2">{req.type_of_concern}</td>
                       <td className="px-4 py-2">{req.date_filed}</td>
+
                       <td
                         className={`px-4 py-2 font-bold ${
                           req.status === "Pending"
@@ -123,7 +136,6 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
-
       </div>
     </div>
   );

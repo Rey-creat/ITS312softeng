@@ -32,6 +32,11 @@ export default function Dashboard() {
 
       if (!currentUser?.id) return navigate("/login");
 
+      // Verify JWT session with backend
+      await axios.get("http://localhost:5000/api/session", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setUser(currentUser);
 
       const statsRes = await axios.get(
@@ -45,6 +50,11 @@ export default function Dashboard() {
       });
     } catch (err) {
       console.error("Dashboard fetch failed:", err);
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }

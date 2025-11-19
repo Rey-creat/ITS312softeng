@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { verifyToken } = require("../controllers/authController");
 const {
   createRequest,
   updateRequest,
@@ -7,16 +8,16 @@ const {
   getRequests,
 } = require("../controllers/requestController");
 
-// CREATE
-router.post("/requests", createRequest);
+// CREATE - Protected
+router.post("/requests", verifyToken, createRequest);
 
-// READ (Admin or user)
-router.get("/requests", getRequests);
+// READ (Admin or user) - Protected
+router.get("/requests", verifyToken, getRequests);
 
-// UPDATE
-router.put("/requests/:id", updateRequest);
+// UPDATE - Protected
+router.put("/requests/:id", verifyToken, updateRequest);
 
-// DELETE
-router.delete("/requests/:id", deleteRequest);
+// DELETE - Protected
+router.delete("/requests/:id", verifyToken, deleteRequest);
 
 module.exports = router;

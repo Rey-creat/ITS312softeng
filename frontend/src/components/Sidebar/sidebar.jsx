@@ -14,11 +14,24 @@ export default function Sidebar({ role }) {
   ];
 
   // Logout handler
-  const handleLogout = () => {
-    // Example: Clear tokens if you store them
-    // localStorage.removeItem("token");
-
-    navigate("/login"); // Redirect to login
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      // Call backend logout endpoint
+      if (token) {
+        await fetch("http://localhost:5000/api/logout", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      // Clear local storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/login");
+    }
   };
 
   return (

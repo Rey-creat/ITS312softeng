@@ -62,10 +62,17 @@ export default function MyRequest() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this request?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/requests/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/requests/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       alert("Request deleted successfully!");
       fetchDashboard();
     } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
       alert("Failed to delete request!");
     }
   };
@@ -77,16 +84,23 @@ export default function MyRequest() {
 
   const handleUpdate = async () => {
     try {
+      const token = localStorage.getItem("token");
       await axios.put(`http://localhost:5000/api/requests/${form.id}`, {
         date_needed: form.date_needed,
         type_of_concern: form.type_of_concern,
         description: form.description,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       alert("Request updated successfully!");
       setEditing(false);
       fetchDashboard();
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
       alert("Failed to update request!");
     }
   };

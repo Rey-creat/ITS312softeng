@@ -37,17 +37,31 @@ export default function CreateRequest() {
     setSubmitting(true);
 
     try {
+      const token = localStorage.getItem("token");
+      
+      if (!token || !currentUser?.id) {
+        navigate("/login");
+        return;
+      }
+
       const payload = {
         ...formData,
         user_id: currentUser.id,
         requested_by: currentUser.fullname,
       };
 
-      await axios.post("http://localhost:5000/api/requests", payload);
+      await axios.post("http://localhost:5000/api/requests", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       alert("Request submitted successfully!");
       navigate("/dashboard", { state: { refresh: true } });
     } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
       alert(`Failed to submit request: ${err.response?.data?.message || err.message}`);
     } finally {
       setSubmitting(false);

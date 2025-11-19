@@ -12,7 +12,12 @@ export default function AdminDashboard() {
     completed: 0,
     rejected: 0,
   });
+<<<<<<< HEAD
   const [allRequests, setAllRequests] = useState([]);
+=======
+
+  const [recentRequests, setRecentRequests] = useState([]);
+>>>>>>> d596b285ca17b6e72507e3443e6cf6395f976905
   const [loading, setLoading] = useState(true);
 
   // Convert ISO date → Month Day, Year
@@ -32,6 +37,7 @@ export default function AdminDashboard() {
       const token = localStorage.getItem("token");
       const currentUser = JSON.parse(localStorage.getItem("user"));
 
+<<<<<<< HEAD
       // Verify session
       if (!token || !currentUser?.id) {
         navigate("/login");
@@ -61,6 +67,22 @@ export default function AdminDashboard() {
         rejected: requestsRes.data.filter((r) => r.status === "Rejected").length,
       };
       setStats(counts);
+=======
+      // Dashboard stats
+      const statsRes = await axios.get(
+        "http://localhost:5000/api/dashboard-stats",
+        { params: { user_id: userId } }
+      );
+      setStats(statsRes.data.counts);
+
+      // ADMIN: fetch ALL requests
+      const requestsRes = await axios.get(
+        "http://localhost:5000/api/requests",
+        { params: { role: "Admin" } }
+      );
+      setRecentRequests(requestsRes.data);
+
+>>>>>>> d596b285ca17b6e72507e3443e6cf6395f976905
     } catch (err) {
       console.error("Error loading admin dashboard:", err);
       if (err.response?.status === 401) {
@@ -87,6 +109,7 @@ export default function AdminDashboard() {
     );
 
   return (
+<<<<<<< HEAD
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <AdminSidebar role="Admin" />
@@ -161,6 +184,66 @@ export default function AdminDashboard() {
                         >
                           {req.status}
                         </span>
+=======
+    <div className="flex h-screen">
+      <AdminSidebar role="Admin" />
+
+      <div className="flex-1 bg-gray-100 p-6 overflow-y-auto">
+        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+
+        {/* STAT CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Total Requests</h2>
+            <p className="text-3xl font-semibold text-blue-600">{stats.total}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Pending</h2>
+            <p className="text-3xl font-semibold text-yellow-500">{stats.pending}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Completed</h2>
+            <p className="text-3xl font-semibold text-green-600">{stats.completed}</p>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Rejected</h2>
+            <p className="text-3xl font-semibold text-red-600">{stats.rejected}</p>
+          </div>
+        </div>
+
+        {/* ALL REQUEST TABLE */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-4">All User Requests</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200 text-left">
+                  <th className="px-4 py-2">ID</th>
+                  <th className="px-4 py-2">Requester</th>
+                  <th className="px-4 py-2">Type of Concern</th>
+                  <th className="px-4 py-2">Date Filed</th>
+                  <th className="px-4 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentRequests.length > 0 ? (
+                  recentRequests.map((req) => (
+                    <tr key={req.id} className="border-t">
+                      <td className="px-4 py-2">{req.id}</td>
+                      <td className="px-4 py-2">{req.requested_by}</td>
+                      <td className="px-4 py-2">{req.type_of_concern}</td>
+                      <td className="px-4 py-2">{req.date_filed}</td>
+                      <td
+                        className={`px-4 py-2 font-bold ${
+                          req.status === "Pending"
+                            ? "text-yellow-600"
+                            : req.status === "Completed"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {req.status}
+>>>>>>> d596b285ca17b6e72507e3443e6cf6395f976905
                       </td>
                     </tr>
                   ))}
@@ -172,7 +255,12 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+<<<<<<< HEAD
         </section>
+=======
+        </div>
+
+>>>>>>> d596b285ca17b6e72507e3443e6cf6395f976905
       </div>
     </div>
   );

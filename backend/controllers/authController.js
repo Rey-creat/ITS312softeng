@@ -18,7 +18,32 @@ exports.register = async (req, res) => {
       [fullname, email, hashed, role],
       (err, result) => {
         if (err) return res.status(500).json({ message: "DB error", error: err });
-        res.status(201).json({ message: "Registered successfully" });
+
+        const userId = result.insertId;
+        const token = jwt.sign(
+          { id: userId, email, role },
+          SECRET,
+          { expiresIn: "24h" }
+        );
+
+        activeSessions.set(token, {
+          userId,
+          email,
+          role,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        });
+
+        res.status(201).json({
+          message: "Registered successfully",
+          token,
+          user: {
+            id: userId,
+            fullname,
+            email,
+            role,
+          },
+        });
       }
     );
   } catch (err) {

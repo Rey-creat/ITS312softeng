@@ -30,6 +30,7 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
+<<<<<<< HEAD
       const token = localStorage.getItem("token");
       const currentUser = JSON.parse(localStorage.getItem("user"));
 
@@ -47,10 +48,27 @@ export default function AdminDashboard() {
       setUser(currentUser);
 
       // Fetch all requests (admin can see all)
+=======
+      console.log("[DEBUG] Fetching dashboard stats...");
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.id || 1;
+
+      // Dashboard stats
+      const statsRes = await axios.get(
+        "http://localhost:5000/api/dashboard-stats",
+        { params: { user_id: userId } }
+      );
+      console.log("[DEBUG] Stats response:", statsRes.data);
+
+      setStats(statsRes.data.counts);
+
+      // ADMIN — fetch ALL requests
+>>>>>>> 31ed023a91f651ff5ce6e8b61d11bdfed8cd58d7
       const requestsRes = await axios.get(
         "http://localhost:5000/api/requests?role=Admin",
         { headers: { Authorization: `Bearer ${token}` } }
       );
+<<<<<<< HEAD
 
       setAllRequests(requestsRes.data);
 
@@ -62,6 +80,14 @@ export default function AdminDashboard() {
         rejected: requestsRes.data.filter((r) => r.status === "Rejected").length,
       };
       setStats(counts);
+=======
+      console.log("[DEBUG] Requests response:", requestsRes.data);
+
+      // ✅ SORT IDs ASCENDING (12, 25, 30, 37, 40…)
+      const sortedRequests = requestsRes.data.sort((a, b) => a.id - b.id);
+
+      setRecentRequests(sortedRequests);
+>>>>>>> 31ed023a91f651ff5ce6e8b61d11bdfed8cd58d7
     } catch (err) {
       console.error("Error loading admin dashboard:", err);
       if (err.response?.status === 401) {
@@ -108,6 +134,7 @@ export default function AdminDashboard() {
             <p className="text-gray-600 font-medium">Total Requests</p>
             <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
           </div>
+<<<<<<< HEAD
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
             <p className="text-gray-600 font-medium">Pending</p>
@@ -162,6 +189,60 @@ export default function AdminDashboard() {
                         >
                           {req.status}
                         </span>
+=======
+
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Pending</h2>
+            <p className="text-3xl font-semibold text-yellow-500">{stats.pending}</p>
+          </div>
+
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Completed</h2>
+            <p className="text-3xl font-semibold text-green-600">{stats.completed}</p>
+          </div>
+
+          <div className="bg-white shadow-md rounded-lg p-6 text-center">
+            <h2 className="text-lg font-bold">Rejected</h2>
+            <p className="text-3xl font-semibold text-red-600">{stats.rejected}</p>
+          </div>
+        </div>
+
+        {/* ALL REQUEST TABLE */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-4">All User Requests</h2>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-lg shadow-md">
+              <thead>
+                <tr className="bg-gray-200 text-left">
+                  <th className="px-4 py-2">ID</th>
+                  <th className="px-4 py-2">Requester</th>
+                  <th className="px-4 py-2">Type of Concern</th>
+                  <th className="px-4 py-2">Date Filed</th>
+                  <th className="px-4 py-2">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {recentRequests.length > 0 ? (
+                  recentRequests.map((req) => (
+                    <tr key={req.id} className="border-t">
+                      <td className="px-4 py-2">{req.id}</td>
+                      <td className="px-4 py-2">{req.requested_by}</td>
+                      <td className="px-4 py-2">{req.type_of_concern}</td>
+                      <td className="px-4 py-2">{req.date_filed}</td>
+
+                      <td
+                        className={`px-4 py-2 font-bold ${
+                          req.status === "Pending"
+                            ? "text-yellow-600"
+                            : req.status === "Completed"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {req.status}
+>>>>>>> 31ed023a91f651ff5ce6e8b61d11bdfed8cd58d7
                       </td>
                     </tr>
                   ))}
@@ -173,7 +254,11 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+<<<<<<< HEAD
         </section>
+=======
+        </div>
+>>>>>>> 31ed023a91f651ff5ce6e8b61d11bdfed8cd58d7
       </div>
     </div>
   );

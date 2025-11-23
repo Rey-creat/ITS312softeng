@@ -4,7 +4,7 @@ const db = require("../db");
 exports.getAllRequests = (req, res) => {
   console.log("[DEBUG] getAllRequests endpoint hit"); // Debug log
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status
+    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by
     FROM requests
     ORDER BY date_filed ASC
   `;
@@ -19,78 +19,29 @@ exports.getAllRequests = (req, res) => {
   });
 };
 
-// GET all pending requests for Dept Head
-exports.getPendingRequests = (req, res) => {
-  const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status
-    FROM requests
-    WHERE status = 'Pending'
-    ORDER BY date_filed ASC
-  `;
-
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    res.json(results);
-  });
-};
-
-// APPROVE a request
-exports.approveRequest = (req, res) => {
+// ADD 'Noted By' to a request
+exports.addNotedBy = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Approved' WHERE id = ?`;
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-    res.json({ message: "Request approved successfully" });
-  });
-};
+  const { noted_by } = req.body;
 
-// REJECT a request
-exports.rejectRequest = (req, res) => {
-  const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Rejected' WHERE id = ?`;
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-    res.json({ message: "Request rejected successfully" });
-  });
-};
+  console.log(`[DEBUG] addNotedBy called with ID: ${id}, Noted By: ${noted_by}`);
 
-// GET all approved requests for PPGS Head
-exports.getApprovedRequests = (req, res) => {
-  const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status
-    FROM requests
-    WHERE status = 'Approved'
-    ORDER BY date_filed ASC
-  `;
+  if (!noted_by) {
+    console.log("[DEBUG] 'Noted By' field is missing");
+    return res.status(400).json({ message: "'Noted By' field is required" });
+  }
 
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    res.json(results);
-  });
-};
-
-// UPDATE request status to 'In Progress'
-exports.markInProgress = (req, res) => {
-  const { id } = req.params;
-  const query = `UPDATE requests SET status = 'In Progress' WHERE id = ?`;
-
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-    res.json({ message: "Request marked as In Progress" });
-  });
-};
-
-// UPDATE request status to 'Completed'
-exports.markCompleted = (req, res) => {
-  const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Completed' WHERE id = ?`;
-
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-    res.json({ message: "Request marked as Completed" });
+  const query = `UPDATE requests SET noted_by = ? WHERE id = ?`;
+  db.query(query, [noted_by, id], (err, result) => {
+    if (err) {
+      console.error("[DEBUG] DB error:", err);
+      return res.status(500).json({ message: "DB error", error: err });
+    }
+    if (result.affectedRows === 0) {
+      console.log("[DEBUG] Request not found");
+      return res.status(404).json({ message: "Request not found" });
+    }
+    console.log("[DEBUG] Request noted successfully");
+    res.json({ message: "Request noted successfully" });
   });
 };

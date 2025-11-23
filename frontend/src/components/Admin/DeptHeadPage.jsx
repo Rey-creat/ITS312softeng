@@ -4,6 +4,11 @@ import AdminSidebar from "./AdminSidebar";
 
 const DeptHeadPage = () => {
   const [requests, setRequests] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [currentRequestId, setCurrentRequestId] = useState(null);
+  const [notedBy, setNotedBy] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState(""); // "success" or "error"
 
   const fetchRequests = async () => {
     try {
@@ -18,24 +23,28 @@ const DeptHeadPage = () => {
     }
   };
 
-  const handleApprove = async (id) => {
+  const handleNotedBySubmit = async (e) => {
+    e.preventDefault();
     try {
-      console.log(`[DEBUG] Approving request with ID: ${id}`); // Debug log
-      await axios.put(`http://localhost:5000/api/depthead/requests/${id}/approve`);
+      console.log(`[DEBUG] Adding 'Noted By' for request ID: ${currentRequestId}`); // Debug log
+      await axios.put(`http://localhost:5000/api/depthead/requests/${currentRequestId}/noted`, { noted_by: notedBy });
+      setFeedbackMessage("Successfully added 'Noted By'.");
+      setFeedbackType("success");
+      setShowModal(false);
+      setNotedBy("");
+      setCurrentRequestId(null);
       fetchRequests();
     } catch (err) {
-      console.error("[DEBUG] Error approving request:", err); // Debug log
+      console.error("[DEBUG] Error adding 'Noted By':", err); // Debug log
+      setFeedbackMessage("Failed to add 'Noted By'. Please try again.");
+      setFeedbackType("error");
     }
   };
 
-  const handleReject = async (id) => {
-    try {
-      console.log(`[DEBUG] Rejecting request with ID: ${id}`); // Debug log
-      await axios.put(`http://localhost:5000/api/depthead/requests/${id}/reject`);
-      fetchRequests();
-    } catch (err) {
-      console.error("[DEBUG] Error rejecting request:", err); // Debug log
-    }
+  const openModal = (id) => {
+    setCurrentRequestId(id);
+    setShowModal(true);
+    setFeedbackMessage(""); // Clear previous feedback
   };
 
   useEffect(() => {
@@ -48,10 +57,15 @@ const DeptHeadPage = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className={`flex h-screen ${showModal ? 'overflow-hidden' : ''}`}>
       <AdminSidebar />
-      <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+      <div className={`flex-1 p-6 bg-gray-100 overflow-y-auto ${showModal ? 'blur-sm' : ''}`}>
         <h1 className="text-2xl font-bold mb-4">Department Office Head</h1>
+        {feedbackMessage && (
+          <div className={`p-4 mb-4 rounded ${feedbackType === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+            {feedbackMessage}
+          </div>
+        )}
         {requests.length === 0 ? (
           <p>No requests available</p>
         ) : (
@@ -64,18 +78,13 @@ const DeptHeadPage = () => {
                 <p><strong>Type:</strong> {req.type_of_concern}</p>
                 <p><strong>Description:</strong> {req.description}</p>
                 <p><strong>Status:</strong> {req.status}</p>
-                <div className="mt-4 flex gap-2">
+                <p><strong>Noted By:</strong> {req.noted_by || "N/A"}</p>
+                <div className="mt-4">
                   <button
-                    onClick={() => handleApprove(req.id)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                    onClick={() => openModal(req.id)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
                   >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => handleReject(req.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                  >
-                    Reject
+                    Add Noted By
                   </button>
                 </div>
               </div>
@@ -83,6 +92,43 @@ const DeptHeadPage = () => {
           </div>
         )}
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-blue bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-lg font-bold mb-4">Add Noted By</h2>
+            <form onSubmit={handleNotedBySubmit}>
+              <div className="mb-4">
+                <label htmlFor="notedBy" className="block text-sm font-medium text-gray-700">Your Name</label>
+                <input
+                  type="text"
+                  id="notedBy"
+                  value={notedBy}
+                  onChange={(e) => setNotedBy(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

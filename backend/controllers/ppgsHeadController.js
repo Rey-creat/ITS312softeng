@@ -15,6 +15,28 @@ exports.getApprovedRequests = (req, res) => {
   });
 };
 
+// APPROVE a request
+exports.approveRequest = (req, res) => {
+  const { id } = req.params;
+  const query = `UPDATE requests SET status = 'Approved' WHERE id = ?`;
+  db.query(query, [id], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+    res.json({ message: "Request approved successfully" });
+  });
+};
+
+// REJECT a request
+exports.rejectRequest = (req, res) => {
+  const { id } = req.params;
+  const query = `UPDATE requests SET status = 'Rejected' WHERE id = ?`;
+  db.query(query, [id], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+    if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+    res.json({ message: "Request rejected successfully" });
+  });
+};
+
 // UPDATE request status to 'In Progress'
 exports.markInProgress = (req, res) => {
   const { id } = req.params;

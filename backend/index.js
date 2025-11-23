@@ -5,10 +5,10 @@ const authRoutes = require("./routes/authRoutes");
 const requestRoutes = require("./routes/requestRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const reportRoutes = require("./routes/reportRoutes");
-const deptHeadRoutes = require("./routes/deptHeadRoutes"); // ✅ Import it
-const ppgsHeadRoutes = require("./routes/ppgsHeadRoutes"); // ✅ Import PPGS Head routes
-const pplsHeadRoutes = require("./routes/pplsHeadRoutes"); // ✅ Import PPLS Head routes
-const reportsRoutes = require("./routes/reportsRoutes"); // ✅ Import Reports routes
+const deptHeadRoutes = require("./routes/deptHeadRoutes"); 
+const ppgsHeadRoutes = require("./routes/ppgsHeadRoutes"); 
+const pplsHeadRoutes = require("./routes/pplsHeadRoutes"); 
+const reportsRoutes = require("./routes/reportsRoutes"); 
 
 const app = express();
 
@@ -17,25 +17,25 @@ app.use(express.json());
 
 app.get("/", (req, res) => res.send("Backend running!"));
 
+// Debugging middleware to log incoming requests
+app.use((req, res, next) => {
+  console.log(`[DEBUG] Incoming request: ${req.method} ${req.url}`);
+  next();
+});
+
 // Existing routes
 app.use("/api", authRoutes);
 app.use("/api", requestRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reportRoutes);
-
-// ✅ Dept Head routes
-app.use("/api/depthead", deptHeadRoutes);
-
-// ✅ PPGS Head routes
+app.use("/api/depthead", (req, res, next) => {
+  console.log(`[DEBUG] DeptHead route hit: ${req.method} ${req.url}`);
+  next();
+}, deptHeadRoutes);
 app.use("/api/ppgshead", ppgsHeadRoutes);
-
-// ✅ PPLS Head routes
 app.use("/api/pplshead", pplsHeadRoutes);
-
-// ✅ Reports routes
 app.use("/api/reports", reportsRoutes);
 
-// Debug unmatched routes
 app.use((req, res) => {
   console.log(`[DEBUG] Unmatched route: ${req.method} ${req.url}`);
   res.status(404).send("Route not found");

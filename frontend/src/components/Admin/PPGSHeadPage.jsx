@@ -11,15 +11,16 @@ const PPGSHeadPage = () => {
         const res = await axios.get("http://localhost:5000/api/ppgshead/approved-requests");
         let allRequests = res.data.sort((a, b) => a.id - b.id);
 
-        // Load all noted requests from localStorage
-        const storedRequests = JSON.parse(localStorage.getItem("newNotedRequests")) || [];
-        storedRequests.forEach(sr => {
-          if (!allRequests.find(r => r.id === sr.id)) {
-            allRequests.unshift(sr);
+        // Load all noted requests stored from Dept Head
+        const storedRequests = JSON.parse(localStorage.getItem("notedRequests")) || [];
+
+        storedRequests.forEach(stored => {
+          if (!allRequests.find(r => r.id === stored.id)) {
+            allRequests.push(stored);
           }
         });
 
-        setRequests(allRequests);
+        setRequests(allRequests.sort((a, b) => a.id - b.id));
       } catch (err) {
         console.error("Error fetching requests:", err);
       }
@@ -33,10 +34,9 @@ const PPGSHeadPage = () => {
       await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/approve`);
       setRequests(prev => prev.filter(req => req.id !== id));
 
-      // Remove approved request from localStorage
-      const storedRequests = JSON.parse(localStorage.getItem("newNotedRequests")) || [];
-      const remaining = storedRequests.filter(r => r.id !== id);
-      localStorage.setItem("newNotedRequests", JSON.stringify(remaining));
+      let stored = JSON.parse(localStorage.getItem("notedRequests")) || [];
+      stored = stored.filter(r => r.id !== id);
+      localStorage.setItem("notedRequests", JSON.stringify(stored));
     } catch (err) {
       console.error("Error approving request:", err);
     }
@@ -47,9 +47,9 @@ const PPGSHeadPage = () => {
       await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/reject`);
       setRequests(prev => prev.filter(req => req.id !== id));
 
-      const storedRequests = JSON.parse(localStorage.getItem("newNotedRequests")) || [];
-      const remaining = storedRequests.filter(r => r.id !== id);
-      localStorage.setItem("newNotedRequests", JSON.stringify(remaining));
+      let stored = JSON.parse(localStorage.getItem("notedRequests")) || [];
+      stored = stored.filter(r => r.id !== id);
+      localStorage.setItem("notedRequests", JSON.stringify(stored));
     } catch (err) {
       console.error("Error rejecting request:", err);
     }
@@ -81,8 +81,18 @@ const PPGSHeadPage = () => {
                 <p><strong>Noted By:</strong> {req.noted_by}</p>
 
                 <div className="mt-4 flex gap-2">
-                  <button onClick={() => handleApprove(req.id)} className="bg-green-600 hover:bg-green-700 px-4 py-2 text-white rounded">Approve</button>
-                  <button onClick={() => handleReject(req.id)} className="bg-red-600 hover:bg-red-700 px-4 py-2 text-white rounded">Reject</button>
+                  <button
+                    onClick={() => handleApprove(req.id)}
+                    className="bg-green-600 hover:bg-green-700 px-4 py-2 text-white rounded"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(req.id)}
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 text-white rounded"
+                  >
+                    Reject
+                  </button>
                 </div>
               </div>
             ))}

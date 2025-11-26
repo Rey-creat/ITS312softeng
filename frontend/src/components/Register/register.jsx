@@ -6,25 +6,31 @@ import logo from "../images/logo.png";
 
 export default function Register() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ fullname: "", email: "", password: "", role: "" });
+  const [formData, setFormData] = useState({ fullname: "", email: "", password: "", role: "admin", department: "", profile_picture: null });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
+    const { name, value, files } = e.target;
+    if (name === "profile_picture") {
+      setFormData({ ...formData, profile_picture: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+    if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const { fullname, email, password, role } = formData;
+    const { fullname, email, password, role, department, profile_picture } = formData;
     const newErrors = {};
     if (!fullname) newErrors.fullname = "Fullname required";
     if (!email) newErrors.email = "Email required";
     if (!password) newErrors.password = "Password required";
     if (!role) newErrors.role = "Role required";
+    if (!department) newErrors.department = "Department required";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -32,8 +38,20 @@ export default function Register() {
       return;
     }
 
+    const formDataToSend = new FormData();
+    formDataToSend.append("fullname", fullname);
+    formDataToSend.append("email", email);
+    formDataToSend.append("password", password);
+    formDataToSend.append("role", role);
+    formDataToSend.append("department", department);
+    if (profile_picture) {
+      formDataToSend.append("profile_picture", profile_picture);
+    }
+
     try {
-      await axios.post("http://localhost:5000/api/register", formData);
+      await axios.post("http://localhost:5000/api/register", formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert("Registered successfully!");
       navigate("/login");
     } catch (err) {
@@ -106,15 +124,32 @@ export default function Register() {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
               required
+              className="w-full px-3 py-2 border rounded-md"
             >
-              <option value="">-- Choose role --</option>
-              <option value="Admin">Admin</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Staff">Staff</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="teacher">Teacher</option>
             </select>
             {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
+
+            <input
+              name="department"
+              placeholder="Department"
+              value={formData.department}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+            {errors.department && <p className="text-red-500 text-sm mt-1">{errors.department}</p>}
+
+            <input
+              name="profile_picture"
+              type="file"
+              accept="image/*"
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+            />
 
             {/* Submit button - Adjusted classNames to match Login.jsx style */}
             <button

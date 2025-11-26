@@ -1,3 +1,5 @@
+// DEPT
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AdminSidebar from "./AdminSidebar";
@@ -12,7 +14,6 @@ const DeptHeadPage = () => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
 
-  // Fetch all requests
   const fetchRequests = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/depthead/all-requests");
@@ -22,7 +23,6 @@ const DeptHeadPage = () => {
     }
   };
 
-  // Submit noted by
   const handleNotedBySubmit = async (e) => {
     e.preventDefault();
     if (!notedBy.trim()) {
@@ -38,27 +38,26 @@ const DeptHeadPage = () => {
       );
 
       const updatedRequest = requests.find(req => req.id === currentRequestId);
-      const notedRequest = { ...updatedRequest, noted_by: notedBy };
 
-      // Remove from local state
       setRequests(prev => prev.filter(req => req.id !== currentRequestId));
 
-      // Save to localStorage array
-      const existing = JSON.parse(localStorage.getItem("newNotedRequests")) || [];
-      localStorage.setItem("newNotedRequests", JSON.stringify([...existing, notedRequest]));
+      // Save array of noted requests
+      const notedRequest = { ...updatedRequest, noted_by: notedBy };
+      const existing = JSON.parse(localStorage.getItem("notedRequests")) || [];
+      const updatedList = [...existing, notedRequest];
 
-      // Success feedback
+      localStorage.setItem("notedRequests", JSON.stringify(updatedList));
+
       setFeedbackMessage("Request noted successfully.");
       setFeedbackType("success");
 
-      // Navigate to PPGSHeadPage
-      navigate("/PPGSHeadPage");
-
-      // Reset modal
       setShowModal(false);
-      setCurrentRequestId(null);
       setNotedBy("");
+      setCurrentRequestId(null);
+
       setTimeout(() => setFeedbackMessage(""), 3000);
+
+      navigate("/PPGSHeadPage");
 
     } catch (err) {
       console.error("Error updating noted_by:", err);
@@ -72,7 +71,11 @@ const DeptHeadPage = () => {
   }, []);
 
   const formatDate = (date) =>
-    new Date(date).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    new Date(date).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
 
   return (
     <div className="flex h-screen">
@@ -101,7 +104,10 @@ const DeptHeadPage = () => {
                 <p><strong>Noted By:</strong> {req.noted_by || "—"}</p>
 
                 <button
-                  onClick={() => { setCurrentRequestId(req.id); setShowModal(true); }}
+                  onClick={() => {
+                    setCurrentRequestId(req.id);
+                    setShowModal(true);
+                  }}
                   className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
                 >
                   Add Noted By
@@ -126,9 +132,21 @@ const DeptHeadPage = () => {
                 autoFocus
                 required
               />
+
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowModal(false)} className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Cancel</button>
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Submit</button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
+                  Submit
+                </button>
               </div>
             </form>
           </div>

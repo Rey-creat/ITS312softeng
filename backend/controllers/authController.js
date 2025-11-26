@@ -1,23 +1,41 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 const SECRET = process.env.JWT_SECRET || "YOUR_SECRET_KEY";
 
 // Store active sessions
 const activeSessions = new Map();
 
+// Updated register function to handle multipart/form-data
 exports.register = async (req, res) => {
-  const { fullname, email, password, role } = req.body;
-  if (!fullname || !email || !password || !role) return res.status(400).json({ message: "All fields required" });
+  const { fullname, email, password, role, department } = req.body;
+  const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
+
+  console.log("[DEBUG] Register request body:", req.body);
+  console.log("[DEBUG] Uploaded profile picture path:", profile_picture);
+
+  if (!fullname || !email || !password || !role || !department) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
   try {
-    const hashed = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const query = `
+      INSERT INTO users (fullname, email, password, role, department, profile_picture)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
     db.query(
-      "INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, ?)",
-      [fullname, email, hashed, role],
+      query,
+      [fullname, email, hashedPassword, role, department, profile_picture],
       (err, result) => {
-        if (err) return res.status(500).json({ message: "DB error", error: err });
+        if (err) {
+          console.error("[ERROR] Registration failed:", err);
+          return res.status(500).json({ message: "Registration failed." });
+        }
 
         const userId = result.insertId;
         const token = jwt.sign(
@@ -42,12 +60,15 @@ exports.register = async (req, res) => {
             fullname,
             email,
             role,
+            department,
+            profile_picture,
           },
         });
       }
     );
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
+    console.error("[ERROR] Hashing password failed:", err);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -86,6 +107,7 @@ exports.login = (req, res) => {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
+        profile_picture: user.profile_picture,
       },
       sessionInfo: {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),

@@ -2,7 +2,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Sidebar({ role }) {
+export default function Sidebar({ role, profilePicture, fullname }) {
   const navigate = useNavigate();
 
   // Sidebar menu items for Teachers, Faculty, and Staff
@@ -36,10 +36,18 @@ export default function Sidebar({ role }) {
 
   return (
     <div className="h-screen w-80 bg-blue-600 text-white flex flex-col">
-      {/* Logo / Title */}
+      {/* Profile Picture and Name */}
       <div className="p-6 text-center border-b border-blue-700">
-        <h1 className="text-xl font-bold">School Facilities</h1>
-        <p className="text-sm">Repair Management System</p>
+        {profilePicture ? (
+          <img
+            src={profilePicture}
+            alt="Profile"
+            className="mx-auto h-24 w-24 rounded-full mb-2"
+          />
+        ) : (
+          <div className="h-24 w-24 bg-gray-300 rounded-full mx-auto mb-2"></div>
+        )}
+        <h1 className="text-xl font-bold">{fullname || "User"}</h1>
         <p className="mt-1 text-gray-300 font-bold">Role: {role}</p>
       </div>
 

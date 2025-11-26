@@ -85,13 +85,17 @@ export default function MyRequest() {
   const handleUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5000/api/requests/${form.id}`, {
-        date_needed: form.date_needed,
-        type_of_concern: form.type_of_concern,
-        description: form.description,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.put(
+        `http://localhost:5000/api/requests/${form.id}`,
+        {
+          date_needed: form.date_needed,
+          type_of_concern: form.type_of_concern,
+          description: form.description,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       alert("Request updated successfully!");
       setEditing(false);
       fetchDashboard();
@@ -116,7 +120,6 @@ export default function MyRequest() {
     <div className="flex h-screen">
       <Sidebar role={user.role} />
       <div className="flex-1 bg-gray-100 p-6 overflow-auto">
-
         {/* HEADER */}
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800">My Requests</h1>
@@ -127,9 +130,13 @@ export default function MyRequest() {
           <table className="min-w-full border-collapse">
             <thead>
               <tr className="bg-gray-100 text-gray-700 text-left text-sm uppercase tracking-wider">
-                <th className="px-6 py-3 font-semibold whitespace-nowrap">Reference Code</th>
+                <th className="px-6 py-3 font-semibold whitespace-nowrap">
+                  Reference Code
+                </th>
                 <th className="px-6 py-3 font-semibold">Date Filed</th>
-                <th className="px-6 py-3 font-semibold whitespace-nowrap">Date Needed</th>
+                <th className="px-6 py-3 font-semibold whitespace-nowrap">
+                  Date Needed
+                </th>
                 <th className="px-6 py-3 font-semibold">Concern</th>
                 <th className="px-6 py-3 font-semibold">Description</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
@@ -139,7 +146,10 @@ export default function MyRequest() {
             <tbody>
               {stats.recent.length > 0 ? (
                 stats.recent.map((req) => (
-                  <tr key={req.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={req.id}
+                    className="border-t hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
                       {req.reference_code || `REQ-${req.id}`}
                     </td>
@@ -149,8 +159,10 @@ export default function MyRequest() {
                     <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
                       {formatShortDate(req.date_needed)}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{req.type_of_concern}</td>
-                    <td className="px-6 py-4 text-gray-700 break-words max-w-xs">
+                    <td className="px-6 py-4 text-gray-700">
+                      {req.type_of_concern}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 break-word max-w-xs">
                       {req.description.split(" ").slice(0, 10).join(" ")}
                       {req.description.split(" ").length > 10 && "…"}
                     </td>
@@ -198,7 +210,10 @@ export default function MyRequest() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-6 text-gray-500 italic">
+                  <td
+                    colSpan="7"
+                    className="text-center py-6 text-gray-500 italic"
+                  >
                     No requests found.
                   </td>
                 </tr>
@@ -236,7 +251,9 @@ export default function MyRequest() {
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium">Type of Concern:</label>
+                  <label className="block mb-1 font-medium">
+                    Type of Concern:
+                  </label>
                   <select
                     name="type_of_concern"
                     value={form.type_of_concern}
@@ -278,7 +295,6 @@ export default function MyRequest() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

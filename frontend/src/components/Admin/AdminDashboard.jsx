@@ -85,40 +85,40 @@ export default function AdminDashboard() {
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar role="Admin" />
 
-      <div className="flex-1 bg-gray-50 p-4 flex flex-col overflow-hidden">
-        <header className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-sm text-gray-600">
+      <div className="flex-1 bg-gray-100 p-6 flex flex-col overflow-hidden"> {/* Updated background color and padding */}
+        <header className="mb-6"> {/* Adjusted margin for consistency */}
+          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1> {/* Updated text size */}
+          <p className="text-gray-700">
             Welcome, <span className="font-semibold text-blue-500">{user?.fullname}</span>!
           </p>
         </header>
 
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          <div className="bg-white shadow rounded p-4 text-center border border-gray-200">
-            <p className="text-sm text-gray-500 font-medium">Total Requests</p>
-            <p className="text-2xl font-bold text-blue-500">{stats.total}</p>
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6"> {/* Adjusted grid layout */}
+          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200"> {/* Updated card styling */}
+            <p className="text-gray-600 font-medium">Total Requests</p>
+            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
           </div>
 
-          <div className="bg-white shadow rounded p-4 text-center border border-gray-200">
-            <p className="text-sm text-gray-500 font-medium">Pending</p>
-            <p className="text-2xl font-bold text-yellow-400">{stats.pending}</p>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
+            <p className="text-gray-600 font-medium">Pending</p>
+            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
           </div>
 
-          <div className="bg-white shadow rounded p-4 text-center border border-gray-200">
-            <p className="text-sm text-gray-500 font-medium">Completed</p>
-            <p className="text-2xl font-bold text-green-500">{stats.completed}</p>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
+            <p className="text-gray-600 font-medium">Completed</p>
+            <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
           </div>
 
-          <div className="bg-white shadow rounded p-4 text-center border border-gray-200">
-            <p className="text-sm text-gray-500 font-medium">Rejected</p>
-            <p className="text-2xl font-bold text-red-500">{stats.rejected}</p>
+          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
+            <p className="text-gray-600 font-medium">Rejected</p>
+            <p className="text-3xl font-bold text-red-600">{stats.rejected}</p>
           </div>
         </section>
 
-        <section className="flex-1 overflow-y-auto">
-          <h2 className="text-lg font-bold mb-2 text-gray-800">All User Requests</h2>
+        <section className="flex-1 overflow-y-auto pr-3"> {/* Added padding for scrollable section */}
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">All User Requests</h2>
 
-          <div className="bg-white shadow rounded">
+          <div className="space-y-4"> {/* Updated spacing for requests */}
             {allRequests.length > 0 ? (
               <table className="w-full text-sm">
                 <thead className="bg-gray-200">
@@ -131,25 +131,28 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {allRequests.map((req) => (
-                    <tr key={req.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 text-gray-800">{req.id}</td>
-                      <td className="px-3 py-2 text-gray-800">{req.requested_by}</td>
-                      <td className="px-3 py-2 text-gray-800">{req.type_of_concern}</td>
-                      <td className="px-3 py-2 text-gray-800">{formatDate(req.date_filed)}</td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`px-2 py-1 rounded text-white text-xs font-medium ${{
-                            Pending: "bg-yellow-400",
-                            Completed: "bg-green-500",
-                            Rejected: "bg-red-500",
-                          }[req.status]}`}
-                        >
-                          {req.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {allRequests
+                    .sort((a, b) => b.id - a.id) // Sort requests by ID in descending order
+                    .map((req) => (
+                      <tr key={req.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 text-gray-800">{req.id}</td>
+                        <td className="px-3 py-2 text-gray-800">{req.requested_by}</td>
+                        <td className="px-3 py-2 text-gray-800">{req.type_of_concern}</td>
+                        <td className="px-3 py-2 text-gray-800">{formatDate(req.date_filed)}</td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`px-2 py-1 rounded text-white text-xs font-medium ${{
+                              Pending: "bg-yellow-600",
+                              Completed: "bg-green-500",
+                              Rejected: "bg-red-500",
+                              Approved: "bg-blue-700",
+                            }[req.status]}`}
+                          >
+                            {req.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             ) : (

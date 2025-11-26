@@ -1,8 +1,9 @@
-// Sidebar.jsx
+// AdminSidebar.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FaTachometerAlt, FaUserTie, FaUserGraduate, FaCrown, FaPlusCircle, FaListAlt, FaChartBar } from "react-icons/fa"; // Import icons
 
-export default function Sidebar() {
+export default function AdminSidebar() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const role = user.role || "User";
@@ -10,19 +11,25 @@ export default function Sidebar() {
   // Define menu items for each role
   const roleMenus = {
     Admin: [
-      { name: "Dashboard", path: "/AdminDashboard" },
-      { name: "Dept. Office Head", path: "/DeptHeadPage" },
-      { name: "Head of PPGS", path: "/PPGSHeadPage" },
-      { name: "School President", path: "/President" },
+      { name: "Dashboard", path: "/AdminDashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Dept. Office Head", path: "/DeptHeadPage", icon: <FaUserTie className="inline mr-3 text-white" /> },
+      { name: "Head of PPGS", path: "/PPGSHeadPage", icon: <FaUserGraduate className="inline mr-3 text-white" /> },
+      { name: "School President", path: "/President", icon: <FaCrown className="inline mr-3 text-white" /> },
     ],
-    DeptHead: [{ name: "Dashboard", path: "/DeptHeadPage" }],
-    PPGSHead: [{ name: "Dashboard", path: "/PPGSHeadPage" }],
-    President: [{ name: "Dashboard", path: "/President" }],
+    DeptHead: [
+      { name: "Dashboard", path: "/DeptHeadPage", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+    ],
+    PPGSHead: [
+      { name: "Dashboard", path: "/PPGSHeadPage", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+    ],
+    President: [
+      { name: "Dashboard", path: "/President", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+    ],
     User: [
-      { name: "Dashboard", path: "/dashboard" },
-      { name: "Create Request", path: "/createRequest" },
-      { name: "My Requests", path: "/myRequest" },
-      { name: "Reports", path: "/reports" },
+      { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="inline mr-3 text-white" /> },
+      { name: "My Requests", path: "/myRequest", icon: <FaListAlt className="inline mr-3 text-white" /> },
+      { name: "Reports", path: "/reports", icon: <FaChartBar className="inline mr-3 text-white" /> },
     ],
   };
 
@@ -49,7 +56,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-screen w-80 bg-blue-600 text-white flex flex-col">
+    <div className="h-screen w-65 bg-blue-700 text-white flex flex-col">
       {/* Logo / Title */}
       <div className="p-6 text-center border-b border-blue-700">
         <h1 className="text-xl font-bold">School Facilities</h1>
@@ -60,11 +67,12 @@ export default function Sidebar() {
       {/* Navigation Links */}
       <nav className="flex-1 p-4">
         {menu.map((item, index) => (
-          <div key={index} className="mb-4">
+          <div key={index} className="mb-7"> {/* Adjusted gap to match Sidebar */}
             <Link
               to={item.path}
-              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-lg"
+              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center" /* Adjusted text size to match Sidebar */
             >
+              {item.icon} {/* Icons already match Sidebar */}
               {item.name}
             </Link>
           </div>

@@ -84,10 +84,9 @@ export default function Dashboard() {
 
       {/* RIGHT PANEL */}
       <div className="flex-1 bg-gray-100 p-6 flex flex-col overflow-hidden">
-
         {/* HEADER */}
         <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
           <p className="text-gray-700">
             Welcome, <span className="font-semibold">{user.fullname}</span>!
           </p>
@@ -97,28 +96,38 @@ export default function Dashboard() {
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
             <p className="text-gray-600 font-medium">Total Requests</p>
-            <p className="text-3xl font-bold text-gray-900">{stats.counts.total}</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {stats.counts.total}
+            </p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
             <p className="text-gray-600 font-medium">Pending</p>
-            <p className="text-3xl font-bold text-yellow-600">{stats.counts.pending}</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {stats.counts.pending}
+            </p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
             <p className="text-gray-600 font-medium">Completed</p>
-            <p className="text-3xl font-bold text-green-600">{stats.counts.completed}</p>
+            <p className="text-3xl font-bold text-green-600">
+              {stats.counts.completed}
+            </p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
             <p className="text-gray-600 font-medium">Rejected</p>
-            <p className="text-3xl font-bold text-red-600">{stats.counts.rejected}</p>
+            <p className="text-3xl font-bold text-red-600">
+              {stats.counts.rejected}
+            </p>
           </div>
         </section>
 
         {/* RECENT REQUESTS — SCROLLABLE */}
         <section className="flex-1 overflow-y-auto pr-3">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Recent Requests</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+            Recent Requests
+          </h2>
 
           <div className="space-y-4">
             {stats.recent.length > 0 ? (

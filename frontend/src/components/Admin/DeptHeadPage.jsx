@@ -81,7 +81,7 @@ const DeptHeadPage = () => {
     <div className="flex h-screen">
       <AdminSidebar />
       <div className={`flex-1 p-6 bg-gray-100 overflow-y-auto ${showModal ? "blur-sm" : ""}`}>
-        <h1 className="text-2xl font-bold mb-4">Department Office Head</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Department Head</h1>
 
         {feedbackMessage && (
           <div className={`p-4 mb-4 rounded ${feedbackType === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
@@ -92,26 +92,28 @@ const DeptHeadPage = () => {
         {requests.length === 0 ? (
           <p>No requests available</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"> {/* Adjusted gap and margin for better spacing */}
             {requests.map(req => (
-              <div key={req.id} className="bg-white shadow rounded p-4">
-                <h2 className="text-lg font-bold mb-2">Request #{req.id}</h2>
-                <p><strong>Date Filed:</strong> {formatDate(req.date_filed)}</p>
-                <p><strong>Date Needed:</strong> {formatDate(req.date_needed)}</p>
-                <p><strong>Type:</strong> {req.type_of_concern}</p>
-                <p><strong>Description:</strong> {req.description}</p>
-                <p><strong>Requested By:</strong> {req.requested_by}</p>
-                <p><strong>Noted By:</strong> {req.noted_by || "—"}</p>
+              <div key={req.id} className="bg-white shadow-lg rounded-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow"> {/* Enhanced shadow and border */}
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Request #{req.id}</h2> {/* Adjusted text size and color */}
+                <p className="text-sm text-gray-900 mb-2"><strong>Date Filed:</strong> {formatDate(req.date_filed)}</p>
+                <p className="text-sm text-gray-900 mb-2"><strong>Date Needed:</strong> {formatDate(req.date_needed)}</p>
+                <p className="text-sm text-gray-900 mb-2"><strong>Type:</strong> {req.type_of_concern}</p>
+                <p className="text-sm text-gray-900 mb-2"><strong>Description:</strong> {req.description}</p>
+                <p className="text-sm text-gray-900 mb-2"><strong>Requested By:</strong> {req.requested_by}</p>
+                <p className="text-sm text-gray-900 mb-4"><strong>Noted By:</strong> {req.noted_by || "—"}</p>
 
-                <button
-                  onClick={() => {
-                    setCurrentRequestId(req.id);
-                    setShowModal(true);
-                  }}
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                >
-                  Add Noted By
-                </button>
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={() => {
+                      setCurrentRequestId(req.id);
+                      setShowModal(true);
+                    }}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition"
+                  >
+                    Add Noted By
+                  </button>
+                </div>
               </div>
             ))}
           </div>

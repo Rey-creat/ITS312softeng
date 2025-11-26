@@ -20,8 +20,7 @@ exports.getDashboardStats = (req, res) => {
     FROM requests
     WHERE user_id = ?
     ORDER BY created_at DESC
-    LIMIT 5
-  `;
+  `; // Removed LIMIT 5 to return all requests
 
   db.query(countsQuery, [userId], (err, countsResult) => {
     if (err) {

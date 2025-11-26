@@ -1,16 +1,17 @@
 // Sidebar.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FaTachometerAlt, FaPlusCircle, FaListAlt, FaChartBar } from "react-icons/fa"; // Import icons
 
 export default function Sidebar({ role, profilePicture, fullname }) {
   const navigate = useNavigate();
 
   // Sidebar menu items for Teachers, Faculty, and Staff
   const menu = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Create Request", path: "/createRequest" },
-    { name: "My Requests", path: "/myRequest" },
-    { name: "Reports", path: "/reports" },
+    { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+    { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="inline mr-3 text-white" /> },
+    { name: "My Requests", path: "/myRequest", icon: <FaListAlt className="inline mr-3 text-white" /> },
+    { name: "Reports", path: "/reports", icon: <FaChartBar className="inline mr-3 text-white" /> },
   ];
 
   // Logout handler
@@ -35,7 +36,7 @@ export default function Sidebar({ role, profilePicture, fullname }) {
   };
 
   return (
-    <div className="h-screen w-80 bg-blue-600 text-white flex flex-col">
+    <div className="h-screen w-65 bg-blue-700 text-white flex flex-col">
       {/* Profile Picture and Name */}
       <div className="p-6 text-center border-b border-blue-700">
         {profilePicture ? (
@@ -45,9 +46,9 @@ export default function Sidebar({ role, profilePicture, fullname }) {
             className="mx-auto h-24 w-24 rounded-full mb-2"
           />
         ) : (
-          <div className="h-24 w-24 bg-gray-300 rounded-full mx-auto mb-2"></div>
+          <div className="h-30 w-30 bg-white rounded-full mx-auto mb-2"></div>
         )}
-        <h1 className="text-xl font-bold">{fullname || "User"}</h1>
+        <h1 className="text-xl font-bold">{fullname}</h1> {/* Removed default 'User' fallback */}
         <p className="mt-1 text-gray-300 font-bold">Role: {role}</p>
       </div>
 
@@ -57,8 +58,9 @@ export default function Sidebar({ role, profilePicture, fullname }) {
           <div key={index} className="mb-7">
             <Link
               to={item.path}
-              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl" // bigger font
+              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center"
             >
+              {item.icon} {/* Add icon */}
               {item.name}
             </Link>
           </div>

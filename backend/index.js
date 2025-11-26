@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
 const authRoutes = require("./routes/authRoutes");
 const requestRoutes = require("./routes/requestRoutes");
@@ -8,12 +10,13 @@ const reportRoutes = require("./routes/reportRoutes");
 const deptHeadRoutes = require("./routes/deptHeadRoutes"); 
 const ppgsHeadRoutes = require("./routes/ppgsHeadRoutes"); 
 const pplsHeadRoutes = require("./routes/pplsHeadRoutes"); 
-const reportsRoutes = require("./routes/reportsRoutes"); 
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(upload.single("profile_picture"));
 
 app.get("/", (req, res) => res.send("Backend running!"));
 
@@ -34,7 +37,6 @@ app.use("/api/depthead", (req, res, next) => {
 }, deptHeadRoutes);
 app.use("/api/ppgshead", ppgsHeadRoutes);
 app.use("/api/pplshead", pplsHeadRoutes);
-app.use("/api/reports", reportsRoutes);
 
 app.use((req, res) => {
   console.log(`[DEBUG] Unmatched route: ${req.method} ${req.url}`);

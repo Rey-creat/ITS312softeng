@@ -8,6 +8,7 @@ router.get("/all-requests", deptHeadController.getAllRequests);
 // ADD 'Noted By' to a request
 router.put("/requests/:id/noted", (req, res, next) => {
   console.log(`[DEBUG] PUT /requests/${req.params.id}/noted hit`);
+  console.log(`[DEBUG] Request body:`, req.body);
   next();
 }, deptHeadController.addNotedBy);
 

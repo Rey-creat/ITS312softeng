@@ -28,10 +28,7 @@ app.use("/api", authRoutes);
 app.use("/api", requestRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reportRoutes);
-app.use("/api/depthead", (req, res, next) => {
-  console.log(`[DEBUG] DeptHead route hit: ${req.method} ${req.url}`);
-  next();
-}, deptHeadRoutes);
+app.use("/api/depthead", deptHeadRoutes);
 app.use("/api/ppgshead", ppgsHeadRoutes);
 app.use("/api/pplshead", pplsHeadRoutes);
 app.use("/api/reports", reportsRoutes);

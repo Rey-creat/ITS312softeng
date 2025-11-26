@@ -26,7 +26,7 @@ exports.addNotedBy = (req, res) => {
 
   console.log(`[DEBUG] addNotedBy called with ID: ${id}, Noted By: ${noted_by}`);
 
-  if (!noted_by) {
+  if (!noted_by || !noted_by.trim()) {
     console.log("[DEBUG] 'Noted By' field is missing");
     return res.status(400).json({ message: "'Noted By' field is required" });
   }

@@ -3,6 +3,7 @@ import Sidebar from "../Sidebar/sidebar.jsx";
 import axios from "axios";
 
 export default function Reports() {
+  const [user, setUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,23 +22,34 @@ export default function Reports() {
     }
   };
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true);
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/reports", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setReports(res.data || []);
-      } catch (err) {
-        console.error("Failed to fetch report:", err);
-        setReports([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch Requests instead of Reports
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      setUser(currentUser);
 
+      const res = await axios.get("http://localhost:5000/api/requests", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setReports(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch requests:", err);
+
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchReports();
   }, []);
 
@@ -50,7 +62,8 @@ export default function Reports() {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <Sidebar role="Teacher" />
+      <Sidebar role={user?.role} />
+
       <div className="flex-1 p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -60,17 +73,19 @@ export default function Reports() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white shadow-md rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-700">Total Reports</h2>
+            <h2 className="text-lg font-semibold text-gray-700">Total Requests</h2>
             <p className="text-4xl font-bold text-blue-600 mt-2">
               {reports.length}
             </p>
           </div>
+
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-700">Completed</h2>
             <p className="text-4xl font-bold text-green-600 mt-2">
               {reports.filter((r) => r.status === "Completed").length}
             </p>
           </div>
+
           <div className="bg-white shadow-md rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-700">Rejected</h2>
             <p className="text-4xl font-bold text-red-600 mt-2">
@@ -79,7 +94,7 @@ export default function Reports() {
           </div>
         </div>
 
-        {/* Table Section */}
+        {/* Table */}
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="w-full text-sm text-left text-gray-700">
             <thead className="bg-gray-100 uppercase text-xs font-semibold tracking-wider text-gray-600">
@@ -88,23 +103,29 @@ export default function Reports() {
                 <th className="px-6 py-3">Filed By</th>
                 <th className="px-6 py-3">Concern</th>
                 <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3">Approved By</th>
+                <th className="px-6 py-3">Date Filed</th>
               </tr>
             </thead>
+
             <tbody>
               {reports.length > 0 ? (
                 reports.map((report) => (
                   <tr
-                    key={report.id || report._id}
+                    key={report.id}
                     className="border-t hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 font-medium text-gray-800">
-                      {report.referenceCode || `REQ-${report.id || report._id}`}
+                      {report.reference_code || `REQ-${report.id}`}
                     </td>
+
                     <td className="px-6 py-4 text-gray-600">
-                      {report.filedBy || ""}
+                      {report.requested_by || "—"}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{report.concern || ""}</td>
+
+                    <td className="px-6 py-4 text-gray-600">
+                      {report.type_of_concern}
+                    </td>
+
                     <td className="px-6 py-4">
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
@@ -114,15 +135,16 @@ export default function Reports() {
                         {report.status}
                       </span>
                     </td>
+
                     <td className="px-6 py-4 text-gray-600">
-                      {report.approvedBy || ""}
+                      {new Date(report.date_filed).toLocaleDateString()}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-8 text-gray-500 italic">
-                    No reports available.
+                    No requests available.
                   </td>
                 </tr>
               )}

@@ -1,6 +1,12 @@
 const db = require("../db");
 
-const formatDate = (date) => date.toISOString().split("T")[0];
+const formatDate = (date) => {
+  if (!date) return "";
+  // If already a string, return as is
+  if (typeof date === "string") return date;
+  // If Date object, format as YYYY-MM-DD without timezone conversion
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 exports.getDashboardStats = (req, res) => {
   const userId = req.user.id; // Assuming user ID is available in req.user
@@ -8,15 +14,15 @@ exports.getDashboardStats = (req, res) => {
   const countsQuery = `
     SELECT
       COUNT(*) AS total,
-      SUM(CASE WHEN status='Pending' THEN 1 ELSE 0 END) AS pending,
-      SUM(CASE WHEN status='Completed' THEN 1 ELSE 0 END) AS completed,
-      SUM(CASE WHEN status='Rejected' THEN 1 ELSE 0 END) AS rejected
+      SUM(CASE WHEN ppgshead='Pending' THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN ppgshead='Completed' THEN 1 ELSE 0 END) AS completed,
+      SUM(CASE WHEN ppgshead='Rejected' THEN 1 ELSE 0 END) AS rejected
     FROM requests
     WHERE user_id = ?
   `;
 
   const recentQuery = `
-    SELECT id, type_of_concern, date_filed, date_needed, description, status
+    SELECT id, type_of_concern, date_filed, date_needed, description, ppgshead
     FROM requests
     WHERE user_id = ?
     ORDER BY created_at DESC

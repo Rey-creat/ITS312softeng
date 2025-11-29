@@ -17,6 +17,9 @@ router.get("/requests", verifyToken, getRequests);
 // UPDATE - Protected
 router.put("/requests/:id", verifyToken, updateRequest);
 
+// PRESIDENT DECISION - Protected
+router.put("/requests/:id/president", verifyToken, require("../controllers/requestController").setPresidentDecision);
+
 // DELETE - Protected
 router.delete("/requests/:id", verifyToken, deleteRequest);
 

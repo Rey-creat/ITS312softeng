@@ -3,9 +3,9 @@ const db = require("../db");
 // GET all approved requests for PPGS Head
 exports.getApprovedRequests = (req, res) => {
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status
+    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead
     FROM requests
-    WHERE status = 'Approved'
+    WHERE ppgshead = 'Approved'
     ORDER BY date_filed ASC
   `;
 
@@ -18,7 +18,7 @@ exports.getApprovedRequests = (req, res) => {
 // APPROVE a request
 exports.approveRequest = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Approved' WHERE id = ?`;
+  const query = `UPDATE requests SET ppgshead = 'Approved' WHERE id = ?`;
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
     if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
@@ -29,7 +29,7 @@ exports.approveRequest = (req, res) => {
 // REJECT a request
 exports.rejectRequest = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Rejected' WHERE id = ?`;
+  const query = `UPDATE requests SET ppgshead = 'Rejected' WHERE id = ?`;
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
     if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
@@ -40,7 +40,7 @@ exports.rejectRequest = (req, res) => {
 // UPDATE request status to 'In Progress'
 exports.markInProgress = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET status = 'In Progress' WHERE id = ?`;
+  const query = `UPDATE requests SET ppgshead = 'In Progress' WHERE id = ?`;
 
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
@@ -52,7 +52,7 @@ exports.markInProgress = (req, res) => {
 // UPDATE request status to 'Completed'
 exports.markCompleted = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET status = 'Completed' WHERE id = ?`;
+  const query = `UPDATE requests SET ppgshead = 'Completed' WHERE id = ?`;
 
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });

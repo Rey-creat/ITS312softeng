@@ -48,6 +48,7 @@ app.use("/api/ppgshead", (req, res, next) => {
   next();
 });
 app.use("/api/ppgshead", ppgsHeadRoutes);
+// app.use("/api/president", require("./routes/presidentRoutes"));
 
 // PPLS Head routes
 app.use("/api/pplshead", (req, res, next) => {

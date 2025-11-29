@@ -4,7 +4,7 @@ const db = require("../db");
 exports.getAllRequests = (req, res) => {
   console.log("[DEBUG] getAllRequests endpoint hit"); // Debug log
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by
+    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by
     FROM requests
     ORDER BY date_filed ASC
   `;

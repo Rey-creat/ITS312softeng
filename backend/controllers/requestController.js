@@ -1,7 +1,31 @@
+// PRESIDENT DECISION ENDPOINT
+exports.setPresidentDecision = (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  if (!status) {
+    return res.status(400).json({ message: "President decision required" });
+  }
+  db.query(
+    "UPDATE requests SET status = ? WHERE id = ?",
+    [status, id],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+      db.query("SELECT * FROM requests WHERE id = ?", [id], (err2, rows) => {
+        if (err2) return res.status(500).json({ message: "DB error", error: err2 });
+        res.status(200).json({ message: "President decision updated", request: rows[0] });
+      });
+    }
+  );
+};
 const db = require("../db");
 
 // Helper to format date as YYYY-MM-DD
-const formatDate = (date) => date.toISOString().split("T")[0];
+const formatDate = (date) => {
+  if (!date) return "";
+  if (typeof date === "string") return date;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 // FETCH ALL REQUESTS
 exports.getRequests = (req, res) => {

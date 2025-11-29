@@ -8,6 +8,7 @@ const President = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(null); // For toast notification
 
   // Fetch only requests where ppgshead is Approved and status is Pending or not set
   useEffect(() => {
@@ -56,25 +57,34 @@ const President = () => {
         setDecision(decision);
         setRequests(prev => prev.filter(r => r.id !== id));
         setMessage("");
-        alert(`Request ${decision === "Approved" ? "Approved" : "Rejected"} by the School President`);
-        // Refresh the list to ensure UI is in sync
-        const refreshRes = await fetch("http://localhost:5000/api/requests", {
-          headers: { Authorization: `Bearer ${token}` },
+        // Always show notification immediately
+        setNotification({
+          type: decision === "Approved" ? "success" : "error",
+          message: `Request ${decision === "Approved" ? "approved" : "rejected"} successfully`,
         });
-        if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
-          setRequests(refreshData.filter(r => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)));
-        }
+        setTimeout(() => setNotification(null), 3000);
+        // Refresh the list to ensure UI is in sync, but do not block notification
+        fetch("http://localhost:5000/api/requests", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then(refreshRes => refreshRes.ok ? refreshRes.json() : [])
+          .then(refreshData => {
+            if (Array.isArray(refreshData)) {
+              setRequests(refreshData.filter(r => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)));
+            }
+          });
       } else {
         const errorMsg = result.message || "Failed to update request status. Please try again.";
         setError(errorMsg);
-        alert(errorMsg);
+        setNotification({ type: "error", message: errorMsg });
+        setTimeout(() => setNotification(null), 3000);
       }
     } catch (err) {
       console.error("Failed to update president decision:", err);
       const errorMsg = "Error updating request. Please check your connection and try again.";
       setError(errorMsg);
-      alert(errorMsg);
+      setNotification({ type: "error", message: errorMsg });
+      setTimeout(() => setNotification(null), 3000);
     } finally {
       setUpdating(false);
     }
@@ -95,10 +105,11 @@ const President = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-            <p className="font-medium">Error:</p>
-            <p>{error}</p>
+        {/* Success Notification Box - fixed position for visibility */}
+        {notification && notification.type === "success" && (
+          <div style={{position: 'fixed', top: 24, right: 24, zIndex: 9999}} className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md shadow-lg">
+            <p className="font-medium">Success:</p>
+            <p>{notification.message}</p>
           </div>
         )}
 

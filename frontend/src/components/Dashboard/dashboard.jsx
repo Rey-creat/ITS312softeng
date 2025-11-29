@@ -14,14 +14,18 @@ export default function Dashboard() {
   const location = useLocation();
 
   // Convert ISO date → Month Day, Year
-  const formatDate = (isoDate) => {
-    if (!isoDate) return "";
-    const date = new Date(isoDate);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  // Format YYYY-MM-DD to Month Day, Year (local, no timezone conversion)
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      return `${months[month - 1]} ${day}, ${year}`;
+    }
+    return dateString;
   };
 
   const fetchDashboard = async () => {

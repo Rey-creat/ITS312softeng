@@ -17,14 +17,20 @@ export default function CreateRequest() {
   const [submitting, setSubmitting] = useState(false);
 
   // FORMAT: Month Day, Year
+  // Format YYYY-MM-DD to Month Day, Year (local, no timezone conversion)
   const formatDatePretty = (dateString) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    // If dateString is YYYY-MM-DD, split and format manually
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      return `${months[month - 1]} ${day}, ${year}`;
+    }
+    // fallback for other formats
+    return dateString;
   };
 
   const handleChange = (e) => {

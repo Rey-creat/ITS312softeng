@@ -17,7 +17,9 @@ const DeptHeadPage = () => {
   const fetchRequests = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/depthead/all-requests");
-      setRequests(res.data.sort((a, b) => a.id - b.id));
+      // Only show requests where noted_by is null or 'Pending'
+      const filtered = res.data.filter(req => !req.noted_by || req.noted_by === "Pending");
+      setRequests(filtered.sort((a, b) => a.id - b.id));
     } catch (err) {
       console.error("Error fetching requests:", err);
     }

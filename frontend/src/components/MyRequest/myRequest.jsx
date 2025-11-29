@@ -19,13 +19,18 @@ export default function MyRequest() {
   });
 
   // Format ISO → MM/DD/YYYY
+  // Format YYYY-MM-DD to Month Day, Year (local, no timezone conversion)
   const formatShortDate = (dateString) => {
-    const date = new Date(dateString);
-    if (isNaN(date)) return "";
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+    if (!dateString) return "";
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      return `${months[month - 1]} ${day}, ${year}`;
+    }
+    return dateString;
   };
 
   const fetchDashboard = async () => {
@@ -139,7 +144,7 @@ export default function MyRequest() {
                 </th>
                 <th className="px-6 py-3 font-semibold">Concern</th>
                 <th className="px-6 py-3 font-semibold">Description</th>
-                <th className="px-6 py-3 font-semibold">Status</th>
+                <th className="px-6 py-3 font-semibold">PPGS Head Status</th>
                 <th className="px-6 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -169,16 +174,16 @@ export default function MyRequest() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-3 py-1 rounded text-sm font-medium ${
-                          req.status === "Completed"
+                          req.ppgshead === "Completed"
                             ? "bg-green-100 text-green-700"
-                            : req.status === "Pending"
+                            : req.ppgshead === "Pending"
                             ? "bg-yellow-100 text-yellow-700"
-                            : req.status === "Rejected"
+                            : req.ppgshead === "Rejected"
                             ? "bg-red-100 text-red-700"
                             : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {req.status}
+                        {req.ppgshead}
                       </span>
                     </td>
                     <td className="px-6 py-4">

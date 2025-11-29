@@ -52,9 +52,9 @@ export default function AdminDashboard() {
 
       const counts = {
         total: requestsRes.data.length,
-        pending: requestsRes.data.filter((r) => r.status === "Pending").length,
-        completed: requestsRes.data.filter((r) => r.status === "Completed").length,
-        rejected: requestsRes.data.filter((r) => r.status === "Rejected").length,
+        pending: requestsRes.data.filter((r) => r.ppgshead === "Pending").length,
+        completed: requestsRes.data.filter((r) => r.ppgshead === "Completed").length,
+        rejected: requestsRes.data.filter((r) => r.ppgshead === "Rejected").length,
       };
 
       setStats(counts);
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Requester</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Type</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Date Filed</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">PPGS Head Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -146,9 +146,9 @@ export default function AdminDashboard() {
                               Completed: "bg-green-500",
                               Rejected: "bg-red-500",
                               Approved: "bg-blue-700",
-                            }[req.status]}`}
+                            }[req.ppgshead]}`}
                           >
-                            {req.status}
+                            {req.ppgshead}
                           </span>
                         </td>
                       </tr>

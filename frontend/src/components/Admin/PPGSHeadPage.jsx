@@ -33,7 +33,7 @@ const PPGSHeadPage = () => {
     try {
       await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/approve`);
       setRequests(prev =>
-        prev.map(req => (req.id === id ? { ...req, status: "Approved" } : req))
+        prev.map(req => (req.id === id ? { ...req, ppgshead: "Approved" } : req))
       );
       alert("Request approved successfully"); // Success message
     } catch (err) {
@@ -45,7 +45,7 @@ const PPGSHeadPage = () => {
     try {
       await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/reject`);
       setRequests(prev =>
-        prev.map(req => (req.id === id ? { ...req, status: "Rejected" } : req))
+        prev.map(req => (req.id === id ? { ...req, ppgshead: "Rejected" } : req))
       );
       alert("Request rejected successfully"); // Success message
     } catch (err) {
@@ -57,6 +57,8 @@ const PPGSHeadPage = () => {
     new Date(date).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
   const notedRequests = requests.filter(req => req.noted_by);
+  // Only show requests where noted_by is set and ppgshead is 'Pending'
+  const pendingRequests = requests.filter(req => req.noted_by && req.ppgshead === "Pending");
 
   return (
     <div className="flex h-screen">
@@ -64,11 +66,11 @@ const PPGSHeadPage = () => {
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <h1 className="text-2xl font-bold text-gray-800">PPGS Head</h1>
 
-        {notedRequests.length === 0 ? (
+        {pendingRequests.length === 0 ? (
           <p>No noted requests available for approval</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"> {/* Adjusted gap and margin for better spacing */}
-            {notedRequests.map(req => (
+            {pendingRequests.map(req => (
               <div key={req.id} className="bg-white shadow-lg rounded-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow"> {/* Enhanced shadow and border */}
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Request #{req.id}</h2> {/* Adjusted text size and color */}
                 <p className="text-sm text-gray-900 mb-2"><strong>Date Filed:</strong> {formatDate(req.date_filed)}</p>

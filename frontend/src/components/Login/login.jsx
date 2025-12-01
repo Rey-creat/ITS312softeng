@@ -20,8 +20,17 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
+      // Debug: print role value
+      console.log("User role after login:", res.data.user.role);
+
       const role = res.data.user.role;
-      if (role === "DeptHead" || role === "PPGSHead" || role === "President" || role === "Admin") {
+      if (role === "DeptHead") {
+        navigate("/DeptHeadPage");
+      } else if (role === "PPGSHead") {
+        navigate("/PPGSHeadPage");
+      } else if (role === "President") {
+        navigate("/President");
+      } else if (role === "Admin") {
         navigate("/AdminDashboard");
       } else {
         navigate("/dashboard");

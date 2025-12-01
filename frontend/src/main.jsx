@@ -71,7 +71,7 @@ createRoot(document.getElementById("root")).render(
         {/* Admin / Role Protected Pages */}
         <Route
           path="/AdminDashboard"
-          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin"]} />}
+          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "DeptHead", "PPGSHead", "President"]} />}
         />
         <Route
           path="/DeptHeadPage"

@@ -11,12 +11,21 @@ const activeSessions = new Map();
 
 // Updated register function to handle multipart/form-data
 exports.register = async (req, res) => {
-  const { fullname, email, password, role, department } = req.body;
+  let { fullname, email, password, role, department } = req.body;
 
   console.log("[DEBUG] Register request body:", req.body);
 
-  if (!fullname || !email || !password || !role || !department) {
-    return res.status(400).json({ message: "All fields are required." });
+  // Only require department for roles that need it
+  const rolesRequiringDept = ["DeptHead", "Teacher", "Staff"];
+  if (!fullname || !email || !password || !role) {
+    return res.status(400).json({ message: "Full name, email, password, and role are required." });
+  }
+  if (rolesRequiringDept.includes(role) && !department) {
+    return res.status(400).json({ message: "Department is required for this role." });
+  }
+  // For PPGSHead and President, set department to null if empty string or not provided
+  if ((role === "PPGSHead" || role === "President") && (!department || department === "")) {
+    department = null;
   }
 
   try {

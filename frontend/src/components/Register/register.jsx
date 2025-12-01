@@ -37,9 +37,9 @@ export default function Register() {
 
     setLoading(true);
     try {
-      // If role does not require department, send department as null
+      // If role does not require department, send department as null if empty
       const payload = { ...formData };
-      if (formData.role === "PPGSHead" || formData.role === "President") {
+      if ((formData.role === "PPGSHead" || formData.role === "President") && (!formData.department || formData.department === "")) {
         payload.department = null;
       }
       const res = await axios.post("http://localhost:5000/api/register", payload);
@@ -162,7 +162,7 @@ export default function Register() {
                 value={formData.department}
                 onChange={handleChange}
                 className="w-full border px-3 py-2 rounded-md text-sm"
-                required
+                required={!(formData.role === "PPGSHead" || formData.role === "President")}
               >
                 <option value="">-- Choose Department --</option>
                 <option value="SARFAID">SARFAID</option>

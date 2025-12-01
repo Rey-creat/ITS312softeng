@@ -62,7 +62,7 @@ const PPGSHeadPage = () => {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar />
+      <AdminSidebar ppgsHeadHasRequests={pendingRequests.length > 0} />
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto">
         <h1 className="text-2xl font-bold text-gray-800">PPGS Head</h1>
 

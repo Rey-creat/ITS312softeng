@@ -6,170 +6,188 @@ import logo from "../images/logo.png";
 
 export default function Register() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ fullname: "", email: "", password: "", role: "admin", department: "", profile_picture: null });
-  const [errors, setErrors] = useState({});
+
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+    department: "",
+  });
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "profile_picture") {
-      setFormData({ ...formData, profile_picture: files[0] });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-    if (errors[name]) setErrors({ ...errors, [name]: "" });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
 
-    const { fullname, email, password, role, department, profile_picture } = formData;
-    const newErrors = {};
-    if (!fullname) newErrors.fullname = "Fullname required";
-    if (!email) newErrors.email = "Email required";
-    if (!password) newErrors.password = "Password required";
-    if (!role) newErrors.role = "Role required";
-    if (!department) newErrors.department = "Department required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setLoading(false);
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
       return;
     }
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("fullname", fullname);
-    formDataToSend.append("email", email);
-    formDataToSend.append("password", password);
-    formDataToSend.append("role", role);
-    formDataToSend.append("department", department);
-    if (profile_picture) {
-      formDataToSend.append("profile_picture", profile_picture);
-    }
-
+    setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/register", formDataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      alert("Registered successfully!");
+      // If role does not require department, send department as null
+      const payload = { ...formData };
+      if (formData.role === "PPGSHead" || formData.role === "President") {
+        payload.department = null;
+      }
+      const res = await axios.post("http://localhost:5000/api/register", payload);
       navigate("/login");
     } catch (err) {
-      setErrors({ general: err.response?.data?.message || "Registration failed" });
-    } finally {
-      setLoading(false);
+      setError("Registration failed. Try again.");
     }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left background - Same as Login.jsx */}
+    <div className="h-screen w-full flex overflow-hidden">
+
+      {/* LEFT SIDE IMAGE (same as Login) */}
       <div
         className="hidden lg:flex w-1/2 bg-cover bg-center"
         style={{ backgroundImage: `url(${backgroundImg})` }}
       ></div>
 
-      {/* Right form container - Same as Login.jsx */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center bg-gray-50 px-6">
-        <div className="max-w-md w-full space-y-8">
-          {/* Logo and heading - Adjusted to match the style and size of Login.jsx */}
-          <div className="text-center">
-            {/* Logo size: h-24 w-24 mb-2 from Login.jsx */}
-            <img src={logo} alt="Logo" className="mx-auto h-24 w-24 mb-2" /> 
-            {/* Title font: text-3xl font-bold text-gray-900 from Login.jsx */}
-            <h2 className="text-3xl font-bold text-gray-900">Create your account</h2> 
-            {/* Subtitle font: mt-2 text-sm text-gray-600 from Login.jsx */}
-            <p className="mt-2 text-sm text-gray-600">Register for the Repair Management System</p>
+      {/* RIGHT SIDE FORM */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center bg-white px-8">
+        <div className="w-full max-w-md">
+
+          {/* Logo */}
+          <div className="text-center mb-4">
+            <img src={logo} className="mx-auto h-20 w-20" alt="Logo" />
+            <h2 className="text-2xl font-bold text-gray-900 mt-2">
+              Create your account
+            </h2>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {errors.general && <div className="text-red-600">{errors.general}</div>}
+          {/* Error */}
+          {error && (
+            <p className="text-red-600 text-center text-sm mb-2">{error}</p>
+          )}
 
-            {/* Input fields - Adjusted classNames to match Login.jsx style */}
-            <input
-              name="fullname"
-              placeholder="Fullname"
-              value={formData.fullname}
-              onChange={handleChange}
-              // Added border-md for consistent style
-              className="w-full px-3 py-2 border rounded-md" 
-              required
-            />
-            {errors.fullname && <p className="text-red-500 text-sm mt-1">{errors.fullname}</p>}
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-3">
 
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {/* FULL NAME */}
+            <div>
+              <label className="font-medium text-sm">Full Name</label>
+              <input
+                type="text"
+                name="fullname"
+                value={formData.fullname}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              />
+            </div>
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {/* EMAIL */}
+            <div>
+              <label className="font-medium text-sm">Email address</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              />
+            </div>
 
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border rounded-md"
-            >
-              <option value="admin">Admin</option>
-              <option value="staff">Staff</option>
-              <option value="teacher">Teacher</option>
-            </select>
-            {errors.role && <p className="text-red-500 text-sm mt-1">{errors.role}</p>}
+            {/* PASSWORD */}
+            <div>
+              <label className="font-medium text-sm">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              />
+            </div>
 
-            <input
-              name="department"
-              placeholder="Department"
-              value={formData.department}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            {errors.department && <p className="text-red-500 text-sm mt-1">{errors.department}</p>}
+            {/* CONFIRM PASSWORD */}
+            <div>
+              <label className="font-medium text-sm">Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              />
+            </div>
 
-            <input
-              name="profile_picture"
-              type="file"
-              accept="image/*"
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-            />
+            {/* ROLE DROPDOWN */}
+            <div>
+              <label className="font-medium text-sm">Select Role</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              >
+                <option value="">-- Choose Role --</option>
+                <option value="DeptHead">Department Head</option>
+                <option value="PPGSHead">Head of PPGS</option>
+                <option value="President">School President</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Staff">Staff</option>
+              </select>
+            </div>
 
-            {/* Submit button - Adjusted classNames to match Login.jsx style */}
+            {/* DEPARTMENT DROPDOWN */}
+            <div>
+              <label className="font-medium text-sm">Department</label>
+              <select
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-md text-sm"
+                required
+              >
+                <option value="">-- Choose Department --</option>
+                <option value="SARFAID">SARFAID</option>
+                <option value="SSLATE">SSLATE</option>
+                <option value="SHTM">SHTM</option>
+                <option value="SBIT">SBIT</option>
+              </select>
+            </div>
+
+            {/* SUBMIT */}
             <button
               type="submit"
+              className="w-full py-2 bg-blue-600 text-white font-bold rounded-md text-sm"
               disabled={loading}
-              // Used the exact button classes from Login.jsx
-              className="w-full py-2 bg-blue-600 text-white font-bold rounded-md" 
             >
-              {loading ? "Registering..." : "Sign Up"}
+              {loading ? "Registering..." : "Register"}
             </button>
 
-            {/* Link to Login - Adjusted style to match Login.jsx */}
-            <div className="text-center">
-              <p>
-                Have an account?{" "}
-                <Link to="/login" className="text-blue-600">
-                  Sign in
-                </Link>
-              </p>
-            </div>
+            {/* LOGIN LINK */}
+            <p className="text-center text-sm mt-2">
+              Already have an account?{" "}
+              <Link to="/login" className="text-blue-600 font-semibold">
+                Sign in
+              </Link>
+            </p>
           </form>
         </div>
       </div>

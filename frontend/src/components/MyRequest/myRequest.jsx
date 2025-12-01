@@ -144,7 +144,7 @@ export default function MyRequest() {
                 </th>
                 <th className="px-6 py-3 font-semibold">Concern</th>
                 <th className="px-6 py-3 font-semibold">Description</th>
-                <th className="px-6 py-3 font-semibold">PPGS Head Status</th>
+                {/* Removed PPGS Head Status column */}
                 <th className="px-6 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -171,21 +171,7 @@ export default function MyRequest() {
                       {req.description.split(" ").slice(0, 10).join(" ")}
                       {req.description.split(" ").length > 10 && "…"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-3 py-1 rounded text-sm font-medium ${
-                          req.ppgshead === "Completed"
-                            ? "bg-green-100 text-green-700"
-                            : req.ppgshead === "Pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : req.ppgshead === "Rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {req.ppgshead}
-                      </span>
-                    </td>
+                    {/* Removed PPGS Head Status cell */}
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button
@@ -216,7 +202,7 @@ export default function MyRequest() {
               ) : (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="text-center py-6 text-gray-500 italic"
                   >
                     No requests found.

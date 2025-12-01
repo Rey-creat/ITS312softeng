@@ -6,7 +6,7 @@ import Sidebar from "../Sidebar/sidebar.jsx";
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
-    counts: { total: 0, pending: 0, completed: 0, rejected: 0 },
+    counts: { total: 0, pending: 0, approved: 0, rejected: 0 },
     recent: [],
   });
   const [loading, setLoading] = useState(true);
@@ -48,9 +48,18 @@ export default function Dashboard() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Calculate approved based on president decision
+      const recent = statsRes.data.recent || [];
+      const counts = {
+        total: statsRes.data.counts.total,
+        pending: statsRes.data.counts.pending,
+        approved: recent.filter(r => r.status === "Approved").length,
+        rejected: statsRes.data.counts.rejected,
+      };
+
       setStats({
-        counts: statsRes.data.counts,
-        recent: statsRes.data.recent,
+        counts,
+        recent,
       });
     } catch (err) {
       console.error("Dashboard fetch failed:", err);
@@ -113,9 +122,9 @@ export default function Dashboard() {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Completed</p>
+            <p className="text-gray-600 font-medium">Approved</p>
             <p className="text-3xl font-bold text-green-600">
-              {stats.counts.completed}
+              {stats.counts.approved}
             </p>
           </div>
 

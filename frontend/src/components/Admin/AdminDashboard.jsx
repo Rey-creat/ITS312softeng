@@ -9,12 +9,13 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
-    completed: 0,
+    approved: 0,
     rejected: 0,
   });
 
   const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deptHeadNeedsToNote, setDeptHeadNeedsToNote] = useState(false);
 
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
@@ -50,11 +51,15 @@ export default function AdminDashboard() {
 
       setAllRequests(requestsRes.data);
 
+      // Check if any requests need to be noted by Dept Head
+      const needsNote = requestsRes.data.some(r => !r.noted_by || r.noted_by === "Pending");
+      setDeptHeadNeedsToNote(needsNote);
+
       const counts = {
         total: requestsRes.data.length,
-        pending: requestsRes.data.filter((r) => r.ppgshead === "Pending").length,
-        completed: requestsRes.data.filter((r) => r.ppgshead === "Completed").length,
-        rejected: requestsRes.data.filter((r) => r.ppgshead === "Rejected").length,
+        pending: requestsRes.data.filter((r) => r.status === "Pending").length,
+        approved: requestsRes.data.filter((r) => r.status === "Approved").length,
+        rejected: requestsRes.data.filter((r) => r.status === "Rejected").length,
       };
 
       setStats(counts);
@@ -83,7 +88,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <AdminSidebar role="Admin" />
+      <AdminSidebar role="Admin" deptHeadHasRequests={deptHeadNeedsToNote} />
 
       <div className="flex-1 bg-gray-100 p-6 flex flex-col overflow-hidden"> {/* Updated background color and padding */}
         <header className="mb-6"> {/* Adjusted margin for consistency */}
@@ -105,8 +110,8 @@ export default function AdminDashboard() {
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Completed</p>
-            <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
+            <p className="text-gray-600 font-medium">Approved</p>
+            <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
           </div>
 
           <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
@@ -127,7 +132,8 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Requester</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Type</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Date Filed</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">PPGS Head Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">Description</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -139,16 +145,10 @@ export default function AdminDashboard() {
                         <td className="px-3 py-2 text-gray-800">{req.requested_by}</td>
                         <td className="px-3 py-2 text-gray-800">{req.type_of_concern}</td>
                         <td className="px-3 py-2 text-gray-800">{formatDate(req.date_filed)}</td>
+                        <td className="px-3 py-2 text-gray-800">{req.description}</td>
                         <td className="px-3 py-2">
-                          <span
-                            className={`px-2 py-1 rounded text-white text-xs font-medium ${{
-                              Pending: "bg-yellow-600",
-                              Completed: "bg-green-500",
-                              Rejected: "bg-red-500",
-                              Approved: "bg-blue-700",
-                            }[req.ppgshead]}`}
-                          >
-                            {req.ppgshead}
+                          <span className={`px-2 py-1 rounded text-white text-xs font-medium ${req.status === "Approved" ? "bg-green-500" : req.status === "Rejected" ? "bg-red-500" : "bg-yellow-600"}`}>
+                            {req.status || "Pending"}
                           </span>
                         </td>
                       </tr>

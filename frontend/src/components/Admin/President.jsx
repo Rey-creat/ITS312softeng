@@ -35,6 +35,15 @@ const President = () => {
       }
     };
     fetchRequests();
+
+    // Listen for storage changes to update requests automatically if PPGS Head approves
+    const handleStorage = (event) => {
+      if (event.key === "ppgsheadApproved") {
+        fetchRequests();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const handleDecision = async (id, decision) => {
@@ -91,12 +100,11 @@ const President = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <AdminSidebar />
-
-      {/* Page Content */}
-      <div className="flex-1 p-8 overflow-y-auto">
+    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
+      <div className="fixed top-0 left-0 h-screen z-20">
+        <AdminSidebar presidentHasRequests={requests.some(r => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status))} />
+      </div>
+      <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900">School President Dashboard</h1>

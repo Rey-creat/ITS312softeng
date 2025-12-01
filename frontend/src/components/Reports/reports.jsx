@@ -38,8 +38,10 @@ export default function Reports() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setReports(res.data || []);
-      setFilteredReports(res.data || []);
+      // Only show reports requested by the current user
+      const userReports = (res.data || []).filter(r => r.requested_by === currentUser.fullname);
+      setReports(userReports);
+      setFilteredReports(userReports);
     } catch (err) {
       console.error("Failed to fetch requests:", err);
 
@@ -141,8 +143,8 @@ export default function Reports() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-700">Completed</h2>
-                <p className="text-3xl font-bold text-emerald-600 mt-1">{reports.filter((r) => r.ppgshead === "Completed").length}</p>
+                <h2 className="text-lg font-semibold text-gray-700">Approved</h2>
+                <p className="text-3xl font-bold text-emerald-600 mt-1">{reports.filter((r) => r.status === "Approved").length}</p>
               </div>
             </div>
           </div>
@@ -156,7 +158,7 @@ export default function Reports() {
               </div>
               <div className="ml-4">
                 <h2 className="text-lg font-semibold text-gray-700">Rejected</h2>
-                <p className="text-3xl font-bold text-red-600 mt-1">{reports.filter((r) => r.ppgshead === "Rejected").length}</p>
+                <p className="text-3xl font-bold text-red-600 mt-1">{reports.filter((r) => r.status === "Rejected").length}</p>
               </div>
             </div>
           </div>
@@ -221,7 +223,7 @@ export default function Reports() {
               <tr>
                 <th className="px-6 py-4">Request Details</th>
                 <th className="px-6 py-4">Approval Timeline</th>
-                <th className="px-6 py-4">PPGS Head Status</th>
+                {/* Removed PPGS Head Status column */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -286,19 +288,12 @@ export default function Reports() {
                         </div>
                       </div>
                     </td>
-                    {/* PPGS Head Status */}
-                    <td className="px-6 py-6 align-top w-1/6">
-                        <span
-                          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold border shadow-sm ${getStatusColor(report.ppgshead)}`}
-                        >
-                          {report.ppgshead}
-                        </span>
-                    </td>
+                    {/* Removed PPGS Head Status cell */}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="text-center py-12 text-gray-500">
+                  <td colSpan="2" className="text-center py-12 text-gray-500">
                     <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>

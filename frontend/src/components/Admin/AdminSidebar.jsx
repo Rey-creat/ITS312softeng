@@ -3,7 +3,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaTachometerAlt, FaUserTie, FaUserGraduate, FaCrown, FaPlusCircle, FaListAlt, FaChartBar } from "react-icons/fa"; // Import icons
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasRequests = false, presidentHasRequests = false }) {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const role = user.role || "User";
@@ -17,7 +17,7 @@ export default function AdminSidebar() {
       { name: "School President", path: "/President", icon: <FaCrown className="inline mr-3 text-white" /> },
     ],
     DeptHead: [
-      { name: "Dashboard", path: "/DeptHeadPage", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Requests", path: "/DeptHeadPage", icon: <FaListAlt className="inline mr-3 text-white" /> },
     ],
     PPGSHead: [
       { name: "Dashboard", path: "/PPGSHeadPage", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
@@ -67,7 +67,7 @@ export default function AdminSidebar() {
       {/* Navigation Links */}
       <nav className="flex-1 p-4">
         {menu.map((item, index) => (
-          <div key={index} className="mb-7"> {/* Adjusted gap to match Sidebar */}
+          <div key={index} className="mb-7 flex items-center"> {/* Adjusted gap to match Sidebar */}
             <Link
               to={item.path}
               className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center" /* Adjusted text size to match Sidebar */
@@ -75,6 +75,15 @@ export default function AdminSidebar() {
               {item.icon} {/* Icons already match Sidebar */}
               {item.name}
             </Link>
+            {item.name === "Dept. Office Head" && deptHeadHasRequests && (
+              <span className="ml-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" title="Requests need to be noted"></span>
+            )}
+            {item.name === "Head of PPGS" && ppgsHeadHasRequests && (
+              <span className="ml-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" title="Requests need PPGS Head approval"></span>
+            )}
+            {item.name === "School President" && presidentHasRequests && (
+              <span className="ml-2 w-3 h-3 bg-red-500 rounded-full animate-pulse" title="Requests need President approval"></span>
+            )}
           </div>
         ))}
       </nav>

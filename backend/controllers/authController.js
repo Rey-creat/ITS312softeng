@@ -12,10 +12,8 @@ const activeSessions = new Map();
 // Updated register function to handle multipart/form-data
 exports.register = async (req, res) => {
   const { fullname, email, password, role, department } = req.body;
-  const profile_picture = req.file ? `/uploads/${req.file.filename}` : null;
 
   console.log("[DEBUG] Register request body:", req.body);
-  console.log("[DEBUG] Uploaded profile picture path:", profile_picture);
 
   if (!fullname || !email || !password || !role || !department) {
     return res.status(400).json({ message: "All fields are required." });
@@ -23,14 +21,12 @@ exports.register = async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `
-      INSERT INTO users (fullname, email, password, role, department, profile_picture)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
+    const query = `INSERT INTO users (fullname, email, password, role, department) VALUES (?, ?, ?, ?, ?)`;
+    const values = [fullname, email, hashedPassword, role, department];
 
     db.query(
       query,
-      [fullname, email, hashedPassword, role, department, profile_picture],
+      values,
       (err, result) => {
         if (err) {
           console.error("[ERROR] Registration failed:", err);
@@ -61,7 +57,6 @@ exports.register = async (req, res) => {
             email,
             role,
             department,
-            profile_picture,
           },
         });
       }

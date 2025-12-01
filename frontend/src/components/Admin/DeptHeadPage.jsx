@@ -81,13 +81,26 @@ const DeptHeadPage = () => {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar />
+      <div className="relative">
+        <AdminSidebar deptHeadHasRequests={requests.length > 0} />
+      </div>
       <div className={`flex-1 p-6 bg-gray-100 overflow-y-auto ${showModal ? "blur-sm" : ""}`}>
-        <h1 className="text-2xl font-bold text-gray-800">Department Head</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-800">Department Head</h1>
+          {requests.length > 0 && (
+            <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" title="You have requests to review"></span>
+          )}
+        </div>
 
         {feedbackMessage && (
           <div className={`p-4 mb-4 rounded ${feedbackType === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
             {feedbackMessage}
+          </div>
+        )}
+
+        {requests.length > 0 && (
+          <div className="bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-4 font-semibold">
+            You have {requests.length} request{requests.length > 1 ? "s" : ""} to review.
           </div>
         )}
 
@@ -127,16 +140,19 @@ const DeptHeadPage = () => {
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-lg font-bold mb-4">Add Noted By</h2>
             <form onSubmit={handleNotedBySubmit}>
-              <input
-                type="text"
+              <label className="block mb-2 font-medium">Select Noted By:</label>
+              <select
                 value={notedBy}
                 onChange={(e) => setNotedBy(e.target.value)}
                 className="w-full border p-2 rounded mb-4"
-                placeholder="Enter your name"
-                autoFocus
                 required
-              />
-
+              >
+                <option value="">Select department...</option>
+                <option value="SARFAID">SARFAID</option>
+                <option value="SSLATE">SSLATE</option>
+                <option value="SHTM">SHTM</option>
+                <option value="SBIT">SBIT</option>
+              </select>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

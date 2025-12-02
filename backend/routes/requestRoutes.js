@@ -1,26 +1,39 @@
-const express = require("express");
-const router = express.Router();
-const { verifyToken } = require("../controllers/authController");
-const {
-  createRequest,
-  updateRequest,
-  deleteRequest,
-  getRequests,
-} = require("../controllers/requestController");
+   const express = require("express");
+   const router = express.Router();
+   const { verifyToken } = require("../controllers/authController");
+   const {
+     createRequest,
+     updateRequest,
+     deleteRequest,
+     getRequests,
+     assignPersonnel,
+     listAllRequests,
+     listPresidentApprovedRequests,
+   } = require("../controllers/requestController");
 
-// CREATE - Protected
-router.post("/requests", verifyToken, createRequest);
+   // TEMPORARY: List all requests for debugging
+   router.get("/requests/all-debug", listAllRequests);
 
-// READ (Admin or user) - Protected
-router.get("/requests", verifyToken, getRequests);
+   // Filtered: Only requests approved by President
+   router.get("/requests/president-approved", listPresidentApprovedRequests);
 
-// UPDATE - Protected
-router.put("/requests/:id", verifyToken, updateRequest);
+   // CREATE - Protected
+   router.post("/requests", verifyToken, createRequest);
 
-// PRESIDENT DECISION - Protected
-router.put("/requests/:id/president", verifyToken, require("../controllers/requestController").setPresidentDecision);
+   // READ (Admin or user) - Protected
+   router.get("/requests", verifyToken, getRequests);
 
-// DELETE - Protected
-router.delete("/requests/:id", verifyToken, deleteRequest);
+   // UPDATE - Protected
+   router.put("/requests/:id", verifyToken, updateRequest);
 
-module.exports = router;
+   // PRESIDENT DECISION - Protected
+   router.put("/requests/:id/president", verifyToken, require("../controllers/requestController").setPresidentDecision);
+
+   // ASSIGN PERSONNEL - Protected
+   router.post("/requests/:id/assign", verifyToken, assignPersonnel);
+
+   // DELETE - Protected
+   router.delete("/requests/:id", verifyToken, deleteRequest);
+
+   module.exports = router;
+   

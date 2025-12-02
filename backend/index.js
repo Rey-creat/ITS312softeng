@@ -11,6 +11,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const deptHeadRoutes = require("./routes/deptHeadRoutes");
 const ppgsHeadRoutes = require("./routes/ppgsHeadRoutes");
 const pplsHeadRoutes = require("./routes/pplsHeadRoutes");
+const personnelRoutes = require("./routes/personnelRoutes");
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api", authRoutes);
 app.use("/api", requestRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reportRoutes);
+app.use("/api", personnelRoutes);
 
 // DeptHead routes
 app.use("/api/depthead", (req, res, next) => {

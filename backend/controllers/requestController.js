@@ -1,7 +1,38 @@
+// Filtered: Only requests approved by President (using status field only)
+exports.listPresidentApprovedRequests = (req, res) => {
+  db.query("SELECT id, status, requested_by, description FROM requests WHERE status = 'Approved'", (err, results) => {
+    if (err) return res.status(500).json({ message: 'DB error', error: err });
+    res.status(200).json(results);
+  });
+};
+// TEMPORARY: List all requests for debugging
+exports.listAllRequests = (req, res) => {
+  db.query("SELECT id, status, requested_by, description FROM requests", (err, results) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+    res.status(200).json(results);
+  });
+};
+// ASSIGN PERSONNEL TO REQUEST
+exports.assignPersonnel = (req, res) => {
+  const { id } = req.params;
+  const { personnelId } = req.body;
+  if (!personnelId) {
+    return res.status(400).json({ message: "Personnel ID required" });
+  }
+  db.query(
+    "UPDATE requests SET assigned_to = ? WHERE id = ?",
+    [personnelId, id],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+      res.status(200).json({ message: "Personnel assigned successfully" });
+    }
+  );
+};
 // PRESIDENT DECISION ENDPOINT
 exports.setPresidentDecision = (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, president_by } = req.body;
   if (!status) {
     return res.status(400).json({ message: "President decision required" });
   }

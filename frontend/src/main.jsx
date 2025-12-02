@@ -20,6 +20,7 @@ import AdminDashboard from "./components/Admin/AdminDashboard.jsx";
 import DeptHeadPage from "./components/Admin/DeptHeadPage.jsx";
 import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
 import President from "./components/Admin/President.jsx";
+import AdminNotifications from "./components/Admin/AdminNotifications.jsx";
 
 // --------------------
 // ProtectedRoute: ensures user is logged in
@@ -72,6 +73,10 @@ createRoot(document.getElementById("root")).render(
         <Route
           path="/AdminDashboard"
           element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "DeptHead", "PPGSHead", "President"]} />}
+        />
+        <Route
+          path="/AdminNotifications"
+          element={<RoleRoute element={AdminNotifications} allowedRoles={["Admin", "PPGSHead"]} />}
         />
         <Route
           path="/DeptHeadPage"

@@ -135,7 +135,6 @@ export default function AdminDashboard() {
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Type</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Description</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Noted By</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-700">Approved By</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Status</th>
                   </tr>
                 </thead>
@@ -151,7 +150,6 @@ export default function AdminDashboard() {
                         <td className="px-3 py-2 text-gray-800">{req.type_of_concern}</td>
                         <td className="px-3 py-2 text-gray-800">{req.description}</td>
                         <td className="px-3 py-2 text-gray-800">{req.noted_by || "—"}</td>
-                        <td className="px-3 py-2 text-gray-800">{req.approved_by || "—"}</td>
                         <td className="px-3 py-2">
                           <span className={`px-2 py-1 rounded text-white text-xs font-medium ${req.status === "Approved" ? "bg-green-500" : req.status === "Rejected" ? "bg-red-500" : "bg-yellow-600"}`}>
                             {req.status || "Pending"}

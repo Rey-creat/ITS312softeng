@@ -127,7 +127,7 @@ export default function MyRequest() {
       <div className="flex-1 bg-gray-100 p-6 overflow-auto">
         {/* HEADER */}
         <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">My Requests</h1>
+          <h1 className="text-2xl font-bold text-gray-800">My Request</h1>
         </header>
 
         {/* TABLE */}

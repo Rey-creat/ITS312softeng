@@ -12,6 +12,7 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
   const roleMenus = {
     Admin: [
       { name: "Dashboard", path: "/AdminDashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Notifications", path: "/AdminNotifications", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
       { name: "Dept. Office Head", path: "/DeptHeadPage", icon: <FaUserTie className="inline mr-3 text-white" /> },
       { name: "Head of PPGS", path: "/PPGSHeadPage", icon: <FaUserGraduate className="inline mr-3 text-white" /> },
       { name: "School President", path: "/President", icon: <FaCrown className="inline mr-3 text-white" /> },
@@ -20,10 +21,12 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
       { name: "Requests", path: "/DeptHeadPage", icon: <FaListAlt className="inline mr-3 text-white" /> },
     ],
     PPGSHead: [
-      { name: "Dashboard", path: "/PPGSHeadPage", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Dashboard", path: "/AdminDashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Requests", path: "/PPGSHeadPage", icon: <FaListAlt className="inline mr-3 text-white" /> },
+      { name: "Notifications", path: "/AdminNotifications", icon: <FaListAlt className="inline mr-3 text-white" /> },
     ],
     President: [
-      { name: "Dashboard", path: "/President", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+      { name: "Requests", path: "/President", icon: <FaListAlt className="inline mr-3 text-white" /> },
     ],
     User: [
       { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },

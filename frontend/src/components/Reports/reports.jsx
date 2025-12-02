@@ -115,7 +115,7 @@ export default function Reports() {
       <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Reports Overview</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Reports Overview</h1>
           <p className="text-gray-600 mt-2">Monitor and track all requests in the system.</p>
         </div>
 
@@ -222,7 +222,8 @@ export default function Reports() {
             <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-600 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4">Request Details</th>
-                <th className="px-6 py-4">Approval Timeline</th>
+                <th className="px-6 py-4">Approval</th>
+                 <th className="px-6 py-4">Status</th>
                 {/* Removed PPGS Head Status column */}
               </tr>
             </thead>

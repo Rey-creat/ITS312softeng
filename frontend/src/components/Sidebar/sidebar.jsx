@@ -46,7 +46,7 @@ export default function Sidebar({ role, profilePicture, fullname }) {
             className="mx-auto h-24 w-24 rounded-full mb-2"
           />
         ) : (
-          <div className="h-30 w-30 bg-white rounded-full mx-auto mb-2"></div>
+          <div></div>
         )}
         <h1 className="text-xl font-bold">{fullname}</h1> {/* Removed default 'User' fallback */}
         <p className="mt-1 text-gray-300 font-bold">Role: {role}</p>

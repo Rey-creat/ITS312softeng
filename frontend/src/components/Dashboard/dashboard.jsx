@@ -10,6 +10,7 @@ export default function Dashboard() {
     recent: [],
   });
   const [loading, setLoading] = useState(true);
+  const [previousTotal, setPreviousTotal] = useState(0); // Track previous total requests
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -84,6 +85,19 @@ export default function Dashboard() {
     }
   }, [location?.state?.refresh]);
 
+  useEffect(() => {
+    if (stats.counts.total > previousTotal) {
+      const totalElement = document.getElementById("total-requests");
+      if (totalElement) {
+        totalElement.classList.add("text-blue-600"); // Add blue color
+        setTimeout(() => {
+          totalElement.classList.remove("text-blue-600"); // Remove blue color after 2 seconds
+        }, 2000);
+      }
+    }
+    setPreviousTotal(stats.counts.total);
+  }, [stats.counts.total]);
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
@@ -107,32 +121,52 @@ export default function Dashboard() {
 
         {/* STATS */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Total Requests</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {stats.counts.total}
-            </p>
+          <div className="bg-white shadow-md rounded-lg p-6 flex items-center border border-gray-200">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div className="ml-4 text-center">
+              <p className="text-gray-600 font-medium">Total Requests</p>
+              <p id="total-requests" className="text-3xl font-bold text-gray-900">{stats.counts.total}</p>
+            </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Pending</p>
-            <p className="text-3xl font-bold text-yellow-600">
-              {stats.counts.pending}
-            </p>
+          <div className="bg-white shadow-md rounded-lg p-6 flex items-center border border-gray-200">
+            <div className="p-3 bg-yellow-100 rounded-lg">
+              <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div className="ml-4 text-center">
+              <p className="text-gray-600 font-medium">Pending</p>
+              <p className="text-3xl font-bold text-yellow-600">{stats.counts.pending}</p>
+            </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Approved</p>
-            <p className="text-3xl font-bold text-green-600">
-              {stats.counts.approved}
-            </p>
+          <div className="bg-white shadow-md rounded-lg p-6 flex items-center border border-gray-200">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="ml-4 text-center">
+              <p className="text-gray-600 font-medium">Approved</p>
+              <p className="text-3xl font-bold text-green-600">{stats.counts.approved}</p>
+            </div>
           </div>
 
-          <div className="bg-white shadow-md rounded-lg p-6 text-center border border-gray-200">
-            <p className="text-gray-600 font-medium">Rejected</p>
-            <p className="text-3xl font-bold text-red-600">
-              {stats.counts.rejected}
-            </p>
+          <div className="bg-white shadow-md rounded-lg p-6 flex items-center border border-gray-200">
+            <div className="p-3 bg-red-100 rounded-lg">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <div className="ml-4 text-center">
+              <p className="text-gray-600 font-medium">Rejected</p>
+              <p className="text-3xl font-bold text-red-600">{stats.counts.rejected}</p>
+            </div>
           </div>
         </section>
 

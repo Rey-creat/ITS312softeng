@@ -107,7 +107,7 @@ const President = () => {
       <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">School President Dashboard</h1>
+         <h1 className="text-2xl font-bold text-gray-800">President</h1>
           <p className="text-gray-600 mt-2">
             Final approval stage. Review and decide on requests that have been endorsed by the Department Head and PPGS Head.
           </p>
@@ -137,38 +137,38 @@ const President = () => {
             <p className="text-sm">All requests have been processed or are awaiting prior endorsements.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Added grid layout for cards */}
             {requests.map((req) => (
-              <div key={req.id} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+              <div key={req.id} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"> {/* Card layout */}
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Request Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 gap-2 mb-4"> {/* Simplified details layout */}
                   <div>
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Reference Code:</span>
+                    <span className="text-sm font-semibold text-gray-500">Reference Code:</span>
                     <span className="ml-2 text-blue-700 font-medium">{req.reference_code || `REQ-${req.id}`}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Date Filed:</span>
+                    <span className="text-sm font-semibold text-gray-500">Date Filed:</span>
                     <span className="ml-2 text-gray-900">{req.date_filed}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Date Needed:</span>
+                    <span className="text-sm font-semibold text-gray-500">Date Needed:</span>
                     <span className="ml-2 text-gray-900">{req.date_needed || "—"}</span>
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Requested By:</span>
+                    <span className="text-sm font-semibold text-gray-500">Requested By:</span>
                     <span className="ml-2 text-gray-900">{req.requested_by}</span>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Type of Concern:</span>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Type of Concern:</span>
                     <span className="ml-2 text-gray-900">{req.type_of_concern}</span>
                   </div>
-                  <div className="md:col-span-2">
-                    <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Description:</span>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Description:</span>
                     <span className="ml-2 text-gray-700">{req.description}</span>
                   </div>
                 </div>
                 <div className="mb-6">
-                  <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Approval Timeline:</span>
+                  <span className="text-sm font-semibold text-gray-500">Approval:</span>
                   <div className="mt-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-gray-900">Department Head</span>
@@ -184,63 +184,18 @@ const President = () => {
                     </div>
                   </div>
                 </div>
-                <div className="mb-4">
-                  <label htmlFor={`message-${req.id}`} className="block text-sm font-medium text-gray-700 mb-2">
-                    Add a message to the requester (optional):
-                  </label>
-                  <textarea
-                    id={`message-${req.id}`}
-                    className="w-full border border-gray-300 rounded-md p-3 focus:ring-blue-500 focus:border-blue-500"
-                    rows="4"
-                    placeholder="Enter your message here..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                  />
-                </div>
-                <div className="flex gap-4">
+                <div className="flex justify-end gap-4"> {/* Action buttons */}
                   <button
                     onClick={() => handleDecision(req.id, "Approved")}
-                    disabled={updating}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
-                    {updating ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Approving...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Approve
-                      </>
-                    )}
+                    Approve
                   </button>
                   <button
                     onClick={() => handleDecision(req.id, "Rejected")}
-                    disabled={updating}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
-                    {updating ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Rejecting...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        Reject
-                      </>
-                    )}
+                    Reject
                   </button>
                 </div>
               </div>

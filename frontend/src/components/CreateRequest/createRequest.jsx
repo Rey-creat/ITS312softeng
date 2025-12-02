@@ -83,10 +83,12 @@ export default function CreateRequest() {
       <div className="fixed top-0 left-0 h-screen z-20">
         <Sidebar role={currentUser.role || "Teacher"} />
       </div>
-      <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Create New Request</h1>
-          <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-8 space-y-6 border border-gray-200">
+      <div className="flex-1 ml-65 p-6 h-screen overflow-y-auto"> {/* Adjusted layout */}
+        <div className="max-w-6xl mx-0"> {/* Removed auto centering and adjusted width */}
+          <h1 className="text-2xl font-bold text-gray-800 mb-4 text-left">
+            Create New Request
+          </h1>
+          <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4 border border-gray-200">
             {/* DATE FILED */}
             <div>
               <label htmlFor="date_filed" className="block text-sm font-medium text-gray-700 mb-2">
@@ -99,7 +101,7 @@ export default function CreateRequest() {
                 value={formData.date_filed}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
                 aria-describedby="date_filed_help"
               />
               {errors.date_filed && <p className="text-red-500 text-sm mt-1">{errors.date_filed}</p>}
@@ -121,7 +123,7 @@ export default function CreateRequest() {
                 value={formData.date_needed}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
                 aria-describedby="date_needed_help"
               />
               {errors.date_needed && <p className="text-red-500 text-sm mt-1">{errors.date_needed}</p>}
@@ -142,7 +144,7 @@ export default function CreateRequest() {
                 value={formData.type_of_concern}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
               >
                 <option value="">-- Select Concern --</option>
                 <option value="Repair">Repair</option>
@@ -161,9 +163,9 @@ export default function CreateRequest() {
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                rows="5"
+                rows="4"
                 required
-                className="w-full border border-gray-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 resize-none"
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-200 resize-none"
                 placeholder="Please provide a detailed description of your request, including any relevant details or urgency."
               />
               {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}

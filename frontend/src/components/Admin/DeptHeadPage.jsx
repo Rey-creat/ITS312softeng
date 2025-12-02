@@ -47,7 +47,6 @@ const DeptHeadPage = () => {
       const notedRequest = { ...updatedRequest, noted_by: notedBy };
       const existing = JSON.parse(localStorage.getItem("notedRequests")) || [];
       const updatedList = [...existing, notedRequest];
-
       localStorage.setItem("notedRequests", JSON.stringify(updatedList));
 
       setFeedbackMessage("Request noted successfully.");
@@ -57,9 +56,7 @@ const DeptHeadPage = () => {
       setNotedBy("");
       setCurrentRequestId(null);
 
-      setTimeout(() => setFeedbackMessage(""), 3000);
-
-      navigate("/PPGSHeadPage");
+      setTimeout(() => setFeedbackMessage(""), 3000); // Clear success message after 3 seconds
 
     } catch (err) {
       console.error("Error updating noted_by:", err);
@@ -105,26 +102,62 @@ const DeptHeadPage = () => {
         )}
 
         {requests.length === 0 ? (
-          <p>No requests available</p>
+          <div className="flex items-center justify-center flex-col text-gray-600 mt-8">
+            <svg
+              className="w-12 h-12 text-gray-400 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <p className="text-lg font-medium">No requests.</p>
+            <p className="text-sm">All requests have been processed or are awaiting prior endorsements.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"> {/* Adjusted gap and margin for better spacing */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"> {/* Card layout for requests */}
             {requests.map(req => (
-              <div key={req.id} className="bg-white shadow-lg rounded-lg p-6 border border-gray-200 hover:shadow-xl transition-shadow"> {/* Enhanced shadow and border */}
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Request #{req.id}</h2> {/* Adjusted text size and color */}
-                <p className="text-sm text-gray-900 mb-2"><strong>Date Filed:</strong> {formatDate(req.date_filed)}</p>
-                <p className="text-sm text-gray-900 mb-2"><strong>Date Needed:</strong> {formatDate(req.date_needed)}</p>
-                <p className="text-sm text-gray-900 mb-2"><strong>Type:</strong> {req.type_of_concern}</p>
-                <p className="text-sm text-gray-900 mb-2"><strong>Description:</strong> {req.description}</p>
-                <p className="text-sm text-gray-900 mb-2"><strong>Requested By:</strong> {req.requested_by}</p>
-                <p className="text-sm text-gray-900 mb-4"><strong>Noted By:</strong> {req.noted_by || "—"}</p>
-
-                <div className="flex justify-end gap-4">
+              <div key={req.id} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"> {/* Card design */}
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Request Details</h2>
+                <div className="grid grid-cols-1 gap-2 mb-4"> {/* Simplified details layout */}
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Date Filed:</span>
+                    <span className="ml-2 text-gray-900">{formatDate(req.date_filed)}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Date Needed:</span>
+                    <span className="ml-2 text-gray-900">{formatDate(req.date_needed)}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Type:</span>
+                    <span className="ml-2 text-gray-900">{req.type_of_concern}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Description:</span>
+                    <span className="ml-2 text-gray-700">{req.description}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Requested By:</span>
+                    <span className="ml-2 text-gray-900">{req.requested_by}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-500">Noted By:</span>
+                    <span className="ml-2 text-gray-900">{req.noted_by || "—"}</span>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-4"> {/* Action buttons */}
                   <button
                     onClick={() => {
                       setCurrentRequestId(req.id);
                       setShowModal(true);
                     }}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
                     Add Noted By
                   </button>
@@ -140,19 +173,15 @@ const DeptHeadPage = () => {
           <div className="bg-white p-6 rounded shadow-lg w-96">
             <h2 className="text-lg font-bold mb-4">Add Noted By</h2>
             <form onSubmit={handleNotedBySubmit}>
-              <label className="block mb-2 font-medium">Select Noted By:</label>
-              <select
+              <label className="block mb-2 font-medium">Noted By:</label>
+              <input
+                type="text"
                 value={notedBy}
                 onChange={(e) => setNotedBy(e.target.value)}
                 className="w-full border p-2 rounded mb-4"
+                placeholder="Enter department name..."
                 required
-              >
-                <option value="">Select department...</option>
-                <option value="SARFAID">SARFAID</option>
-                <option value="SSLATE">SSLATE</option>
-                <option value="SHTM">SHTM</option>
-                <option value="SBIT">SBIT</option>
-              </select>
+              />
               <div className="flex justify-end gap-2">
                 <button
                   type="button"

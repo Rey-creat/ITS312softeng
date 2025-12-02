@@ -28,6 +28,9 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
     President: [
       { name: "Requests", path: "/President", icon: <FaListAlt className="inline mr-3 text-white" /> },
     ],
+    Personnel: [
+      { name: "Dashboard", path: "/PersonnelDashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
+    ],
     User: [
       { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
       { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="inline mr-3 text-white" /> },

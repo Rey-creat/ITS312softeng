@@ -23,8 +23,8 @@ exports.register = async (req, res) => {
   if (rolesRequiringDept.includes(role) && !department) {
     return res.status(400).json({ message: "Department is required for this role." });
   }
-  // For PPGSHead and President, set department to null if empty string or not provided
-  if ((role === "PPGSHead" || role === "President") && (!department || department === "")) {
+  // For PPGSHead, President, and Personnel, set department to null if empty string or not provided
+  if ((role === "PPGSHead" || role === "President" || role === "Personnel") && (!department || department === "")) {
     department = null;
   }
 

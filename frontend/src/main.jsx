@@ -21,6 +21,7 @@ import DeptHeadPage from "./components/Admin/DeptHeadPage.jsx";
 import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
 import President from "./components/Admin/President.jsx";
 import AdminNotifications from "./components/Admin/AdminNotifications.jsx";
+import PersonnelDashboard from "./components/Admin/PersonnelDashboard.jsx";
 
 // --------------------
 // ProtectedRoute: ensures user is logged in
@@ -41,6 +42,13 @@ const RoleRoute = ({ element: Component, allowedRoles = [] }) => {
 
   // Admin can access all pages
   if (user.role === "Admin") return <Component />;
+
+  // Personnel can ONLY access PersonnelDashboard
+  if (user.role === "Personnel") {
+    return Component === PersonnelDashboard
+      ? <Component />
+      : <Navigate to="/PersonnelDashboard" replace />;
+  }
 
   // If user's role is allowed
   if (allowedRoles.includes(user.role)) return <Component />;
@@ -89,6 +97,10 @@ createRoot(document.getElementById("root")).render(
         <Route
           path="/President"
           element={<RoleRoute element={President} allowedRoles={["President"]} />}
+        />
+        <Route
+          path="/PersonnelDashboard"
+          element={<RoleRoute element={PersonnelDashboard} allowedRoles={["Personnel"]} />}
         />
 
         {/* Catch-all redirect */}

@@ -62,14 +62,28 @@ const formatDate = (date) => {
 exports.getRequests = (req, res) => {
   const userId = req.query.user_id;
   const role = req.query.role;
+  const assignedTo = req.query.assigned_to;
+  const hasAssigned = req.query.has_assigned;
 
-  let query = "SELECT * FROM requests ORDER BY date_filed DESC";
+  let query = `SELECT r.*, u.fullname AS assigned_personnel_name FROM requests r LEFT JOIN users u ON r.assigned_to = u.id`;
+  let where = [];
   let values = [];
 
   if (role !== "Admin" && userId) {
-    query = "SELECT * FROM requests WHERE user_id = ? ORDER BY date_filed DESC";
-    values = [userId];
+    where.push("r.user_id = ?");
+    values.push(userId);
   }
+  if (assignedTo) {
+    where.push("r.assigned_to = ?");
+    values.push(assignedTo);
+  }
+  if (hasAssigned) {
+    where.push("r.assigned_to IS NOT NULL AND r.assigned_to != ''");
+  }
+  if (where.length > 0) {
+    query += " WHERE " + where.join(" AND ");
+  }
+  query += " ORDER BY r.date_filed DESC";
 
   db.query(query, values, (err, results) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
@@ -78,6 +92,7 @@ exports.getRequests = (req, res) => {
       ...r,
       date_filed: formatDate(r.date_filed),
       date_needed: formatDate(r.date_needed),
+      assigned_personnel_name: r.assigned_personnel_name || null,
     }));
 
     res.status(200).json(formatted);

@@ -12,6 +12,9 @@ export default function AdminNotifications() {
         { id: 3, fullname: "Personnel 3" },
     ];
     const [assigning, setAssigning] = useState({});
+    const [showModal, setShowModal] = useState(false);
+    const [modalRequestId, setModalRequestId] = useState(null);
+    const [personnelName, setPersonnelName] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const navigate = useNavigate();
@@ -40,41 +43,47 @@ export default function AdminNotifications() {
         fetchRequests();
     }, []);
 
-    const handleAssign = async (requestId, personnelId) => {
-        setAssigning((prev) => ({ ...prev, [requestId]: true }));
+    const openAssignModal = (requestId) => {
+        setModalRequestId(requestId);
+        setPersonnelName("");
+        setShowModal(true);
+    };
+
+    const handleAssignModal = async () => {
+        if (!personnelName.trim()) {
+            setError("Please enter personnel name.");
+            return;
+        }
+        setAssigning((prev) => ({ ...prev, [modalRequestId]: true }));
         setError("");
         setSuccess("");
         try {
             const token = localStorage.getItem("token");
-            // Add console log for debugging
-            console.log("Assigning personnelId:", personnelId, "to requestId:", requestId);
             await axios.post(
-                `http://localhost:5000/api/requests/${requestId}/assign`,
-                { personnelId: parseInt(personnelId) },
+                `http://localhost:5000/api/requests/${modalRequestId}/assign`,
+                { personnelName: personnelName.trim() },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            // Find the assigned personnel's name
-            const assignedPersonnel = personnel.find(p => p.id === parseInt(personnelId));
             setRequests((prev) =>
                 prev.map((r) =>
-                    r.id === requestId
-                        ? { ...r, assigned_to: personnelId, assigned_personnel_name: assignedPersonnel?.fullname || "" }
+                    r.id === modalRequestId
+                        ? { ...r, assigned_to: personnelName.trim(), assigned_personnel_name: personnelName.trim() }
                         : r
                 )
             );
             setSuccess("Personnel assigned successfully.");
-            setTimeout(() => setSuccess(""), 2000);
+            setTimeout(() => setSuccess("") , 2000);
+            setShowModal(false);
         } catch (err) {
-            // More specific error handling
             const errorMsg = err.response?.data?.message || "Error assigning personnel.";
-            console.error("Assignment error:", err.response?.data); // Log full error for debugging
+            console.error("Assignment error:", err.response?.data);
             if (err.response?.status === 401) {
                 setError("Session expired. Please log in again.");
             } else {
                 setError(errorMsg);
             }
         }
-        setAssigning((prev) => ({ ...prev, [requestId]: false }));
+        setAssigning((prev) => ({ ...prev, [modalRequestId]: false }));
     };
 
     return (
@@ -122,18 +131,46 @@ export default function AdminNotifications() {
                                     <td className="px-3 py-2">{req.description}</td>
                                     <td className="px-3 py-2">{req.noted_by || "—"}</td>
                                     <td className="px-3 py-2">
-                                        <select
-                                            value={req.assigned_to || ""}
-                                            onChange={(e) => handleAssign(req.id, e.target.value)}
+                                        <button
+                                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                            onClick={() => openAssignModal(req.id)}
                                             disabled={assigning[req.id]}
-                                            className="border rounded px-2 py-1"
                                         >
-                                            <option value="">Select personnel</option>
-                                            {personnel.map((p) => (
-                                                <option key={p.id} value={p.id}>{p.fullname}</option>
-                                            ))}
-                                        </select>
+                                            Assign
+                                        </button>
                                     </td>
+                                            {showModal && (
+                                                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+                                                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+                                                        <h2 className="text-lg font-bold mb-4">Assign Personnel</h2>
+                                                        <input
+                                                            type="text"
+                                                            value={personnelName}
+                                                            onChange={e => setPersonnelName(e.target.value)}
+                                                            className="border rounded px-3 py-2 w-full mb-4"
+                                                            placeholder="Enter personnel name"
+                                                            autoFocus
+                                                        />
+                                                        <div className="flex justify-end gap-2">
+                                                            <button
+                                                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                                                onClick={() => setShowModal(false)}
+                                                                type="button"
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                            <button
+                                                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                                onClick={handleAssignModal}
+                                                                disabled={assigning[modalRequestId]}
+                                                                type="button"
+                                                            >
+                                                                Assign
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                 </tr>
                             ))}
                         </tbody>

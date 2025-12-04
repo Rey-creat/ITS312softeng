@@ -7,12 +7,25 @@ export default function Sidebar({ role, profilePicture, fullname }) {
   const navigate = useNavigate();
 
   // Sidebar menu items for Teachers, Faculty, and Staff
-  const menu = [
+  let menu = [
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="inline mr-3 text-white" /> },
     { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="inline mr-3 text-white" /> },
     { name: "My Requests", path: "/myRequest", icon: <FaListAlt className="inline mr-3 text-white" /> },
     { name: "Reports", path: "/reports", icon: <FaChartBar className="inline mr-3 text-white" /> },
   ];
+  // Add Noted Requests for DeptHead
+  if (role === "DeptHead") {
+    menu.push({
+      name: "Noted Requests",
+      path: "/noted-requests",
+      icon: <FaListAlt className="inline mr-3 text-white" />,
+    });
+    menu.push({
+      name: "Done Noted Requests",
+      path: "/done-noted-requests",
+      icon: <FaListAlt className="inline mr-3 text-white" />,
+    });
+  }
 
   // Logout handler
   const handleLogout = async () => {
@@ -58,7 +71,7 @@ export default function Sidebar({ role, profilePicture, fullname }) {
           <div key={index} className="mb-7">
             <Link
               to={item.path}
-              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center"
+              className="px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center"
             >
               {item.icon} {/* Add icon */}
               {item.name}

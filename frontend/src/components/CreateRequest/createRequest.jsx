@@ -6,8 +6,14 @@ import axios from "axios";
 export default function CreateRequest() {
   const navigate = useNavigate();
   const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
   const [formData, setFormData] = useState({
-    date_filed: "",
+    date_filed: todayStr,
     date_needed: "",
     type_of_concern: "",
     description: "",
@@ -150,6 +156,8 @@ export default function CreateRequest() {
                 <option value="Repair">Repair</option>
                 <option value="Construction">Construction</option>
                 <option value="Maintenance">Maintenance</option>
+                <option value="Maintenance">Installation</option>
+                
               </select>
               {errors.type_of_concern && <p className="text-red-500 text-sm mt-1">{errors.type_of_concern}</p>}
             </div>

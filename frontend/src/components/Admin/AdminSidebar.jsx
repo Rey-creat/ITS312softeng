@@ -76,7 +76,7 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
           <div key={index} className="mb-7 flex items-center"> {/* Adjusted gap to match Sidebar */}
             <Link
               to={item.path}
-              className="block px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center" /* Adjusted text size to match Sidebar */
+              className="px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-xl flex items-center" /* Adjusted text size to match Sidebar */
             >
               {item.icon} {/* Icons already match Sidebar */}
               {item.name}

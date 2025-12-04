@@ -1,6 +1,6 @@
-// src/main.jsx
-import React from "react";
-import { StrictMode } from "react";
+import React, { StrictMode } from "react";
+import DoneNotedRequests from "./components/Admin/DoneNotedRequests.jsx";
+import NotedRequests from "./components/Admin/NotedRequests.jsx";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";

@@ -15,17 +15,17 @@ exports.listAllRequests = (req, res) => {
 // ASSIGN PERSONNEL TO REQUEST
 exports.assignPersonnel = (req, res) => {
   const { id } = req.params;
-  const { personnelId } = req.body;
-  if (!personnelId) {
-    return res.status(400).json({ message: "Personnel ID required" });
+  const { personnelName } = req.body;
+  if (!personnelName || typeof personnelName !== 'string' || !personnelName.trim()) {
+    return res.status(400).json({ message: "Personnel name required" });
   }
   db.query(
-    "UPDATE requests SET assigned_to = ? WHERE id = ?",
-    [personnelId, id],
+    "UPDATE requests SET assigned_to = ?, assigned_personnel_name = ?, status = 'In Progress' WHERE id = ?",
+    [personnelName.trim(), personnelName.trim(), id],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-      res.status(200).json({ message: "Personnel assigned successfully" });
+      res.status(200).json({ message: "Personnel assigned and status set to In Progress" });
     }
   );
 };
@@ -65,7 +65,7 @@ exports.getRequests = (req, res) => {
   const assignedTo = req.query.assigned_to;
   const hasAssigned = req.query.has_assigned;
 
-  let query = `SELECT r.*, u.fullname AS assigned_personnel_name FROM requests r LEFT JOIN users u ON r.assigned_to = u.id`;
+  let query = `SELECT * FROM requests`;
   let where = [];
   let values = [];
 
@@ -74,19 +74,22 @@ exports.getRequests = (req, res) => {
     values.push(userId);
   }
   if (assignedTo) {
-    where.push("r.assigned_to = ?");
+    where.push("assigned_to = ?");
     values.push(assignedTo);
   }
   if (hasAssigned) {
-    where.push("r.assigned_to IS NOT NULL AND r.assigned_to != ''");
+    where.push("assigned_to IS NOT NULL AND assigned_to != ''");
   }
   if (where.length > 0) {
     query += " WHERE " + where.join(" AND ");
   }
-  query += " ORDER BY r.date_filed DESC";
+    query += " ORDER BY date_filed DESC";
 
   db.query(query, values, (err, results) => {
-    if (err) return res.status(500).json({ message: "DB error", error: err });
+    if (err) {
+      console.error("DB error in getRequests:", err);
+      return res.status(500).json({ message: "DB error", error: err });
+    }
 
     const formatted = results.map(r => ({
       ...r,
@@ -106,9 +109,14 @@ exports.createRequest = (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  // Always set status, noted_by, and ppgshead to 'Pending' for new requests
+  const status = 'Pending';
+  const noted_by = 'Pending';
+  const ppgshead = 'Pending';
+
   db.query(
-    "INSERT INTO requests (user_id, date_filed, date_needed, type_of_concern, description, requested_by) VALUES (?, ?, ?, ?, ?, ?)",
-    [user_id, date_filed, date_needed, type_of_concern, description, requested_by],
+    "INSERT INTO requests (user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by, ppgshead) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by, ppgshead],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       res.status(201).json({ message: "Request created successfully", requestId: result.insertId });
@@ -119,7 +127,38 @@ exports.createRequest = (req, res) => {
 // UPDATE REQUEST
 exports.updateRequest = (req, res) => {
   const { id } = req.params;
-  const { date_needed, type_of_concern, description } = req.body;
+  const { date_needed, type_of_concern, description, status, done_by } = req.body;
+
+  // Debug log incoming body
+  console.log('updateRequest body:', req.body);
+
+  // Allow status update (e.g., to 'Done')
+  if (status) {
+    // If marking as Done (case-insensitive) and done_by is provided (including 0)
+    if (typeof status === 'string' && status.trim().toLowerCase() === 'done' && done_by !== undefined) {
+      db.query(
+        "UPDATE requests SET status = ?, done_by = ? WHERE id = ?",
+        [status, done_by, id],
+        (err, result) => {
+          if (err) return res.status(500).json({ message: "DB error", error: err });
+          if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+          res.status(200).json({ message: "Request status and done_by updated successfully" });
+        }
+      );
+      return;
+    } else {
+      db.query(
+        "UPDATE requests SET status = ? WHERE id = ?",
+        [status, id],
+        (err, result) => {
+          if (err) return res.status(500).json({ message: "DB error", error: err });
+          if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+          res.status(200).json({ message: "Request status updated successfully" });
+        }
+      );
+      return;
+    }
+  }
 
   if (!date_needed || !type_of_concern || !description) {
     return res.status(400).json({ message: "All fields are required" });

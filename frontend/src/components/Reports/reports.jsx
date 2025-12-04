@@ -38,8 +38,26 @@ export default function Reports() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Only show reports requested by the current user
-      const userReports = (res.data || []).filter(r => r.requested_by === currentUser.fullname);
+      // Only show reports requested by the current user, sorted by latest date_filed
+      const parseDate = (d) => {
+        if (!d) return 0;
+        // Try ISO first, fallback to YYYY-MM-DD
+        const iso = Date.parse(d);
+        if (!isNaN(iso)) return iso;
+        const parts = d.split("-");
+        if (parts.length === 3) {
+          return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+        }
+        return 0;
+      };
+      const userReports = (res.data || [])
+        .filter(r => r.requested_by === currentUser.fullname)
+        .sort((a, b) => {
+          // If reference_code is numeric, sort numerically
+          const refA = parseInt(a.reference_code || a.id);
+          const refB = parseInt(b.reference_code || b.id);
+          return refB - refA;
+        });
       setReports(userReports);
       setFilteredReports(userReports);
     } catch (err) {
@@ -119,98 +137,7 @@ export default function Reports() {
           <p className="text-gray-600 mt-2">Monitor and track all requests in the system.</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 hover:shadow-xl transition-shadow">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-700">Total Requests</h2>
-                <p className="text-3xl font-bold text-blue-600 mt-1">{reports.length}</p>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 hover:shadow-xl transition-shadow">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-700">Approved</h2>
-                <p className="text-3xl font-bold text-emerald-600 mt-1">{reports.filter((r) => r.status === "Approved").length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 hover:shadow-xl transition-shadow">
-            <div className="flex items-center">
-              <div className="p-3 bg-red-100 rounded-lg">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <h2 className="text-lg font-semibold text-gray-700">Rejected</h2>
-                <p className="text-3xl font-bold text-red-600 mt-1">{reports.filter((r) => r.status === "Rejected").length}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex-1">
-              <label htmlFor="search" className="sr-only">Search requests</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  id="search"
-                  type="text"
-                  placeholder="Search by reference, requester, concern, or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">Filter by Status:</label>
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-              >
-                <option value="All">All</option>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
-            <button
-              onClick={fetchReports}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-        </div>
 
         {/* Table */}
         <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
@@ -223,7 +150,7 @@ export default function Reports() {
               <tr>
                 <th className="px-6 py-4">Request Details</th>
                 <th className="px-6 py-4">Approval</th>
-                 <th className="px-6 py-4">Status</th>
+                 <th className="px-6 py-4">Status (Marked by Personnel)</th>
                 {/* Removed PPGS Head Status column */}
               </tr>
             </thead>
@@ -264,7 +191,7 @@ export default function Reports() {
                         </div>
                       </div>
                     </td>
-                    {/* Timeline */}
+                    {/* Approval */}
                     <td className="px-6 py-6 align-top w-1/3">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -281,15 +208,30 @@ export default function Reports() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="font-medium text-gray-900">President</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${report.status === "Approved" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : report.status === "Rejected" ? "bg-red-100 text-red-800 border-red-200" : report.status === "Pending" ? "bg-amber-100 text-amber-800 border-amber-200" : "bg-gray-100 text-gray-600 border-gray-200"}`}>
-                            {report.status === "Approved" || report.status === "Rejected"
-                              ? (report.president_by || report.status)
-                              : "Pending"}
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                            report.status === "Approved"
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                              : report.status === "Rejected"
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : report.status === "Pending"
+                              ? "bg-amber-100 text-amber-800 border-amber-200"
+                              : "bg-gray-100 text-gray-600 border-gray-200"
+                          }`}>
+                            {report.status || "Pending"}
                           </span>
                         </div>
                       </div>
                     </td>
-                    {/* Removed PPGS Head Status cell */}
+                    {/* Status */}
+                    <td className="px-6 py-6 align-top w-1/3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                          report.noted_by === "Pending"
+                            ? "bg-amber-100 text-amber-800 border-amber-200"
+                            : "bg-green-100 text-green-800 border-green-200"
+                        }`}>
+                          {report.noted_by === "Pending" ? "Pending" : "Done"}
+                        </span>
+                    </td>
                   </tr>
                 ))
               ) : (

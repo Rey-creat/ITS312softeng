@@ -20,12 +20,12 @@ exports.assignPersonnel = (req, res) => {
     return res.status(400).json({ message: "Personnel name required" });
   }
   db.query(
-    "UPDATE requests SET assigned_to = ?, assigned_personnel_name = ?, status = 'In Progress' WHERE id = ?",
+    "UPDATE requests SET assigned_to = ?, assigned_personnel_name = ? WHERE id = ?",
     [personnelName.trim(), personnelName.trim(), id],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-      res.status(200).json({ message: "Personnel assigned and status set to In Progress" });
+      res.status(200).json({ message: "Personnel assigned successfully" });
     }
   );
 };

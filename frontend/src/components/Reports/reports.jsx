@@ -225,11 +225,11 @@ export default function Reports() {
                     {/* Status */}
                     <td className="px-6 py-6 align-top w-1/3">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                          report.noted_by === "Pending"
+                          !report.done_by
                             ? "bg-amber-100 text-amber-800 border-amber-200"
                             : "bg-green-100 text-green-800 border-green-200"
                         }`}>
-                          {report.noted_by === "Pending" ? "Pending" : "Done"}
+                          {!report.done_by ? "Pending" : "Done"}
                         </span>
                     </td>
                   </tr>

@@ -132,32 +132,18 @@ exports.updateRequest = (req, res) => {
   // Debug log incoming body
   console.log('updateRequest body:', req.body);
 
-  // Allow status update (e.g., to 'Done')
-  if (status) {
-    // If marking as Done (case-insensitive) and done_by is provided (including 0)
-    if (typeof status === 'string' && status.trim().toLowerCase() === 'done' && done_by !== undefined) {
-      db.query(
-        "UPDATE requests SET status = ?, done_by = ? WHERE id = ?",
-        [status, done_by, id],
-        (err, result) => {
-          if (err) return res.status(500).json({ message: "DB error", error: err });
-          if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-          res.status(200).json({ message: "Request status and done_by updated successfully" });
-        }
-      );
-      return;
-    } else {
-      db.query(
-        "UPDATE requests SET status = ? WHERE id = ?",
-        [status, id],
-        (err, result) => {
-          if (err) return res.status(500).json({ message: "DB error", error: err });
-          if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-          res.status(200).json({ message: "Request status updated successfully" });
-        }
-      );
-      return;
-    }
+  // Only allow done_by update when marking as done by personnel
+  if (done_by !== undefined) {
+    db.query(
+      "UPDATE requests SET done_by = ? WHERE id = ?",
+      [done_by, id],
+      (err, result) => {
+        if (err) return res.status(500).json({ message: "DB error", error: err });
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+        res.status(200).json({ message: "Request done_by updated successfully" });
+      }
+    );
+    return;
   }
 
   if (!date_needed || !type_of_concern || !description) {

@@ -20,6 +20,7 @@ export default function CreateRequest() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState("");
 
   // FORMAT: Month Day, Year
   const formatDatePretty = (dateString) => {
@@ -70,8 +71,11 @@ export default function CreateRequest() {
       await axios.post("http://localhost:5000/api/requests", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Request submitted successfully!");
-      navigate("/dashboard", { state: { refresh: true } });
+      setSuccessMsg("Request submitted successfully!");
+      setTimeout(() => {
+        setSuccessMsg("");
+        navigate("/dashboard", { state: { refresh: true } });
+      }, 1500);
     } catch (err) {
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
@@ -86,6 +90,15 @@ export default function CreateRequest() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 overflow-hidden">
+      {successMsg && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-green-300 text-green-800 px-6 py-3 rounded-xl shadow-2xl animate-fade-in">
+          <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#d1fae5" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2l4-4" stroke="#10b981" />
+          </svg>
+          <span className="font-semibold text-lg">{successMsg}</span>
+        </div>
+      )}
       <div className="fixed top-0 left-0 h-screen z-20">
         <Sidebar role={currentUser.role || "Teacher"} />
       </div>
@@ -94,7 +107,16 @@ export default function CreateRequest() {
           <h1 className="text-2xl font-bold text-gray-800 mb-4 text-left">
             Create New Request
           </h1>
-          <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4 border border-gray-200">
+          <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4 border border-gray-200 relative">
+            {submitting && (
+              <div className="absolute inset-0 bg-white bg-opacity-70 flex flex-col items-center justify-center z-20 rounded-lg animate-fade-in">
+                <svg className="animate-spin h-10 w-10 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span className="text-blue-700 font-semibold">Submitting request...</span>
+              </div>
+            )}
             {/* DATE FILED */}
             <div>
               <label htmlFor="date_filed" className="block text-sm font-medium text-gray-700 mb-2">

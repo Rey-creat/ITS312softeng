@@ -6,7 +6,7 @@ import Sidebar from "../Sidebar/sidebar.jsx";
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
-    counts: { total: 0, pending: 0, approved: 0, rejected: 0 },
+    counts: { total: 0, inProgress: 0, approved: 0, rejected: 0 },
     recent: [],
   });
   const [loading, setLoading] = useState(true);
@@ -44,22 +44,20 @@ export default function Dashboard() {
 
       setUser(currentUser);
 
-      const statsRes = await axios.get(
-        `http://localhost:5000/api/dashboard-stats?user_id=${currentUser.id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Calculate approved based on president decision
-      const recent = statsRes.data.recent || [];
-      const counts = {
-        total: statsRes.data.counts.total,
-        pending: statsRes.data.counts.pending,
-        approved: recent.filter(r => r.status === "Approved").length,
-        rejected: statsRes.data.counts.rejected,
-      };
-
+      // Fetch all requests for dashboard stats
+      const res = await axios.get("http://localhost:5000/api/requests", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const allRequests = res.data || [];
+      // Calculate counts
+      const total = allRequests.length;
+      const inProgress = allRequests.filter(r => !r.done_by && (!r.ppgshead || r.ppgshead !== "Rejected") && (!r.status || r.status !== "Rejected")).length;
+      const approved = allRequests.filter(r => r.done_by && (!r.ppgshead || r.ppgshead !== "Rejected") && (!r.status || r.status !== "Rejected")).length;
+      const rejected = allRequests.filter(r => r.ppgshead === "Rejected" || r.status === "Rejected").length;
+      // Recent requests (last 5)
+      const recent = allRequests.slice(0, 5);
       setStats({
-        counts,
+        counts: { total, inProgress, approved, rejected },
         recent,
       });
     } catch (err) {
@@ -140,8 +138,8 @@ export default function Dashboard() {
               </svg>
             </div>
             <div className="ml-4 text-center">
-              <p className="text-gray-600 font-medium">Pending</p>
-              <p className="text-3xl font-bold text-yellow-600">{stats.counts.pending}</p>
+              <p className="text-gray-600 font-medium">In Progress</p>
+              <p className="text-3xl font-bold text-yellow-600">{stats.counts.inProgress}</p>
             </div>
           </div>
 
@@ -178,31 +176,45 @@ export default function Dashboard() {
 
           <div className="space-y-4">
             {stats.recent.length > 0 ? (
-              stats.recent.map((req) => (
-                <div
-                  key={req.id}
-                  className="bg-white shadow-lg rounded-lg p-5 border border-gray-200"
-                >
-                  <p className="font-bold text-lg text-gray-900 mb-1">
-                    {req.type_of_concern}
-                  </p>
-
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Date Filed:</span>{" "}
-                    {formatDate(req.date_filed)}
-                  </p>
-
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Date Needed:</span>{" "}
-                    {formatDate(req.date_needed)}
-                  </p>
-
-                  <p className="text-sm text-gray-800 mt-1 leading-relaxed">
-                    <span className="font-semibold">Description:</span>{" "}
-                    {req.description}
-                  </p>
-                </div>
-              ))
+              stats.recent.map((req) => {
+                // Determine status: Approved if done_by and not rejected, In Progress if not done_by and not rejected, Rejected if ppgshead or status is Rejected
+                let statusLabel = "In Progress";
+                let statusColor = "bg-yellow-100 text-yellow-800 border-yellow-200";
+                if (req.ppgshead === "Rejected" || req.status === "Rejected") {
+                  statusLabel = "Rejected";
+                  statusColor = "bg-red-100 text-red-800 border-red-200";
+                } else if (req.done_by) {
+                  statusLabel = "Approved";
+                  statusColor = "bg-green-100 text-green-800 border-green-200";
+                }
+                return (
+                  <div
+                    key={req.id}
+                    className="bg-white shadow-lg rounded-lg p-5 border border-gray-200"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-bold text-lg text-gray-900">
+                        {req.type_of_concern}
+                      </p>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColor}`}>
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Date Filed:</span>{" "}
+                      {formatDate(req.date_filed)}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Date Needed:</span>{" "}
+                      {formatDate(req.date_needed)}
+                    </p>
+                    <p className="text-sm text-gray-800 mt-1 leading-relaxed">
+                      <span className="font-semibold">Description:</span>{" "}
+                      {req.description}
+                    </p>
+                  </div>
+                );
+              })
             ) : (
               <p className="text-gray-600">No recent requests</p>
             )}

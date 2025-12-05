@@ -150,55 +150,59 @@ export default function MyRequest() {
             </thead>
             <tbody>
               {stats.recent.length > 0 ? (
-                stats.recent.map((req) => (
-                  <tr
-                    key={req.id}
-                    className="border-t hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                      {req.reference_code || `REQ-${req.id}`}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                      {formatShortDate(req.date_filed)}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                      {formatShortDate(req.date_needed)}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {req.type_of_concern}
-                    </td>
-                    <td className="px-6 py-4 text-gray-700 break-word max-w-xs">
-                      {req.description.split(" ").slice(0, 10).join(" ")}
-                      {req.description.split(" ").length > 10 && "…"}
-                    </td>
-                    {/* Removed PPGS Head Status cell */}
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setForm({
-                              id: req.id,
-                              date_filed: req.date_filed,
-                              date_needed: req.date_needed,
-                              type_of_concern: req.type_of_concern,
-                              description: req.description,
-                            });
-                            setEditing(true);
-                          }}
-                          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(req.id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                stats.recent.map((req) => {
+                  const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
+                  return (
+                    <tr
+                      key={req.id}
+                      className="border-t hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                        {req.reference_code || `REQ-${req.id}`}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                        {formatShortDate(req.date_filed)}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                        {formatShortDate(req.date_needed)}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {req.type_of_concern}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 break-word max-w-xs">
+                        {req.description.split(" ").slice(0, 10).join(" ")}
+                        {req.description.split(" ").length > 10 && "…"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              if (isStrictApproved) return;
+                              setForm({
+                                id: req.id,
+                                date_filed: req.date_filed,
+                                date_needed: req.date_needed,
+                                type_of_concern: req.type_of_concern,
+                                description: req.description,
+                              });
+                              setEditing(true);
+                            }}
+                            className={`bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm ${isStrictApproved ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isStrictApproved}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(req.id)}
+                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td

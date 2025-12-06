@@ -266,12 +266,8 @@ const SuperadminDashboard = () => {
         <div className="px-6 pb-10">
           {activeTab === "requests" && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                All Requests
-              </h2>
-              <p className="text-gray-600 mb-4">
-                View, assign, reorder, or override any request here.
-              </p>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">All Requests</h2>
+              <p className="text-gray-600 mb-4">View, assign, reorder, or override any request here.</p>
               {loading ? (
                 <div className="text-center py-8">Loading requests...</div>
               ) : requests.length > 0 ? (
@@ -286,40 +282,17 @@ const SuperadminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {requests.map((req) => (
+                    {requests.slice().sort((a, b) => b.id - a.id).map((req) => (
                       <tr key={req.id} className="border-b">
                         <td className="px-4 py-2">{req.id}</td>
                         <td className="px-4 py-2">{req.type_of_concern}</td>
+                        <td className="px-4 py-2">{req.status || (req.done_by ? "Approved" : "In Progress")}</td>
+                        <td className="px-4 py-2">{req.assigned_to || "Unassigned"}</td>
                         <td className="px-4 py-2">
-                          {req.status || (req.done_by ? "Approved" : "In Progress")}
-                        </td>
-                        <td className="px-4 py-2">
-                          {req.assigned_to || "Unassigned"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <button
-                            className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-                            onClick={() => {
-                              setAssignId(req.id);
-                            }}
-                          >
-                            Assign
-                          </button>
-                          <button
-                            className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                            onClick={() => handleReorderRequest(req.id, "up")}
-                          >
-                            Up
-                          </button>
-                          <button
-                            className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                            onClick={() => handleReorderRequest(req.id, "down")}
-                          >
-                            Down
-                          </button>
-                          <button className="bg-red-500 text-white px-2 py-1 rounded">
-                            Override
-                          </button>
+                          <button className="bg-blue-500 text-white px-2 py-1 rounded mr-2" onClick={() => { setAssignId(req.id); }}>Assign</button>
+                          <button className="bg-yellow-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleReorderRequest(req.id, "up")}>Up</button>
+                          <button className="bg-yellow-500 text-white px-2 py-1 rounded mr-2" onClick={() => handleReorderRequest(req.id, "down")}>Down</button>
+                          <button className="bg-red-500 text-white px-2 py-1 rounded">Override</button>
                         </td>
                       </tr>
                     ))}
@@ -330,34 +303,14 @@ const SuperadminDashboard = () => {
               )}
               {/* Assign Modal */}
               {assignId && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backdropFilter: 'blur(4px)', background: 'rgba(0,0,0,0.05)' }}>
                   <div className="bg-white p-6 rounded shadow-lg w-96">
-                    <h3 className="text-lg font-bold mb-4">
-                      Assign Request #{assignId}
-                    </h3>
+                    <h3 className="text-lg font-bold mb-4">Assign Request #{assignId}</h3>
                     <label className="block mb-2">Personnel Name:</label>
-                    <input
-                      type="text"
-                      className="w-full border px-3 py-2 rounded mb-4"
-                      value={assignPersonnel}
-                      onChange={(e) => setAssignPersonnel(e.target.value)}
-                    />
+                    <input type="text" className="w-full border px-3 py-2 rounded mb-4" value={assignPersonnel} onChange={e => setAssignPersonnel(e.target.value)} placeholder="Enter personnel name" />
                     <div className="flex justify-end space-x-2">
-                      <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded"
-                        onClick={handleAssignRequest}
-                      >
-                        Assign
-                      </button>
-                      <button
-                        className="bg-gray-300 px-4 py-2 rounded"
-                        onClick={() => {
-                          setAssignId(null);
-                          setAssignPersonnel("");
-                        }}
-                      >
-                        Cancel
-                      </button>
+                      <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={handleAssignRequest} disabled={!assignPersonnel}>Assign</button>
+                      <button className="bg-gray-300 px-4 py-2 rounded" onClick={() => { setAssignId(null); setAssignPersonnel(""); }}>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -427,7 +380,7 @@ const SuperadminDashboard = () => {
               )}
               {/* User Modal */}
               {showUserModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backdropFilter: 'blur(4px)', background: 'rgba(0,0,0,0.05)' }}>
                   <div className="bg-white p-6 rounded shadow-lg w-96">
                     <h3 className="text-lg font-bold mb-4">
                       {editUser ? "Edit User" : "Add User"}
@@ -465,8 +418,8 @@ const SuperadminDashboard = () => {
                       }
                     >
                       <option value="Personnel">Personnel</option>
-                      <option value="DeptHead">DeptHead</option>
                       <option value="PPGSHead">PPGSHead</option>
+                      <option value="DeptHead">DeptHead</option>
                       <option value="Superadmin">Superadmin</option>
                     </select>
                     {!editUser && (
@@ -506,23 +459,45 @@ const SuperadminDashboard = () => {
           )}
           {activeTab === "reports" && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                System Reports
-              </h2>
-              <p className="text-gray-600 mb-4">View system-wide reports.</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">System Reports</h2>
+              <p className="text-gray-600 mb-4">Quick summary of requests.</p>
               <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-                Reports content here.
+                <ul className="space-y-2">
+                  <li>Total Requests: <span className="font-bold">{stats.counts.total}</span></li>
+                  <li>Approved Requests: <span className="font-bold text-green-600">{stats.counts.approved}</span></li>
+                  <li>Rejected Requests: <span className="font-bold text-red-600">{stats.counts.rejected}</span></li>
+                  <li>In Progress: <span className="font-bold text-yellow-600">{stats.counts.inProgress}</span></li>
+                </ul>
+                <div className="mt-6">
+                  <h3 className="font-semibold mb-2">Recent Requests</h3>
+                  <ul className="list-disc pl-5">
+                    {stats.recent.map(r => (
+                      <li key={r.id}>
+                        #{r.id} - {r.type_of_concern} ({r.status || (r.done_by ? "Approved" : "In Progress")})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           )}
           {activeTab === "logs" && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                System Logs
-              </h2>
-              <p className="text-gray-600 mb-4">View system logs and actions.</p>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">System Logs</h2>
+              <p className="text-gray-600 mb-4">Recent system actions.</p>
               <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-                Logs content here.
+                <ul className="space-y-2">
+                  {requests.slice().sort((a, b) => b.id - a.id).slice(0, 10).map(r => (
+                    <li key={r.id}>
+                      Request #{r.id} - {r.type_of_concern}: <span className="font-semibold">{r.status || (r.done_by ? "Approved" : "In Progress")}</span> by {r.done_by || r.assigned_to || "Unknown"}
+                    </li>
+                  ))}
+                  {users.slice().sort((a, b) => b.id - a.id).slice(0, 5).map(u => (
+                    <li key={u.id}>
+                      User {u.fullname} ({u.role}) - Added/Edited
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}

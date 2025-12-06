@@ -187,7 +187,7 @@ export default function MyRequest() {
 
         {/* Requests Table */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gradient from-gray-50 to-blue-50 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-900">Request List</h2>
             <p className="text-gray-600 text-sm mt-1">
               Showing {filteredRequests.length} of {stats.recent.length} requests
@@ -209,7 +209,7 @@ export default function MyRequest() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredRequests.map((req) => {
-                    const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
+                    const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.status === "Personnel" || req.status === "President";
                     return (
                       <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
@@ -239,7 +239,7 @@ export default function MyRequest() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => {
-                                if (isStrictApproved) return;
+                                if (isLocked) return;
                                 setForm({
                                   id: req.id,
                                   date_filed: req.date_filed,
@@ -249,9 +249,9 @@ export default function MyRequest() {
                                 });
                                 setEditing(true);
                               }}
-                              disabled={isStrictApproved}
+                              disabled={isLocked}
                               className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-                                isStrictApproved
+                                isLocked
                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                   : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
                               }`}
@@ -260,8 +260,16 @@ export default function MyRequest() {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(req.id)}
-                              className="flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+                              onClick={() => {
+                                if (isLocked) return;
+                                handleDelete(req.id);
+                              }}
+                              disabled={isLocked}
+                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                                isLocked
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700'
+                              }`}
                             >
                               <FaTrash className="mr-2" />
                               Delete
@@ -348,6 +356,7 @@ export default function MyRequest() {
                     <option value="Repair">Repair</option>
                     <option value="Construction">Construction</option>
                     <option value="Maintenance">Maintenance</option>
+                    <option value="Installation">Installation</option>
                   </select>
                 </div>
 

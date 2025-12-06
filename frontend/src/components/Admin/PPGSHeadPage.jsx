@@ -15,6 +15,8 @@ import {
   FaThumbsUp,
   FaThumbsDown,
   FaEye,
+  FaBan,
+  FaCheck,
   FaArrowRight,
   FaCalendarDay,
   FaClipboardList
@@ -31,18 +33,18 @@ const PPGSHeadPage = () => {
       try {
         setLoading(true);
         const res = await axios.get("http://localhost:5000/api/ppgshead/approved-requests");
-        let allRequests = res.data.sort((a, b) => a.id - b.id);
+        let allRequests = res.data.sort((a, b) => b.id - a.id);
 
         // Load all noted requests stored from Dept Head
         const storedRequests = JSON.parse(localStorage.getItem("notedRequests")) || [];
 
         storedRequests.forEach(stored => {
           if (!allRequests.find(r => r.id === stored.id)) {
-            allRequests.push(stored);
+            allRequests.unshift(stored);
           }
         });
 
-        setRequests(allRequests.sort((a, b) => a.id - b.id));
+        setRequests(allRequests.sort((a, b) => b.id - a.id));
       } catch (err) {
         console.error("Error fetching requests:", err);
       } finally {
@@ -256,14 +258,14 @@ const PPGSHeadPage = () => {
                           onClick={() => handleApprove(req.id)}
                           className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                         >
-                          <FaThumbsUp className="w-4 h-4" />
+                          <FaCheck className="w-4 h-4" />
                           Approve
                         </button>
                         <button
                           onClick={() => handleReject(req.id)}
                           className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                         >
-                          <FaThumbsDown className="w-4 h-4" />
+                          <FaBan className="w-4 h-4" />
                           Reject
                         </button>
                       </div>

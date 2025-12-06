@@ -121,7 +121,7 @@ export default function Dashboard() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex items-center justify-center h-screen bg-gradient-to- from-gray-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Loading Dashboard...</p>
@@ -130,7 +130,7 @@ export default function Dashboard() {
     );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex min-h-screen bg-gradient-to from-gray-50 to-blue-50">
       <Sidebar role={user?.role} fullname={user?.fullname} />
 
       {/* MAIN CONTENT AREA */}
@@ -152,7 +152,7 @@ export default function Dashboard() {
                 <FaSync className="mr-2" />
                 Refresh
               </button>
-              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="h-8 w-8 rounded-full bg-gradient-to from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
                 {user?.fullname?.charAt(0)}
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
                 onClick={() => navigate("/createRequest")}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 <div className="flex items-center">
                   <div className="p-2 bg-white/20 rounded-lg mr-3">
@@ -268,7 +268,7 @@ export default function Dashboard() {
               
               <button
                 onClick={() => navigate("/myRequest")}
-                className="bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 <div className="flex items-center">
                   <div className="p-2 bg-white/20 rounded-lg mr-3">
@@ -283,7 +283,7 @@ export default function Dashboard() {
               
               <button
                 onClick={() => navigate("/reports")}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 <div className="flex items-center">
                   <div className="p-2 bg-white/20 rounded-lg mr-3">
@@ -300,7 +300,7 @@ export default function Dashboard() {
 
           {/* RECENT REQUESTS SECTION */}
           <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="px-5 py-4 border-b border-gray-200 bg-gradient-to from-gray-50 to-blue-50">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Recent Requests</h2>

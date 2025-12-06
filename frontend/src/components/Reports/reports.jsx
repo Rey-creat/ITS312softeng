@@ -34,6 +34,52 @@ const formatDate = (dateString) => {
 };
 
 export default function Reports() {
+    // Export filtered reports to CSV
+    const handleExport = () => {
+      if (!filteredReports.length) return;
+      // Define CSV headers
+      const headers = [
+        "Reference Code",
+        "Type of Concern",
+        "Requested By",
+        "Date Filed",
+        "Date Needed",
+        "Description",
+        "Dept Head",
+        "PPGS Head",
+        "President",
+        "Completion Status",
+        "Completed By"
+      ];
+      // Map reports to CSV rows
+      const rows = filteredReports.map(r => [
+        r.reference_code || `REQ-${r.id}`,
+        r.type_of_concern,
+        r.requested_by,
+        r.date_filed,
+        r.date_needed || "",
+        r.description,
+        r.noted_by,
+        r.ppgshead,
+        r.status,
+        r.done_by ? "Done" : "Pending",
+        r.done_by || ""
+      ]);
+      // Build CSV string
+      const csvContent = [headers, ...rows]
+        .map(e => e.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      // Download CSV
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "reports.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
   const [user, setUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
@@ -94,17 +140,25 @@ export default function Reports() {
     let filtered = reports;
 
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (report) =>
-          report.reference_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          report.reference_code?.toLowerCase().includes(term) ||
+          String(report.id).toLowerCase().includes(term)
       );
     }
 
     if (statusFilter !== "All") {
-      filtered = filtered.filter((report) => report.ppgshead === statusFilter);
+      if (statusFilter === "Pending") {
+        filtered = filtered.filter(
+          (report) =>
+            report.ppgshead === "Pending" ||
+            report.status === "Pending" ||
+            !report.done_by
+        );
+      } else {
+        filtered = filtered.filter((report) => report.ppgshead === statusFilter);
+      }
     }
 
     setFilteredReports(filtered);
@@ -190,6 +244,7 @@ export default function Reports() {
                 Refresh
               </button>
               <button
+                onClick={handleExport}
                 className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
               >
                 <FaDownload className="mr-2" />

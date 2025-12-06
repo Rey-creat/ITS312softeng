@@ -1,5 +1,25 @@
 import React, { useState, useEffect } from "react";
-import AdminSidebar from "./AdminSidebar"; // adjust path if needed
+import AdminSidebar from "./AdminSidebar";
+import {
+  FaFileAlt,
+  FaUser,
+  FaCalendarAlt,
+  FaCalendarDay,
+  FaTools,
+  FaAlignLeft,
+  FaClipboardCheck,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaBuilding,
+  FaUserTie,
+  FaCrown,
+  FaHourglassHalf,
+  FaSync,
+  FaArrowRight,
+  FaExclamationCircle,
+  FaCheck,
+  FaBan
+} from "react-icons/fa";
 
 const President = () => {
   const [decision, setDecision] = useState(null);
@@ -7,14 +27,25 @@ const President = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [processingId, setProcessingId] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
 
-  // 🔔 DeptHead-style notification
   const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [feedbackType, setFeedbackType] = useState(""); // success | error
+  const [feedbackType, setFeedbackType] = useState("");
 
-  // ============================
-  // 📌 FETCH REQUESTS
-  // ============================
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Fetch requests
   useEffect(() => {
     const fetchRequests = async () => {
       setLoading(true);
@@ -28,7 +59,6 @@ const President = () => {
 
         const data = await res.json();
 
-        // Show only requests approved by PPGS Head but pending President
         setRequests(
           data.filter(
             (r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)
@@ -43,7 +73,6 @@ const President = () => {
 
     fetchRequests();
 
-    // Auto refresh when PPGS Head approves
     const handleStorage = (event) => {
       if (event.key === "ppgsheadApproved") {
         fetchRequests();
@@ -54,11 +83,12 @@ const President = () => {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  // ============================
-  // 📌 HANDLE APPROVE / REJECT (FIXED)
-  // ============================
+  // Handle decision
   const handleDecision = async (id, decision) => {
+    setProcessingId(id);
     setUpdating(true);
+    setFeedbackMessage("");
+    setFeedbackType("");
 
     try {
       const token = localStorage.getItem("token");
@@ -78,228 +108,426 @@ const President = () => {
       );
 
       if (res.ok) {
-        // Success: Always show custom message with green background
         setDecision(decision);
         setRequests((prev) => prev.filter((r) => r.id !== id));
         setMessage("");
-        setFeedbackMessage(
-          `Request ${decision === "Approved" ? "approved" : "rejected"} successfully.`
+        showNotification(
+          `Request ${decision === "Approved" ? "approved" : "rejected"} successfully`,
+          "success"
         );
-        setFeedbackType("success");
-        setTimeout(() => setFeedbackMessage(""), 3000);
+        setShowDetails(false);
       } else {
-        // Error: Show backend message or default
         const result = await res.json();
-        const errorMsg = result.message || "Failed to update request.";
-        setFeedbackMessage(errorMsg);
-        setFeedbackType("error");
-        setTimeout(() => setFeedbackMessage(""), 3000);
+        showNotification(result.message || "Failed to update request", "error");
       }
     } catch (err) {
-      setFeedbackMessage("Error updating request. Please try again.");
-      setFeedbackType("error");
-      setTimeout(() => setFeedbackMessage(""), 3000);
+      showNotification("Error updating request. Please try again.", "error");
     } finally {
       setUpdating(false);
+      setProcessingId(null);
     }
   };
 
-  return (
-    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
-      <div className="fixed top-0 left-0 h-screen z-20">
-        <AdminSidebar
-          presidentHasRequests={requests.some(
-            (r) =>
-              r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)
-          )}
-        />
-      </div>
+  // Show notification
+  const showNotification = (message, type) => {
+    const notification = document.createElement("div");
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${
+      type === "success" ? "bg-green-600" : "bg-red-600"
+    } text-white flex items-center`;
+    
+    notification.innerHTML = `
+      ${type === "success" ? 
+        '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' :
+        '<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>'
+      }
+      ${message}
+    `;
+    
+    document.body.appendChild(notification);
 
-      <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">President</h1>
-          <p className="text-gray-600 mt-2">
-            Final approval stage. Review and decide on requests endorsed by
-            Department Head and PPGS Head.
-          </p>
-        </div>
+    setTimeout(() => {
+      notification.style.opacity = "0";
+      notification.style.transform = "translateX(100%)";
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  };
 
-        {/* 🔔 Notification */}
-        {feedbackMessage && (
-          <div
-            className={`p-4 mb-4 rounded border ${
-              feedbackType === "success"
-                ? "bg-green-100 text-green-800 border-green-300"
-                : "bg-red-100 text-red-800 border-red-300"
-            }`}
-          >
-            {feedbackMessage}
+  // Get status color
+  const getStatusColor = (status) => {
+    switch(status) {
+      case "Approved": return "bg-green-100 text-green-800 border-green-200";
+      case "Rejected": return "bg-red-100 text-red-800 border-red-200";
+      default: return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
+        <AdminSidebar presidentHasRequests={requests.length > 0} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading presidential requests...</p>
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
 
-        {/* ================================
-            LOADING STATE
-        ================================= */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 font-medium">
-                Loading requests...
-              </p>
+  return (
+    <div className="flex min-h-screen bg-linear-to-br from-gray-50 to-blue-50">
+      <div className="fixed inset-y-0 left-0 z-40 w-64">
+        <AdminSidebar presidentHasRequests={requests.length > 0} />
+      </div>
+      <div className="ml-64 flex-1 h-screen overflow-y-auto">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-linear-to-r from-purple-600 to-purple-700 rounded-lg">
+                <FaCrown className="text-3xl text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">President Dashboard</h1>
+                <p className="text-gray-600">Final approval stage for PPGS Head-endorsed requests</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-2 bg-linear-to-r from-purple-50 to-purple-100 text-purple-800 rounded-lg border border-purple-200 font-medium">
+                {requests.length} Pending Approval
+              </div>
             </div>
           </div>
-        ) : requests.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="mt-4 text-lg font-medium">
-              No requests pending President approval.
-            </p>
-            <p className="text-sm">
-              All requests have been processed or are awaiting prior
-              endorsements.
-            </p>
-          </div>
-        ) : (
-          // ================================
-          // REQUEST CARDS
-          // ================================
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {requests.map((req) => (
-              <div
-                key={req.id}
-                className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
-              >
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                  Request Details
-                </h2>
+        </div>
 
-                <div className="grid grid-cols-1 gap-2 mb-4">
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Reference Code:
-                    </span>
-                    <span className="ml-2 text-blue-700 font-medium">
-                      {req.reference_code || `REQ-${req.id}`}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Date Filed:
-                    </span>
-                    <span className="ml-2 text-gray-900">{req.date_filed}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Date Needed:
-                    </span>
-                    <span className="ml-2 text-gray-900">
-                      {req.date_needed || "—"}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Requested By:
-                    </span>
-                    <span className="ml-2 text-gray-900">
-                      {req.requested_by}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Type of Concern:
-                    </span>
-                    <span className="ml-2 text-gray-900">
-                      {req.type_of_concern}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-sm font-semibold text-gray-500">
-                      Description:
-                    </span>
-                    <span className="ml-2 text-gray-700">
-                      {req.description}
-                    </span>
-                  </div>
-                </div>
-
-                {/* APPROVAL STATUS */}
-                <div className="mb-6">
-                  <span className="text-sm font-semibold text-gray-500">
-                    Approval:
-                  </span>
-                  <div className="mt-3 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">
-                        Department Head
-                      </span>
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                        {req.noted_by || "Pending"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">
-                        PPGS Head
-                      </span>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                          req.ppgshead === "Approved"
-                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                            : req.ppgshead === "Rejected"
-                            ? "bg-red-100 text-red-800 border-red-200"
-                            : req.ppgshead === "In Progress"
-                            ? "bg-blue-100 text-blue-800 border-blue-200"
-                            : "bg-amber-100 text-amber-800 border-amber-200"
-                        }`}
-                      >
-                        {req.ppgshead || "Pending"}
+        {/* Main Content */}
+        <div className="px-8 py-6">
+          {requests.length === 0 ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto">
+              <div className="w-24 h-24 bg-linear-to-r from-purple-50 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaCheckCircle className="w-12 h-12 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No pending presidential approvals</h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                All requests have been processed or are awaiting prior endorsements.
+                New requests will appear here once they are approved by PPGS Head.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ml-5">
+              {requests.map((req) => (
+                <div 
+                  key={req.id} 
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group"
+                >
+                  {/* Card Header */}
+                  <div className="px-6 py-5 border-b border-gray-100 bg-linear-to-r from-gray-50 to-purple-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="p-2 bg-linear-to-r from-purple-100 to-blue-100 rounded-lg">
+                            <FaFileAlt className="w-4 h-4 text-purple-600" />
+                          </div>
+                          <span className="text-sm font-semibold text-purple-600">
+                            Request #{req.id}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900">{req.type_of_concern}</h3>
+                      </div>
+                      <span className="px-3 py-1 bg-linear-to-r from-purple-100 to-purple-200 text-purple-800 text-xs font-semibold rounded-full border border-purple-200">
+                        Final Review
                       </span>
                     </div>
                   </div>
+
+                  {/* Card Body */}
+                  <div className="px-6 py-5">
+                    <div className="space-y-4">
+                      {/* Dates */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <FaCalendarAlt className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs font-medium text-gray-500">Date Filed</span>
+                          </div>
+                          <p className="text-gray-900 font-medium pl-6">{formatDate(req.date_filed)}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <FaCalendarDay className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs font-medium text-gray-500">Date Needed</span>
+                          </div>
+                          <p className="text-gray-900 font-medium pl-6">{formatDate(req.date_needed)}</p>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <div className="flex items-start gap-2 mb-2">
+                          <FaAlignLeft className="w-4 h-4 text-gray-400 mt-0.5" />
+                          <span className="text-sm font-medium text-gray-500">Description</span>
+                        </div>
+                        <p className="text-gray-700 line-clamp-3 pl-6">{req.description}</p>
+                      </div>
+
+                      {/* Requester */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <FaUser className="w-4 h-4 text-gray-400" />
+                          <span className="text-xs font-medium text-gray-500">Requested By</span>
+                        </div>
+                        <p className="text-gray-900 font-medium pl-6">{req.requested_by}</p>
+                      </div>
+
+                      {/* Approval Chain */}
+                      <div className="pt-4 border-t border-gray-100">
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                <FaBuilding className="w-3 h-3 text-blue-600" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">Dept Head</span>
+                            </div>
+                            <span className="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                              {req.noted_by || "Noted"}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                <FaUserTie className="w-3 h-3 text-green-600" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">PPGS Head</span>
+                            </div>
+                            <span className="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                              Approved
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                                <FaCrown className="w-3 h-3 text-purple-600" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700">President</span>
+                            </div>
+                            <span className="px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
+                              Pending
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleDecision(req.id, "Approved")}
+                          disabled={processingId === req.id || updating}
+                          className="flex-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-all shadow-sm hover:shadow flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingId === req.id ? (
+                            <>
+                              <FaSync className="w-3 h-3 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <FaCheck className="w-3 h-3" />
+                              Approve
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDecision(req.id, "Rejected")}
+                          disabled={processingId === req.id || updating}
+                          className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingId === req.id ? (
+                            <>
+                              <FaSync className="w-4 h-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <FaBan className="w-4 h-4" />
+                              Reject
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Details Modal */}
+      {showDetails && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Modal Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Request Details</h2>
+                  <p className="text-gray-600">Request #{selectedRequest.id}</p>
+                </div>
+                <button
+                  onClick={() => setShowDetails(false)}
+                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaTools className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Type of Concern</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{selectedRequest.type_of_concern}</p>
+                </div>
+                
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaCalendarAlt className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Date Filed</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_filed)}</p>
                 </div>
 
-                {/* ACTION BUTTONS */}
-                <div className="flex justify-end gap-4">
-                  <button
-                    disabled={updating}
-                    onClick={() => handleDecision(req.id, "Approved")}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Approve
-                  </button>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaCalendarDay className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Date Needed</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_needed)}</p>
+                </div>
 
-                  <button
-                    disabled={updating}
-                    onClick={() => handleDecision(req.id, "Rejected")}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  >
-                    Reject
-                  </button>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaUser className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Requested By</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{selectedRequest.requested_by}</p>
                 </div>
               </div>
-            ))}
+
+              {/* Approval Chain */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Approval Chain</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between bg-blue-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <FaBuilding className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Department Head</p>
+                        <p className="text-sm text-gray-600">First level approval</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                      {selectedRequest.noted_by || "Noted"}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between bg-green-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <FaUserTie className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">PPGS Head</p>
+                        <p className="text-sm text-gray-600">Second level approval</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
+                      Approved
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between bg-purple-50 p-4 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <FaCrown className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">President</p>
+                        <p className="text-sm text-gray-600">Final approval</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
+                      Pending Your Decision
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Full Description */}
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <FaAlignLeft className="w-5 h-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold text-gray-900">Full Description</h3>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-5">
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedRequest.description}</p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-6 border-t">
+                <button
+                  onClick={() => handleDecision(selectedRequest.id, "Approved")}
+                  disabled={processingId === selectedRequest.id || updating}
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {processingId === selectedRequest.id ? (
+                    <>
+                      <FaSync className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck className="w-5 h-5" />
+                      Approve Request
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleDecision(selectedRequest.id, "Rejected")}
+                  disabled={processingId === selectedRequest.id || updating}
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {processingId === selectedRequest.id ? (
+                    <>
+                      <FaSync className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <FaBan className="w-5 h-5" />
+                      Reject Request
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

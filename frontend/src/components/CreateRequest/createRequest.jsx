@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import axios from "axios";
+import { 
+  FaCalendarAlt, 
+  FaCalendarCheck, 
+  FaTools, 
+  FaAlignLeft, 
+  FaPaperPlane, 
+  FaSpinner,
+  FaCheckCircle,
+  FaArrowLeft 
+} from "react-icons/fa";
 
 export default function CreateRequest() {
   const navigate = useNavigate();
@@ -40,6 +50,13 @@ export default function CreateRequest() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: "" });
+    }
+  };
+
+  const handleRadioChange = (e) => {
+    setFormData({ ...formData, type_of_concern: e.target.value });
+    if (errors.type_of_concern) {
+      setErrors({ ...errors, type_of_concern: "" });
     }
   };
 
@@ -89,128 +106,270 @@ export default function CreateRequest() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
       {successMsg && (
-        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-green-300 text-green-800 px-6 py-3 rounded-xl shadow-2xl animate-fade-in">
-          <svg className="w-7 h-7 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="#d1fae5" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2l4-4" stroke="#10b981" />
-          </svg>
-          <span className="font-semibold text-lg">{successMsg}</span>
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 bg-white border border-green-300 text-green-800 px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+          <FaCheckCircle className="w-4 h-4 text-green-500" />
+          <span className="font-semibold text-sm">{successMsg}</span>
         </div>
       )}
       <div className="fixed top-0 left-0 h-screen z-20">
-        <Sidebar role={currentUser.role || "Teacher"} />
+        <Sidebar role={currentUser.role || "Teacher"} fullname={currentUser.fullname} />
       </div>
-      <div className="flex-1 ml-65 p-6 h-screen overflow-y-auto"> {/* Adjusted layout */}
-        <div className="max-w-6xl mx-0"> {/* Removed auto centering and adjusted width */}
-          <h1 className="text-2xl font-bold text-gray-800 mb-4 text-left">
-            Create New Request
-          </h1>
-          <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-lg p-6 space-y-4 border border-gray-200 relative">
-            {submitting && (
-              <div className="absolute inset-0 bg-white bg-opacity-70 flex flex-col items-center justify-center z-20 rounded-lg animate-fade-in">
-                <svg className="animate-spin h-10 w-10 text-blue-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                <span className="text-blue-700 font-semibold">Submitting request...</span>
+      <div className="flex-1 ml-65 p-4 h-screen overflow-y-auto">
+        <div className="max-w-5xl mx-auto">
+          {/* Form Card */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                  <FaPaperPlane className="text-lg text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Request Details</h2>
+                  <p className="text-gray-600 text-xs">Fill in all required fields to submit your request</p>
+                </div>
               </div>
-            )}
-            {/* DATE FILED */}
-            <div>
-              <label htmlFor="date_filed" className="block text-sm font-medium text-gray-700 mb-2">
-                Date Filed <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                id="date_filed"
-                name="date_filed"
-                value={formData.date_filed}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
-                aria-describedby="date_filed_help"
-              />
-              {errors.date_filed && <p className="text-red-500 text-sm mt-1">{errors.date_filed}</p>}
-              {formData.date_filed && (
-                <p id="date_filed_help" className="text-sm text-gray-600 mt-2">
-                  📅 Selected: <span className="font-semibold">{formatDatePretty(formData.date_filed)}</span>
-                </p>
-              )}
             </div>
-            {/* DATE NEEDED */}
-            <div>
-              <label htmlFor="date_needed" className="block text-sm font-medium text-gray-700 mb-2">
-                Date Needed <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                id="date_needed"
-                name="date_needed"
-                value={formData.date_needed}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
-                aria-describedby="date_needed_help"
-              />
-              {errors.date_needed && <p className="text-red-500 text-sm mt-1">{errors.date_needed}</p>}
-              {formData.date_needed && (
-                <p id="date_needed_help" className="text-sm text-gray-600 mt-2">
-                  📅 Selected: <span className="font-semibold">{formatDatePretty(formData.date_needed)}</span>
-                </p>
+
+            <form onSubmit={handleSubmit} className="p-5 space-y-4 relative">
+              {submitting && (
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-xl">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
+                  <span className="text-blue-700 font-semibold text-base">Submitting request...</span>
+                  <p className="text-gray-600 mt-1 text-xs">Please wait while we process your submission</p>
+                </div>
               )}
-            </div>
-            {/* TYPE OF CONCERN */}
-            <div>
-              <label htmlFor="type_of_concern" className="block text-sm font-medium text-gray-700 mb-2">
-                Type of Concern <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="type_of_concern"
-                name="type_of_concern"
-                value={formData.type_of_concern}
-                onChange={handleChange}
-                required
-                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 placeholder-gray-500 hover:placeholder-gray-700 transition duration-200"
-              >
-                <option value="">-- Select Concern --</option>
-                <option value="Repair">Repair</option>
-                <option value="Construction">Construction</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Maintenance">Installation</option>
+
+              {/* Date Fields - Side by Side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Date Filed - Left */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label htmlFor="date_filed" className="flex items-center text-base font-medium text-gray-700 mb-2">
+                    <FaCalendarAlt className="mr-2 text-blue-500 text-sm" />
+                    Date Filed <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="date_filed"
+                    name="date_filed"
+                    value={formData.date_filed}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-300 p-2 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-200 bg-white text-base"
+                    aria-describedby="date_filed_help"
+                  />
+                  {errors.date_filed && <p className="text-red-500 text-xs mt-1 font-medium">{errors.date_filed}</p>}
+                  {formData.date_filed && (
+                    <p id="date_filed_help" className="text-base text-gray-600 mt-2">
+                      <span className="font-medium">Selected:</span> {formatDatePretty(formData.date_filed)}
+                    </p>
+                  )}
+                </div>
+
+                {/* Date Needed - Right */}
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <label htmlFor="date_needed" className="flex items-center text-base font-medium text-gray-700 mb-2">
+                    <FaCalendarCheck className="mr-2 text-green-500 text-sm" />
+                    Date Needed <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="date_needed"
+                    name="date_needed"
+                    value={formData.date_needed}
+                    onChange={handleChange}
+                    required
+                    min={formData.date_filed}
+                    className="w-full border border-gray-300 p-2 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-200 bg-white text-base"
+                    aria-describedby="date_needed_help"
+                  />
+                  {errors.date_needed && <p className="text-red-500 text-xs mt-1 font-medium">{errors.date_needed}</p>}
+                  {formData.date_needed && (
+                    <p id="date_needed_help" className="text-base text-gray-600 mt-2">
+                      <span className="font-medium">Selected:</span> {formatDatePretty(formData.date_needed)}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Type of Concern - Radio Buttons */}
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <label className="flex items-center text-base font-medium text-gray-700 mb-3">
+                  <FaTools className="mr-2 text-purple-500 text-sm" />
+                  Type of Concern <span className="text-red-500 ml-1">*</span>
+                </label>
+                {errors.type_of_concern && <p className="text-red-500 text-xs mb-2 font-medium">{errors.type_of_concern}</p>}
                 
-              </select>
-              {errors.type_of_concern && <p className="text-red-500 text-sm mt-1">{errors.type_of_concern}</p>}
-            </div>
-            {/* DESCRIPTION */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
-                required
-                className="w-full border border-gray-300 p-2 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-gray-500 transition duration-200 resize-none"
-                placeholder="Please provide a detailed description of your request, including any relevant details or urgency."
-              />
-              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
-            </div>
-            {/* SUBMIT BUTTON */}
-            <div className="text-center">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="bg-blue-600 text-white px-8 py-3 rounded-md shadow-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition duration-200"
-              >
-                {submitting ? "Submitting..." : "Submit Request"}
-              </button>
-            </div>
-          </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Repair */}
+                  <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                    formData.type_of_concern === 'Repair' 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:bg-blue-50/50 hover:border-blue-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="type_of_concern"
+                      value="Repair"
+                      checked={formData.type_of_concern === 'Repair'}
+                      onChange={handleRadioChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="ml-3">
+                      <span className="text-base font-medium text-gray-900 flex items-center">
+                        <span className="mr-2"></span> Repair
+                      </span>
+                      <span className="text-base text-gray-500 mt-0.5 block">Fix or restore something that's broken</span>
+                    </div>
+                  </label>
+
+                  {/* Construction */}
+                  <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                    formData.type_of_concern === 'Construction' 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:bg-blue-50/50 hover:border-blue-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="type_of_concern"
+                      value="Construction"
+                      checked={formData.type_of_concern === 'Construction'}
+                      onChange={handleRadioChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="ml-3">
+                      <span className="text-base font-medium text-gray-900 flex items-center">
+                        <span className="mr-2"></span> Construction
+                      </span>
+                      <span className="text-base text-gray-500 mt-0.5 block">Build new structures or major renovations</span>
+                    </div>
+                  </label>
+
+                  {/* Maintenance */}
+                  <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                    formData.type_of_concern === 'Maintenance' 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:bg-blue-50/50 hover:border-blue-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="type_of_concern"
+                      value="Maintenance"
+                      checked={formData.type_of_concern === 'Maintenance'}
+                      onChange={handleRadioChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="ml-3">
+                      <span className="text-base font-medium text-gray-900 flex items-center">
+                        <span className="mr-2"></span> Maintenance
+                      </span>
+                      <span className="text-base text-gray-500 mt-0.5 block">Regular upkeep or preventive maintenance</span>
+                    </div>
+                  </label>
+
+                  {/* Installation */}
+                  <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
+                    formData.type_of_concern === 'Installation' 
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:bg-blue-50/50 hover:border-blue-200'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="type_of_concern"
+                      value="Installation"
+                      checked={formData.type_of_concern === 'Installation'}
+                      onChange={handleRadioChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="ml-3">
+                      <span className="text-base font-medium text-gray-900 flex items-center">
+                        <span className="mr-2"></span> Installation
+                      </span>
+                      <span className="text-base text-gray-500 mt-0.5 block">Set up new equipment or systems</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <label htmlFor="description" className="flex items-center text-base font-medium text-gray-700 mb-2">
+                  <FaAlignLeft className="mr-2 text-amber-500 text-sm" />
+                  Description <span className="text-red-500 ml-1">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                  required
+                  className="w-full border border-gray-300 p-2 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-200 bg-white resize-none text-base"
+                  placeholder="Please provide a detailed description of your request. Include specific locations, items needing attention, and any relevant details about the issue..."
+                />
+                {errors.description && <p className="text-red-500 text-xs mt-1 font-medium">{errors.description}</p>}
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-base text-gray-500">
+                    Character count: {formData.description.length}
+                  </span>
+                  <span className="text-base text-gray-500">
+                    Be as specific as possible for faster processing
+                  </span>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4 border-t border-gray-200">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none text-base"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center">
+                      <FaSpinner className="animate-spin mr-2" />
+                      Submitting Request...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <FaPaperPlane className="mr-2" />
+                      Submit Repair Request
+                    </span>
+                  )}
+                </button>
+                <p className="text-center text-base text-gray-500 mt-3">
+                  Your request will be reviewed by the appropriate department heads
+                </p>
+              </div>
+            </form>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+            <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center">
+              <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center mr-2 text-xs">💡</span>
+              Tips for Faster Processing
+            </h3>
+            <ul className="space-y-1 text-gray-700 text-base">
+              <li className="flex items-start">
+                <span className="text-green-500 mr-1.5">✓</span>
+                Provide clear and detailed descriptions with specific locations
+              </li>
+              <li className="flex items-start">
+                <span className="text-green-500 mr-1.5">✓</span>
+                Include urgency level in your description if applicable
+              </li>
+              <li className="flex items-start">
+                <span className="text-green-500 mr-1.5">✓</span>
+                Choose the correct concern type for proper routing
+              </li>
+              <li className="flex items-start">
+                <span className="text-green-500 mr-1.5">✓</span>
+                Set realistic date needed expectations
+              </li>
+            </ul> 
+          </div>
         </div>
       </div>
     </div>

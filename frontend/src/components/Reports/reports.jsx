@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import axios from "axios";
+import {
+  FaSearch,
+  FaFilter,
+  FaDownload,
+  FaCalendarAlt,
+  FaUser,
+  FaFileAlt,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaClock,
+  FaExclamationTriangle,
+  FaEye,
+  FaChevronDown,
+  FaChevronUp,
+  FaSync,
+  FaTools
+} from "react-icons/fa";
 
-// Format YYYY-MM-DD to Month Day, Year (local, no timezone conversion)
+// Format YYYY-MM-DD to Month Day, Year
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const parts = dateString.split("-");
@@ -22,9 +39,8 @@ export default function Reports() {
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("All"); // No change here, but keeping for context
-
-  // ...existing code...
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
   // Fetch Requests
   const fetchReports = async () => {
@@ -41,7 +57,6 @@ export default function Reports() {
       // Only show reports requested by the current user, sorted by latest date_filed
       const parseDate = (d) => {
         if (!d) return 0;
-        // Try ISO first, fallback to YYYY-MM-DD
         const iso = Date.parse(d);
         if (!isNaN(iso)) return iso;
         const parts = d.split("-");
@@ -53,7 +68,6 @@ export default function Reports() {
       const userReports = (res.data || [])
         .filter(r => r.requested_by === currentUser.fullname)
         .sort((a, b) => {
-          // If reference_code is numeric, sort numerically
           const refA = parseInt(a.reference_code || a.id);
           const refB = parseInt(b.reference_code || b.id);
           return refB - refA;
@@ -89,164 +103,306 @@ export default function Reports() {
       );
     }
 
-      if (statusFilter !== "All") {
-        filtered = filtered.filter((report) => report.ppgshead === statusFilter);
+    if (statusFilter !== "All") {
+      filtered = filtered.filter((report) => report.ppgshead === statusFilter);
     }
 
     setFilteredReports(filtered);
   }, [reports, searchTerm, statusFilter]);
 
   // Status color helper
-  const getStatusColor = (ppgshead) => {
-    switch (ppgshead) {
+  const getStatusColor = (status) => {
+    switch (status) {
       case "Pending":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "bg-amber-100 text-amber-800";
       case "In Progress":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-800";
+      case "Approved":
+        return "bg-emerald-100 text-emerald-800";
       case "Completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-200";
+        return "bg-green-100 text-green-800";
       case "Rejected":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800";
     }
   };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Pending":
+        return <FaClock className="mr-1.5" />;
+      case "In Progress":
+        return <FaExclamationTriangle className="mr-1.5" />;
+      case "Approved":
+      case "Completed":
+        return <FaCheckCircle className="mr-1.5" />;
+      case "Rejected":
+        return <FaTimesCircle className="mr-1.5" />;
+      default:
+        return <FaClock className="mr-1.5" />;
+    }
+  };
+
+  const toggleRow = (id) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   useEffect(() => {
     fetchReports();
   }, []);
 
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading reports...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading reports...</p>
         </div>
       </div>
     );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="fixed top-0 left-0 h-screen z-20">
-        <Sidebar role={user?.role} />
+        <Sidebar role={user?.role} fullname={user?.fullname} />
       </div>
       <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Reports Overview</h1>
-          <p className="text-gray-600 mt-2">Monitor and track all requests in the system.</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+              <p className="text-gray-600 mt-2">Monitor and track all your requests with detailed status updates</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={fetchReports}
+                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              >
+                <FaSync className="mr-2" />
+                Refresh
+              </button>
+              <button
+                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+              >
+                <FaDownload className="mr-2" />
+                Export Report
+              </button>
+            </div>
+          </div>
         </div>
 
-
-
-        {/* Table */}
-        <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Request Details</h2>
-            <p className="text-sm text-gray-600 mt-1">Showing {filteredReports.length} of {reports.length} requests</p>
+        {/* Search and Filter */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search requests by reference, concern, or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <FaFilter className="text-gray-400 mr-2" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="All">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-600 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4">Request Details</th>
-                <th className="px-6 py-4">Approval</th>
-                 <th className="px-6 py-4">Status (Marked by Personnel)</th>
-                {/* Removed PPGS Head Status column */}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredReports.length > 0 ? (
-                filteredReports.map((report) => (
-                  <tr
-                    key={report.id}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => alert(`View details for ${report.reference_code || `REQ-${report.id}`}`)} // Placeholder for navigation or modal
-                  >
-                    {/* Request Details */}
-                    <td className="px-6 py-6 align-top w-1/3">
-                      <div className="space-y-2">
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Reference:</span>
-                          <span className="ml-2 text-blue-700 font-medium">{report.reference_code || `REQ-${report.id}`}</span>
+        </div>
+
+        {/* Reports Table */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Request Reports</h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  Showing {filteredReports.length} of {reports.length} requests
+                </p>
+              </div>
+              <div className="text-sm text-gray-500">
+                Click on any row to view details
+              </div>
+            </div>
+          </div>
+          
+          {filteredReports.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {filteredReports.map((report) => {
+                const isExpanded = expandedRows.has(report.id);
+                return (
+                  <div key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
+                    {/* Main Row */}
+                    <div 
+                      className="px-6 py-5 cursor-pointer"
+                      onClick={() => toggleRow(report.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-2 bg-blue-50 rounded-lg">
+                            <FaFileAlt className="text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="flex items-center">
+                              <span className="font-bold text-gray-900">
+                                {report.reference_code || `REQ-${report.id}`}
+                              </span>
+                              <span className="ml-3 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
+                                {report.type_of_concern}
+                              </span>
+                            </div>
+                            <div className="flex items-center mt-1 text-sm text-gray-600">
+                              <FaUser className="mr-2" />
+                              <span>{report.requested_by}</span>
+                              <span className="mx-2">•</span>
+                              <FaCalendarAlt className="mr-2" />
+                              <span>{formatDate(report.date_filed)}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Filed By:</span>
-                          <span className="ml-2 text-gray-900">{report.requested_by || "—"}</span>
-                        </div>
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Concern:</span>
-                          <span className="ml-2 text-gray-900">{report.type_of_concern}</span>
-                        </div>
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Description:</span>
-                          <span className="ml-2 text-gray-700">{report.description}</span>
-                        </div>
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date Filed:</span>
-                          <span className="ml-2 text-gray-700">{formatDate(report.date_filed)}</span>
-                        </div>
-                        <div>
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date Needed:</span>
-                          <span className="ml-2 text-gray-700">{report.date_needed ? formatDate(report.date_needed) : "—"}</span>
-                        </div>
-                      </div>
-                    </td>
-                    {/* Approval */}
-                    <td className="px-6 py-6 align-top w-1/3">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">Dept Head</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${report.noted_by && report.noted_by !== "Pending" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-amber-100 text-amber-800 border-amber-200"}`}>
-                            {report.noted_by && report.noted_by !== "Pending" ? report.noted_by : "Pending"}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">PPGS Head</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${report.ppgshead === "Approved" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : report.ppgshead === "Rejected" ? "bg-red-100 text-red-800 border-red-200" : report.ppgshead === "Pending" ? "bg-amber-100 text-amber-800 border-amber-200" : "bg-blue-100 text-blue-800 border-blue-200"}`}>
-                            {report.ppgshead}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-900">President</span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                            report.status === "Approved"
-                              ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                              : report.status === "Rejected"
-                              ? "bg-red-100 text-red-800 border-red-200"
-                              : report.status === "Pending"
-                              ? "bg-amber-100 text-amber-800 border-amber-200"
-                              : "bg-gray-100 text-gray-600 border-gray-200"
-                          }`}>
-                            {report.status || "Pending"}
-                          </span>
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-3">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(report.ppgshead || "Pending")}`}>
+                              {getStatusIcon(report.ppgshead || "Pending")}
+                              {report.ppgshead || "Pending"}
+                            </span>
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(report.done_by ? "Completed" : "Pending")}`}>
+                              {report.done_by ? <FaCheckCircle className="mr-1.5" /> : <FaClock className="mr-1.5" />}
+                              {report.done_by ? "Done" : "Pending"}
+                            </span>
+                          </div>
+                          <div>
+                            {isExpanded ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
+                          </div>
                         </div>
                       </div>
-                    </td>
-                    {/* Status */}
-                    <td className="px-6 py-6 align-top w-1/3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
-                          !report.done_by
-                            ? "bg-amber-100 text-amber-800 border-amber-200"
-                            : "bg-green-100 text-green-800 border-green-200"
-                        }`}>
-                          {!report.done_by ? "Pending" : "Done"}
-                        </span>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="2" className="text-center py-12 text-gray-500">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="mt-4 text-lg font-medium">No matching requests found.</p>
-                    <p className="text-sm">Try adjusting your search or filter criteria.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    </div>
+
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="px-6 py-5 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                          {/* Request Details */}
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                              <FaFileAlt className="mr-2 text-blue-500" />
+                              Request Details
+                            </h3>
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
+                                <p className="text-gray-900 mt-1">{report.description}</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
+                                  <p className="text-gray-900 mt-1">{formatDate(report.date_filed)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
+                                  <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Approval Process */}
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                              <FaCheckCircle className="mr-2 text-green-500" />
+                              Approval Process
+                            </h3>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-700">Dept Head</span>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.noted_by && report.noted_by !== "Pending" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                                  {report.noted_by && report.noted_by !== "Pending" ? report.noted_by : "Pending"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-700">PPGS Head</span>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.ppgshead === "Approved" ? "bg-emerald-100 text-emerald-800" : report.ppgshead === "Rejected" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+                                  {report.ppgshead || "Pending"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-700">President</span>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                  report.status === "Approved"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : report.status === "Rejected"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}>
+                                  {report.status || "Pending"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Completion Status */}
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+                              <FaTools className="mr-2 text-purple-500" />
+                              Completion Status
+                            </h3>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-700">Marked by Personnel</span>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
+                                  {report.done_by ? "Done" : "Pending"}
+                                </span>
+                              </div>
+                              {report.done_by && (
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Completed By</p>
+                                  <p className="text-gray-900 mt-1">{report.done_by}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <FaFileAlt className="text-2xl text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No matching requests found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm || statusFilter !== "All" 
+                  ? "Try adjusting your search or filter criteria" 
+                  : "You haven't submitted any requests yet"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

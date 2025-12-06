@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Sidebar from "../Sidebar/sidebar.jsx";
+import {
+  FaEdit,
+  FaTrash,
+  FaSave,
+  FaTimes,
+  FaFilter,
+  FaSearch,
+  FaEye,
+  FaFileAlt,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaClock,
+  FaExclamationTriangle
+} from "react-icons/fa";
 
 export default function MyRequest() {
   const [user, setUser] = useState(null);
@@ -17,9 +31,10 @@ export default function MyRequest() {
     type_of_concern: "",
     description: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState("all");
 
-  // Format ISO → MM/DD/YYYY
-  // Format YYYY-MM-DD to Month Day, Year (local, no timezone conversion)
+  // Format YYYY-MM-DD to Month Day, Year
   const formatShortDate = (dateString) => {
     if (!dateString) return "";
     const parts = dateString.split("-");
@@ -65,7 +80,7 @@ export default function MyRequest() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this request?")) return;
+    if (!window.confirm("Are you sure you want to delete this request? This action cannot be undone.")) return;
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/requests/${id}`, {
@@ -114,146 +129,221 @@ export default function MyRequest() {
     }
   };
 
+  // Get status color
+  const getStatusColor = (req) => {
+    const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
+    if (req.ppgshead === "Rejected" || req.status === "Rejected") return "bg-red-100 text-red-800";
+    if (isStrictApproved) return "bg-green-100 text-green-800";
+    if (req.ppgshead === "Approved" || req.noted_by) return "bg-blue-100 text-blue-800";
+    return "bg-yellow-100 text-yellow-800";
+  };
+
+  const getStatusText = (req) => {
+    const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
+    if (req.ppgshead === "Rejected" || req.status === "Rejected") return "Rejected";
+    if (isStrictApproved) return "Approved";
+    if (req.ppgshead === "Approved" || req.noted_by) return "In Progress";
+    return "Pending";
+  };
+
+  // Filter requests
+  const filteredRequests = stats.recent.filter(req => {
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        req.reference_code?.toLowerCase().includes(searchLower) ||
+        req.type_of_concern?.toLowerCase().includes(searchLower) ||
+        req.description?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    if (filter !== "all") {
+      const status = getStatusText(req).toLowerCase();
+      if (filter !== status) return false;
+    }
+    
+    return true;
+  });
+
   if (loading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading Requests...
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading your requests...</p>
+        </div>
       </div>
     );
 
   return (
-    <div className="flex h-screen">
-      <Sidebar role={user.role} />
-      <div className="flex-1 bg-gray-100 p-6 overflow-auto">
-        {/* HEADER */}
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">My Request</h1>
-        </header>
-
-        {/* TABLE */}
-        <div className="bg-white shadow-md rounded-lg overflow-auto">
-          <table className="min-w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700 text-left text-sm uppercase tracking-wider">
-                <th className="px-6 py-3 font-semibold whitespace-nowrap">
-                  Reference Code
-                </th>
-                <th className="px-6 py-3 font-semibold">Date Filed</th>
-                <th className="px-6 py-3 font-semibold whitespace-nowrap">
-                  Date Needed
-                </th>
-                <th className="px-6 py-3 font-semibold">Concern</th>
-                <th className="px-6 py-3 font-semibold">Description</th>
-                {/* Removed PPGS Head Status column */}
-                <th className="px-6 py-3 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.recent.length > 0 ? (
-                stats.recent.map((req) => {
-                  const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
-                  return (
-                    <tr
-                      key={req.id}
-                      className="border-t hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                        {req.reference_code || `REQ-${req.id}`}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                        {formatShortDate(req.date_filed)}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                        {formatShortDate(req.date_needed)}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700">
-                        {req.type_of_concern}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 break-word max-w-xs">
-                        {req.description.split(" ").slice(0, 10).join(" ")}
-                        {req.description.split(" ").length > 10 && "…"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              if (isStrictApproved) return;
-                              setForm({
-                                id: req.id,
-                                date_filed: req.date_filed,
-                                date_needed: req.date_needed,
-                                type_of_concern: req.type_of_concern,
-                                description: req.description,
-                              });
-                              setEditing(true);
-                            }}
-                            className={`bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm ${isStrictApproved ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={isStrictApproved}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(req.id)}
-                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="text-center py-6 text-gray-500 italic"
-                  >
-                    No requests found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <Sidebar role={user?.role} fullname={user?.fullname} />
+      <div className="flex-1 p-6 overflow-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
+          <p className="text-gray-600 mt-2">Manage and track all your submitted repair requests</p>
         </div>
 
-        {/* EDIT MODAL */}
-        {editing && (
-          <div className="fixed inset-0 flex items-center justify-center bg-blue bg-opacity-40 backdrop-blur-sm z-50 overflow-auto p-4">
-            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-lg border border-gray-300">
-              <h2 className="text-xl font-bold mb-4">Edit Request</h2>
+        {/* Requests Table */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Request List</h2>
+            <p className="text-gray-600 text-sm mt-1">
+              Showing {filteredRequests.length} of {stats.recent.length} requests
+            </p>
+          </div>
+          
+          {filteredRequests.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
+                    <th className="px6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concern</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredRequests.map((req) => {
+                    const isStrictApproved = req.ppgshead === "Approved" && req.status === "Approved";
+                    return (
+                      <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-blue-700">
+                            {req.reference_code || `REQ-${req.id}`}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <FaCalendarAlt className="text-gray-400 mr-2" />
+                            <span className="text-gray-700">{formatShortDate(req.date_filed)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <FaCalendarAlt className="text-gray-400 mr-2" />
+                            <span className="text-gray-700">{formatShortDate(req.date_needed)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-gray-900">{req.type_of_concern}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-gray-700">{req.description}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => {
+                                if (isStrictApproved) return;
+                                setForm({
+                                  id: req.id,
+                                  date_filed: req.date_filed,
+                                  date_needed: req.date_needed,
+                                  type_of_concern: req.type_of_concern,
+                                  description: req.description,
+                                });
+                                setEditing(true);
+                              }}
+                              disabled={isStrictApproved}
+                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                                isStrictApproved
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                              }`}
+                            >
+                              <FaEdit className="mr-2" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(req.id)}
+                              className="flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+                            >
+                              <FaTrash className="mr-2" />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <FaFileAlt className="text-2xl text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm || filter !== "all" 
+                  ? "Try adjusting your search or filter criteria" 
+                  : "You haven't submitted any requests yet"}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
-              <div className="space-y-3">
+      {/* EDIT MODAL */}
+      {editing && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-300">
+            <div className="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-2 bg-blue-100 rounded-lg mr-4">
+                    <FaEdit className="text-xl text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Edit Request</h2>
+                    <p className="text-gray-600 text-sm">Update your request details</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditing(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                >
+                  <FaTimes className="text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block mb-1 font-medium">Date Filed:</label>
+                  <label className="block mb-2 font-semibold text-gray-700">Date Filed:</label>
                   <input
                     type="text"
                     value={formatShortDate(form.date_filed)}
                     readOnly
-                    className="w-full border p-2 rounded bg-gray-100"
+                    className="w-full border border-gray-300 p-3 rounded-lg bg-gray-50"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium">Date Needed:</label>
+                  <label className="block mb-2 font-semibold text-gray-700">Date Needed:</label>
                   <input
                     type="date"
                     name="date_needed"
                     value={form.date_needed}
                     onChange={handleChange}
-                    className="w-full border p-2 rounded"
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
-                <div>
-                  <label className="block mb-1 font-medium">
-                    Type of Concern:
-                  </label>
+                <div className="md:col-span-2">
+                  <label className="block mb-2 font-semibold text-gray-700">Type of Concern:</label>
                   <select
                     name="type_of_concern"
                     value={form.type_of_concern}
                     onChange={handleChange}
-                    className="w-full border p-2 rounded"
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="Repair">Repair</option>
                     <option value="Construction">Construction</option>
@@ -261,36 +351,37 @@ export default function MyRequest() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block mb-1 font-medium">Description:</label>
+                <div className="md:col-span-2">
+                  <label className="block mb-2 font-semibold text-gray-700">Description:</label>
                   <textarea
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    className="w-full border p-2 rounded"
+                    rows="4"
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
                 <button
                   onClick={() => setEditing(false)}
-                  className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                  className="px-6 py-3 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
                 >
                   Cancel
                 </button>
-
                 <button
                   onClick={handleUpdate}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center"
                 >
-                  Save
+                  <FaSave className="mr-2" />
+                  Save Changes
                 </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

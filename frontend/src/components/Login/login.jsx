@@ -35,6 +35,8 @@ export default function Login() {
         navigate("/President");
       } else if (role === "Admin") {
         navigate("/AdminDashboard");
+        } else if (role === "Superadmin") {
+          navigate("/superadmin");
       } else if (role === "Personnel") {
         navigate("/PersonnelDashboard");
       } else {

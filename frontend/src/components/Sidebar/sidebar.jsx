@@ -18,31 +18,29 @@ export default function Sidebar({ role, profilePicture, fullname }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  
+    // Debug: print role value to console
+    console.log('Sidebar role prop:', role);
 
   // Sidebar menu items for Teachers, Faculty, and Staff
   let menu = [
-    { 
-      name: "Dashboard", 
-      path: "/dashboard", 
-      icon: <FaTachometerAlt className="text-lg" />,
-      exact: true
-    },
-    { 
-      name: "Create Request", 
-      path: "/createRequest", 
-      icon: <FaPlusCircle className="text-lg" /> 
-    },
-    { 
-      name: "My Requests", 
-      path: "/myRequest", 
-      icon: <FaListAlt className="text-lg" /> 
-    },
-    { 
-      name: "Reports", 
-      path: "/reports", 
-      icon: <FaChartBar className="text-lg" /> 
-    },
+    { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="text-lg" />, exact: true },
+    { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="text-lg" /> },
+    { name: "My Requests", path: "/myRequest", icon: <FaListAlt className="text-lg" /> },
+    { name: "Reports", path: "/reports", icon: <FaChartBar className="text-lg" /> },
   ];
+
+  // For Superadmin, only show Superadmin Dashboard
+  if (role === "Superadmin") {
+    menu = [
+      {
+        name: "Superadmin Dashboard",
+        path: "/superadmin",
+        icon: <FaUserCircle className="text-lg" />,
+        exact: true
+      }
+    ];
+  }
 
   // Add Noted Requests for DeptHead
   if (role === "DeptHead") {

@@ -191,9 +191,10 @@ export default function AdminNotifications() {
 
     return (
         <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-            <AdminSidebar />
-            
-            <div className="flex-1 overflow-y-auto">
+            <div className="fixed top-0 left-0 h-screen z-20">
+                <AdminSidebar />
+            </div>
+            <div className="flex-1 ml-72 overflow-y-auto">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200 px-6 py-5">
                     <div className="flex justify-between items-center">

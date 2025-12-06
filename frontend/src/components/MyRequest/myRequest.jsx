@@ -177,8 +177,10 @@ export default function MyRequest() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <Sidebar role={user?.role} fullname={user?.fullname} />
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="fixed top-0 left-0 h-screen z-20">
+        <Sidebar role={user?.role} fullname={user?.fullname} />
+      </div>
+      <div className="flex-1 ml-72 p-6 overflow-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>

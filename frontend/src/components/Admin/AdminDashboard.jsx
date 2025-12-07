@@ -115,17 +115,18 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-5">
           <div className="flex justify-between items-center">
-            <div>
+            <div className="flex items-center w-full">
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Welcome, <span className="font-semibold text-blue-600">{user?.fullname}</span>! 
-                Monitor and manage all system requests.
-              </p>
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
             </div>
+            <p className="text-gray-600 text-sm mt-1">
+              Welcome, <span className="font-semibold text-blue-600">{user?.fullname}</span>! 
+              Monitor and manage all system requests.
+            </p>
             <div className="flex items-center space-x-3">
               <button
                 onClick={fetchData}
-                className="flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-medium transition-colors duration-200 text-sm"
+                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
                 <FaSync className="mr-2" />
                 Refresh
@@ -249,14 +250,13 @@ export default function AdminDashboard() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
-                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                      {/* Actions column removed */}
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -264,64 +264,40 @@ export default function AdminDashboard() {
                       .sort((a, b) => b.id - a.id)
                       .map((req) => (
                         <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-5 py-4">
-                            <div className="font-medium text-blue-700">
-                              {req.reference_code || `REQ-${req.id}`}
-                            </div>
+                          <td className="px-5 py-4 font-medium text-blue-700">
+                            {req.reference_code || `REQ-${req.id}`}
                           </td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center">
-                              <FaUser className="text-gray-400 mr-2" />
-                              <span className="text-gray-700">{req.requested_by}</span>
-                            </div>
+                            <span className="text-gray-700">{formatDate(req.date_filed)}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center">
-                              <FaCalendarAlt className="text-gray-400 mr-2" />
-                              <span className="text-gray-700">{formatDate(req.date_filed)}</span>
-                            </div>
+                            <span className="text-gray-700">{formatDate(req.date_needed)}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center">
-                              <FaCalendarAlt className="text-gray-400 mr-2" />
-                              <span className="text-gray-700">{formatDate(req.date_needed)}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center">
-                              <FaTools className="text-gray-400 mr-2" />
-                              <span className="text-gray-700">{req.type_of_concern}</span>
-                            </div>
+                            <span className="text-gray-700">{req.type_of_concern}</span>
                           </td>
                           <td className="px-5 py-4 max-w-xs">
-                            <div className="flex items-start">
-                              <FaAlignLeft className="text-gray-400 mr-2 mt-1" />
-                              <span className="text-gray-700 line-clamp-2">{req.description}</span>
-                            </div>
+                            <span className="text-gray-700 line-clamp-2">{req.description}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center">
-                              <FaClipboardCheck className="text-gray-400 mr-2" />
-                              <span className={`font-medium ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
-                                {req.noted_by || "—"}
-                              </span>
-                            </div>
+                            <span className="text-gray-700">{req.requested_by}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
+                            <span className={`font-medium ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
+                              {req.noted_by || "—"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${
                               req.status === "Approved" 
                                 ? "bg-green-100 text-green-800" 
                                 : req.status === "Rejected" 
                                 ? "bg-red-100 text-red-800" 
                                 : "bg-yellow-100 text-yellow-800"
                             }`}>
-                              {req.status === "Approved" ? <FaCheckCircle className="mr-1.5" /> : 
-                               req.status === "Rejected" ? <FaTimesCircle className="mr-1.5" /> : 
-                               <FaClock className="mr-1.5" />}
                               {req.status || "Pending"}
                             </span>
                           </td>
-                          {/* Actions cell removed */}
                         </tr>
                       ))}
                   </tbody>

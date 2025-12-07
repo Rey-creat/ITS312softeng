@@ -15,6 +15,7 @@ import {
   FaClipboardCheck,
   FaTimes,
   FaPaperPlane,
+  FaSync,
   FaBuilding
 } from "react-icons/fa";
 
@@ -128,9 +129,9 @@ const DeptHeadPage = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={fetchRequests}
-                className="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm"
+                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                <FaPaperPlane className="mr-2" />
+                <FaSync className="mr-2" />
                 Refresh
               </button>
             </div>
@@ -159,12 +160,11 @@ const DeptHeadPage = () => {
                 <FaFileAlt className="text-xl text-blue-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm font-medium">Total Pending</p>
+                <p className="text-gray-600 text-sm font-medium">Total Request</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
               </div>
             </div>
           </div>
-          
           <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
             <div className="flex items-center">
               <div className="p-3 bg-yellow-50 rounded-lg mr-4">
@@ -173,30 +173,6 @@ const DeptHeadPage = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
                 <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-50 rounded-lg mr-4">
-                <FaCheckCircle className="text-xl text-green-600" />
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Ready for PPGS</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">0</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-50 rounded-lg mr-4">
-                <FaBuilding className="text-xl text-purple-600" />
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Department</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">Head</p>
               </div>
             </div>
           </div>

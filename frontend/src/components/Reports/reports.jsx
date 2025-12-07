@@ -227,7 +227,7 @@ export default function Reports() {
       <div className="fixed top-0 left-0 h-screen z-20">
         <Sidebar role={user?.role} fullname={user?.fullname} />
       </div>
-      <div className="flex-1 ml-65 p-8 h-screen overflow-y-auto">
+      <div className="flex-1 ml-72 p-6 overflow-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-start">
@@ -242,7 +242,9 @@ export default function Reports() {
               >
                 <FaSync className="mr-2" />
                 Refresh
+                
               </button>
+              
               <button
                 onClick={handleExport}
                 className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
@@ -321,7 +323,7 @@ export default function Reports() {
                           </div>
                           <div>
                             <div className="flex items-center">
-                              <span className="font-bold text-gray-900">
+                              <span className="font-semibold text-blue-700">
                                 {report.reference_code || `REQ-${report.id}`}
                               </span>
                               <span className="ml-3 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
@@ -366,10 +368,6 @@ export default function Reports() {
                               Request Details
                             </h3>
                             <div className="space-y-3">
-                              <div>
-                                <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
-                                <p className="text-gray-900 mt-1">{report.description}</p>
-                              </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
@@ -379,6 +377,10 @@ export default function Reports() {
                                   <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
                                   <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
                                 </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
+                                <p className="text-gray-900 mt-1">{report.description}</p>
                               </div>
                             </div>
                           </div>

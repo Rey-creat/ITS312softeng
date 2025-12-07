@@ -208,12 +208,9 @@ export default function Register() {
                     required
                   >
                     <option value="">-- Choose Role --</option>
-                    <option value="DeptHead">Department Head</option>
-                    <option value="PPGSHead">Head of PPGS</option>
-                    <option value="President">School President</option>
                     <option value="Teacher">Teacher</option>
                     <option value="Staff">Staff</option>
-                    <option value="Personnel">Personnel/Servicing Staff</option>
+                  
                   </select>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 20 20" stroke="currentColor">

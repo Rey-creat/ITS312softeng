@@ -204,7 +204,7 @@ export default function MyRequest() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
-                    <th className="px6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concern</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concern</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -214,68 +214,57 @@ export default function MyRequest() {
                     const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.status === "Personnel" || req.status === "President";
                     return (
                       <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-medium text-blue-700">
-                            {req.reference_code || `REQ-${req.id}`}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <FaCalendarAlt className="text-gray-400 mr-2" />
-                            <span className="text-gray-700">{formatShortDate(req.date_filed)}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <FaCalendarAlt className="text-gray-400 mr-2" />
-                            <span className="text-gray-700">{formatShortDate(req.date_needed)}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="font-medium text-gray-900">{req.type_of_concern}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700">{req.description}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => {
-                                if (isLocked) return;
-                                setForm({
-                                  id: req.id,
-                                  date_filed: req.date_filed,
-                                  date_needed: req.date_needed,
-                                  type_of_concern: req.type_of_concern,
-                                  description: req.description,
-                                });
-                                setEditing(true);
-                              }}
-                              disabled={isLocked}
-                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-                                isLocked
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
-                              }`}
-                            >
-                              <FaEdit className="mr-2" />
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (isLocked) return;
-                                handleDelete(req.id);
-                              }}
-                              disabled={isLocked}
-                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
-                                isLocked
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700'
-                              }`}
-                            >
-                              <FaTrash className="mr-2" />
-                              Delete
-                            </button>
+                        <td className="px-6 py-4" colSpan={6}>
+                          <div className="flex flex-wrap items-center gap-6 justify-between w-full">
+                            <div className="flex items-center gap-2 font-medium text-blue-700">
+                              <FaFileAlt className="inline-block text-blue-600" />
+                              {req.reference_code || `REQ-${req.id}`}
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-700">
+                              <span>{formatShortDate(req.date_filed)}</span>
+                              <span>{formatShortDate(req.date_needed)}</span>
+                            </div>
+                            <span className="font-medium text-gray-900">{req.type_of_concern}</span>
+                            <span className="text-gray-700">{req.description}</span>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => {
+                                  if (isLocked) return;
+                                  setForm({
+                                    id: req.id,
+                                    date_filed: req.date_filed,
+                                    date_needed: req.date_needed,
+                                    type_of_concern: req.type_of_concern,
+                                    description: req.description,
+                                  });
+                                  setEditing(true);
+                                }}
+                                disabled={isLocked}
+                                className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                                  isLocked
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                                }`}
+                              >
+                                <FaEdit className="mr-2" />
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (isLocked) return;
+                                  handleDelete(req.id);
+                                }}
+                                disabled={isLocked}
+                                className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                                  isLocked
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700'
+                                }`}
+                              >
+                                <FaTrash className="mr-2" />
+                                Delete
+                              </button>
+                            </div>
                           </div>
                         </td>
                       </tr>

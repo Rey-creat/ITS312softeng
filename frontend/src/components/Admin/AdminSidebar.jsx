@@ -67,9 +67,14 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
       { name: "Dept. Office Head", path: "/DeptHeadPage" },
       { name: "Head of PPGS", path: "/PPGSHeadPage" },
       { name: "School President", path: "/President" },
-    ],
+    ],  
     "Dept Head": [
-      { name: "Requests", path: "/DeptHeadPage", exact: true },
+      { name: "SBIT Department  ", path: "/DeptHeadPage", exact: true },
+      { name: "SSLATE Department", path: "/DeptHeadPage", exact: true },
+      { name: "SARFAID Department", path: "/DeptHeadPage", exact: true },
+      { name: "SHTM Department", path: "/DeptHeadPage", exact: true },
+      { name: "IBED Department", path: "/DeptHeadPage", exact: true },
+
     ],
     "PPGS Head": [
       { name: "Dashboard", path: "/AdminDashboard", exact: true },

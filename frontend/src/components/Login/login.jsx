@@ -27,16 +27,16 @@ export default function Login() {
       console.log("User role after login:", res.data.user.role);
 
       const role = res.data.user.role;
-      if (role === "DeptHead") {
+      if (role === "Dept Head" || role === "DeptHead" || role.toLowerCase() === "depthead") {
         navigate("/DeptHeadPage");
-      } else if (role === "PPGSHead") {
+      } else if (role === "PPGS Head" || role === "PPGSHead" || role.toLowerCase() === "ppgshead") {
         navigate("/PPGSHeadPage");
       } else if (role === "President") {
         navigate("/President");
       } else if (role === "Admin") {
         navigate("/AdminDashboard");
-        } else if (role === "Superadmin") {
-          navigate("/superadmin");
+      } else if (role === "Superadmin") {
+        navigate("/superadmin");
       } else if (role === "Personnel") {
         navigate("/PersonnelDashboard");
       } else {

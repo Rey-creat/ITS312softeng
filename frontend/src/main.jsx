@@ -73,27 +73,27 @@ createRoot(document.getElementById("root")).render(
         <Route path="/register" element={<Register />} />
 
         {/* User Protected Pages */}
-        <Route path="/dashboard" element={<ProtectedRoute element={Dashboard} />} />
-        <Route path="/createRequest" element={<ProtectedRoute element={CreateRequest} />} />
-        <Route path="/myRequest" element={<ProtectedRoute element={MyRequest} />} />
-        <Route path="/reports" element={<ProtectedRoute element={Reports} />} />
+        <Route path="/dashboard" element={<RoleRoute element={Dashboard} allowedRoles={["Teacher", "Staff"]} />} />
+        <Route path="/createRequest" element={<RoleRoute element={CreateRequest} allowedRoles={["Teacher", "Staff"]} />} />
+        <Route path="/myRequest" element={<RoleRoute element={MyRequest} allowedRoles={["Teacher", "Staff"]} />} />
+        <Route path="/reports" element={<RoleRoute element={Reports} allowedRoles={["Teacher", "Staff"]} />} />
 
         {/* Admin / Role Protected Pages */}
         <Route
           path="/AdminDashboard"
-          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "DeptHead", "PPGSHead", "President"]} />}
+          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "Dept Head", "PPGS Head", "President"]} />}
         />
         <Route
           path="/AdminNotifications"
-          element={<RoleRoute element={AdminNotifications} allowedRoles={["Admin", "PPGSHead"]} />}
+          element={<RoleRoute element={AdminNotifications} allowedRoles={["Admin", "PPGS Head"]} />}
         />
         <Route
           path="/DeptHeadPage"
-          element={<RoleRoute element={DeptHeadPage} allowedRoles={["DeptHead"]} />}
+          element={<RoleRoute element={DeptHeadPage} allowedRoles={["Dept Head"]} />}
         />
         <Route
           path="/PPGSHeadPage"
-          element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGSHead"]} />}
+          element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGS Head"]} />}
         />
         <Route
           path="/President"

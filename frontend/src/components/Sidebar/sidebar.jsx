@@ -34,7 +34,7 @@ export default function Sidebar({ role, profilePicture, fullname }) {
   if (role === "Superadmin") {
     menu = [
       {
-        name: "Superadmin Dashboard",
+        name: "Dashboard",
         path: "/superadmin",
         icon: <FaUserCircle className="text-lg" />,
         exact: true

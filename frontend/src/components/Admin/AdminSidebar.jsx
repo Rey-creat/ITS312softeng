@@ -68,10 +68,10 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
       { name: "Head of PPGS", path: "/PPGSHeadPage" },
       { name: "School President", path: "/President" },
     ],
-    DeptHead: [
+    "Dept Head": [
       { name: "Requests", path: "/DeptHeadPage", exact: true },
     ],
-    PPGSHead: [
+    "PPGS Head": [
       { name: "Dashboard", path: "/AdminDashboard", exact: true },
       { name: "Requests", path: "/PPGSHeadPage" },
       { name: "Notifications", path: "/AdminNotifications" },
@@ -97,9 +97,9 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
     switch(role) {
       case "Admin":
         return <FaUserCircle className="text-2xl text-blue-300" />;
-      case "DeptHead":
+      case "Dept Head":
         return <FaUserTie className="text-2xl text-blue-300" />;
-      case "PPGSHead":
+      case "PPGS Head":
         return <FaUserGraduate className="text-2xl text-blue-300" />;
       case "President":
         return <FaCrown className="text-2xl text-blue-300" />;

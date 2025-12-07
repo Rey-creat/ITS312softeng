@@ -158,6 +158,7 @@ export default function CreateRequest() {
                     required
                     className="w-full border border-gray-300 p-2 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition duration-200 bg-white text-base"
                     aria-describedby="date_filed_help"
+                    disabled={formData.date_filed === todayStr}
                   />
                   {errors.date_filed && <p className="text-red-500 text-xs mt-1 font-medium">{errors.date_filed}</p>}
                   {formData.date_filed && (

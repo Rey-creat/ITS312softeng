@@ -15,12 +15,16 @@ import {
   FaClipboardCheck,
   FaTimes,
   FaPaperPlane,
+  FaSync,
   FaBuilding
 } from "react-icons/fa";
 
-const DeptHeadPage = () => {
+const DeptHeadPage = ({ department }) => {
+    const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [departments, setDepartments] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentRequestId, setCurrentRequestId] = useState(null);
   const [notedBy, setNotedBy] = useState("");
@@ -31,10 +35,14 @@ const DeptHeadPage = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/depthead/all-requests");
+      // Fetch requests for the specific department
+      const res = await axios.get(`http://localhost:5000/api/depthead/all-requests?department=${department}`);
       // Only show requests where noted_by is null or 'Pending'
       const filtered = res.data.filter(req => !req.noted_by || req.noted_by === "Pending");
       setRequests(filtered.sort((a, b) => b.id - a.id));
+      // Extract unique departments from requests
+      const uniqueDepartments = Array.from(new Set(res.data.map(r => r.department).filter(Boolean)));
+      setDepartments(uniqueDepartments);
     } catch (err) {
       console.error("Error fetching requests:", err);
     } finally {
@@ -128,11 +136,37 @@ const DeptHeadPage = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={fetchRequests}
-                className="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 text-sm"
+                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                <FaPaperPlane className="mr-2" />
+                <FaSync className="mr-2" />
                 Refresh
               </button>
+              {/* Department Dropdown */}
+              {departments.length > 0 && (
+                <select
+                  value={selectedDepartment}
+                  onChange={e => setSelectedDepartment(e.target.value)}
+                  className="ml-3 px-3 py-2 border rounded-lg bg-white text-gray-700"
+                >
+                  <option value="">All Departments</option>
+                  <option value="IBED">IBED</option>
+                  <option value="SARFAID">SARFAID</option>
+                  <option value="SSLATE">SSLATE</option>
+                  <option value="SHTM">SHTM</option>
+                  <option value="SBIT">SBIT</option>
+                  {departments.filter(dep => !["IBED","SARFAID","SSLATE","SHTM","SBIT"].includes(dep)).map(dep => (
+                    <option key={dep} value={dep}>{dep}</option>
+                  ))}
+                </select>
+              )}
+              {/* Search Input */}
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                placeholder="Search requests..."
+                className="ml-3 px-3 py-2 border rounded-lg bg-white text-gray-700"
+              />
             </div>
           </div>
         </div>
@@ -159,12 +193,11 @@ const DeptHeadPage = () => {
                 <FaFileAlt className="text-xl text-blue-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm font-medium">Total Pending</p>
+                <p className="text-gray-600 text-sm font-medium">Total Request</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
               </div>
             </div>
           </div>
-          
           <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
             <div className="flex items-center">
               <div className="p-3 bg-yellow-50 rounded-lg mr-4">
@@ -173,30 +206,6 @@ const DeptHeadPage = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
                 <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-50 rounded-lg mr-4">
-                <FaCheckCircle className="text-xl text-green-600" />
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Ready for PPGS</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">0</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-50 rounded-lg mr-4">
-                <FaBuilding className="text-xl text-purple-600" />
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Department</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">Head</p>
               </div>
             </div>
           </div>
@@ -220,7 +229,14 @@ const DeptHeadPage = () => {
         )}
 
         {/* Requests Grid */}
-        {requests.length === 0 ? (
+        {(requests.filter(r =>
+          (!selectedDepartment || r.department === selectedDepartment) &&
+          (
+            r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        ).length === 0) ? (
           <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
               <FaFileAlt className="text-2xl text-gray-400" />
@@ -235,7 +251,14 @@ const DeptHeadPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {requests.map(req => (
+            {requests.filter(r =>
+              (!selectedDepartment || r.department === selectedDepartment) &&
+              (
+                r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+            ).map(req => (
               <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
                 <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
                   <div className="flex items-center justify-between">
@@ -288,6 +311,13 @@ const DeptHeadPage = () => {
                           <p className="font-medium text-sm">{req.requested_by}</p>
                         </div>
                       </div>
+                        <div className="flex items-center text-gray-700">
+                          <FaBuilding className="text-gray-400 mr-2" />
+                          <div>
+                            <p className="text-xs text-gray-500">Department</p>
+                            <p className="font-medium text-sm">{req.department || department}</p>
+                          </div>
+                        </div>
                     </div>
                     
                     <div>

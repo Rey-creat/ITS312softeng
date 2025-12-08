@@ -108,9 +108,9 @@ export default function CreateRequest() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
       {successMsg && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 bg-white border border-green-300 text-green-800 px-4 py-2 rounded-lg shadow-lg animate-fade-in">
-          <FaCheckCircle className="w-4 h-4 text-green-500" />
-          <span className="font-semibold text-sm">{successMsg}</span>
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg animate-fade-in">
+          <FaCheckCircle className="w-5 h-5 text-white" />
+          <span className="font-semibold text-base">{successMsg}</span>
         </div>
       )}
       <div className="fixed top-0 left-0 h-screen z-20">
@@ -123,7 +123,7 @@ export default function CreateRequest() {
             <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
               <div className="flex items-center">
                 <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                  <FaPaperPlane className="text-lg text-blue-600" />
+                  <div className="text-lg text-blue-600" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Request Details</h2>

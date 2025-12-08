@@ -204,7 +204,7 @@ export default function MyRequest() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
-                    <th className="px6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concern</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concern</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -214,28 +214,20 @@ export default function MyRequest() {
                     const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.status === "Personnel" || req.status === "President";
                     return (
                       <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-medium text-blue-700">
-                            {req.reference_code || `REQ-${req.id}`}
-                          </div>
+                        <td className="px-6 py-4 font-medium text-blue-700">
+                          <FaFileAlt className="inline-block text-blue-600" /> {req.reference_code || `REQ-${req.id}`}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <FaCalendarAlt className="text-gray-400 mr-2" />
-                            <span className="text-gray-700">{formatShortDate(req.date_filed)}</span>
-                          </div>
+                        <td className="px-6 py-4 text-gray-700">
+                          {formatShortDate(req.date_filed)}
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <FaCalendarAlt className="text-gray-400 mr-2" />
-                            <span className="text-gray-700">{formatShortDate(req.date_needed)}</span>
-                          </div>
+                        <td className="px-6 py-4 text-gray-700">
+                          {formatShortDate(req.date_needed)}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="font-medium text-gray-900">{req.type_of_concern}</span>
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          {req.type_of_concern}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-700">{req.description}</span>
+                        <td className="px-6 py-4 text-gray-700 break-words whitespace-pre-line max-w-xs">
+                          {req.description}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
@@ -387,7 +379,7 @@ export default function MyRequest() {
                 >
                   <FaSave className="mr-2" />
                   Save Changes
-                </button>
+                </button> 
               </div>
             </div>
           </div>

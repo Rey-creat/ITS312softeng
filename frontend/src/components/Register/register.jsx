@@ -50,7 +50,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="h-screen w-full flex bg-gradient-to-br from-gray-50 to-blue-50">
       
       {/* LEFT SIDE IMAGE (same as Login) */}
       <div className="hidden lg:flex lg:w-1/2 relative">
@@ -65,8 +65,8 @@ export default function Register() {
       </div>
 
       {/* RIGHT SIDE FORM */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-lg">
+      <div className="flex w-full lg:w-1/2 items-center justify-center px-2 sm:px-4 lg:px-6">
+        <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-800">
@@ -75,7 +75,7 @@ export default function Register() {
           </div>
 
           {/* Form Container */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8">
             {/* Desktop Header */}
             <div className="hidden lg:block text-center mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
@@ -94,8 +94,8 @@ export default function Register() {
             )}
 
             {/* FORM */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* FULL NAME */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -113,7 +113,7 @@ export default function Register() {
                       value={formData.fullname}
                       onChange={handleChange}
                       placeholder="Enter your full name"
-                      className="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 pl-10 pr-4 py-3 rounded-xl text-sm transition duration-200"
+                      className="w-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 pl-8 pr-2 py-2 rounded-xl text-sm transition duration-200"
                       required
                     />
                   </div>
@@ -208,12 +208,9 @@ export default function Register() {
                     required
                   >
                     <option value="">-- Choose Role --</option>
-                    <option value="DeptHead">Department Head</option>
-                    <option value="PPGSHead">Head of PPGS</option>
-                    <option value="President">School President</option>
                     <option value="Teacher">Teacher</option>
                     <option value="Staff">Staff</option>
-                    <option value="Personnel">Personnel/Servicing Staff</option>
+                  
                   </select>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 20 20" stroke="currentColor">

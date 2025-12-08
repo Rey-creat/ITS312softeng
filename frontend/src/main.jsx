@@ -1,4 +1,6 @@
 import React, { StrictMode } from "react";
+import ResetPassword from "./components/Login/ResetPassword.jsx";
+import ForgotPassword from "./components/Login/ForgotPassword.jsx";
 import DoneNotedRequests from "./components/Admin/DoneNotedRequests.jsx";
 import NotedRequests from "./components/Admin/NotedRequests.jsx";
 import { createRoot } from "react-dom/client";
@@ -71,6 +73,7 @@ createRoot(document.getElementById("root")).render(
         {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* User Protected Pages */}
         <Route path="/dashboard" element={<RoleRoute element={Dashboard} allowedRoles={["Teacher", "Staff"]} />} />

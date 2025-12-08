@@ -4,9 +4,10 @@ const db = require("../db");
 exports.getAllRequests = (req, res) => {
   console.log("[DEBUG] getAllRequests endpoint hit"); // Debug log
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by
-    FROM requests
-    ORDER BY date_filed ASC
+    SELECT r.id, r.user_id, r.date_filed, r.date_needed, r.type_of_concern, r.description, r.requested_by, r.ppgshead, r.noted_by, u.department
+    FROM requests r
+    LEFT JOIN users u ON r.user_id = u.id
+    ORDER BY r.date_filed ASC
   `;
 
   db.query(query, (err, results) => {

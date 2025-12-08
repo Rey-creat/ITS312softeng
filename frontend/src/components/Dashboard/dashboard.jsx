@@ -71,15 +71,15 @@ export default function Dashboard() {
 
       // Calculate counts
       const total = userRequests.length;
-      const inProgress = userRequests.filter(r => !r.done_by && (!r.ppgshead || r.ppgshead !== "Rejected") && (!r.status || r.status !== "Rejected")).length;
+      const pending = userRequests.filter(r => !r.done_by && (!r.ppgshead || r.ppgshead !== "Rejected") && (!r.status || r.status !== "Rejected")).length;
       const approved = userRequests.filter(r => r.done_by && (!r.ppgshead || r.ppgshead !== "Rejected") && (!r.status || r.status !== "Rejected")).length;
       const rejected = userRequests.filter(r => r.ppgshead === "Rejected" || r.status === "Rejected").length;
 
       // Recent requests (last 5, newest first)
-      const recent = userRequests.slice().reverse().slice(0, 5);
+      const recent = userRequests.slice().sort((a, b) => b.id - a.id).slice(0, 5);
 
       setStats({
-        counts: { total, inProgress, approved, rejected },
+        counts: { total, pending, approved, rejected },
         recent,
       });
     } catch (err) {
@@ -143,16 +143,21 @@ export default function Dashboard() {
               <p className="text-gray-600 text-sm mt-1">
                 Welcome back, <span className="font-semibold text-blue-600">{user?.fullname}</span>! Here's your request summary.
               </p>
+              {user?.department && (
+                <p className="text-gray-500 text-sm mt-1">
+                  Department: <span className="font-semibold text-blue-700">{user.department}</span>
+                </p>
+              )}
             </div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={fetchDashboard}
-                className="flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg font-medium transition-colors duration-200 text-sm"
+                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
                 <FaSync className="mr-2" />
                 Refresh
               </button>
-              <div className="h-8 w-8 rounded-full bg-gradient-to from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-sm border border-gray-300">
                 {user?.fullname?.charAt(0)}
               </div>
             </div>
@@ -183,23 +188,23 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* In Progress Card */}
+            {/* Pending Card */}
             <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200 transition-all duration-300 hover:shadow-lg">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2 bg-yellow-50 rounded-lg">
                   <FaClock className="text-xl text-yellow-600" />
                 </div>
                 <span className="text-xs font-semibold text-yellow-500 bg-yellow-50 px-2 py-1 rounded">
-                  ACTIVE
+                  PENDING
                 </span>
               </div>
-              <h3 className="text-gray-600 text-sm font-medium mb-2">In Progress</h3>
+              <h3 className="text-gray-600 text-sm font-medium mb-2">Pending</h3>
               <div className="flex items-end justify-between">
                 <p className="text-2xl font-bold text-yellow-600">
-                  {stats.counts.inProgress}
+                  {stats.counts.pending}
                 </p>
                 <div className="text-xs text-yellow-600 font-medium">
-                  {stats.counts.total > 0 ? `${Math.round((stats.counts.inProgress / stats.counts.total) * 100)}%` : '0%'}
+                  {stats.counts.total > 0 ? `${Math.round((stats.counts.pending / stats.counts.total) * 100)}%` : '0%'}
                 </div>
               </div>
             </div>
@@ -214,7 +219,7 @@ export default function Dashboard() {
                   COMPLETED
                 </span>
               </div>
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Approved</h3>
+              <h3 className="text-gray-600 text-sm font-medium mb-2">Complete</h3>
               <div className="flex items-end justify-between">
                 <p className="text-2xl font-bold text-green-600">
                   {stats.counts.approved}
@@ -247,57 +252,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* QUICK ACTIONS */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={() => navigate("/createRequest")}
-                className="bg-gradient-to from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <div className="flex items-center">
-                  <div className="p-2 bg-white/20 rounded-lg mr-3">
-                    <FaPlusCircle className="text-lg" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-sm">New Request</h3>
-                    <p className="text-blue-100 text-xs">Submit a new repair request</p>
-                  </div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => navigate("/myRequest")}
-                className="bg-gradient-to from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <div className="flex items-center">
-                  <div className="p-2 bg-white/20 rounded-lg mr-3">
-                    <FaEye className="text-lg" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-sm">View Requests</h3>
-                    <p className="text-gray-300 text-xs">Track all your submissions</p>
-                  </div>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => navigate("/reports")}
-                className="bg-gradient-to from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <div className="flex items-center">
-                  <div className="p-2 bg-white/20 rounded-lg mr-3">
-                    <FaChartLine className="text-lg" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-sm">Reports</h3>
-                    <p className="text-purple-100 text-xs">View detailed analytics</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-
+       
           {/* RECENT REQUESTS SECTION */}
           <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200 bg-gradient-to from-gray-50 to-blue-50">
@@ -320,7 +275,7 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   {stats.recent.map((req) => {
                     // Status determination logic remains exactly the same
-                    let statusLabel = "In Progress";
+                    let statusLabel = "Pending";
                     let statusColor = "bg-yellow-100 text-yellow-800";
                     let statusIcon = <FaClock className="text-yellow-600" />;
                     let statusBorder = "border-l-4 border-yellow-500";

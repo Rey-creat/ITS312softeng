@@ -22,6 +22,8 @@ import {
 } from "react-icons/fa";
 
 const President = () => {
+    const [searchValue, setSearchValue] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
   const [decision, setDecision] = useState(null);
   const [message, setMessage] = useState("");
   const [requests, setRequests] = useState([]);
@@ -60,9 +62,9 @@ const President = () => {
         const data = await res.json();
 
         setRequests(
-          data.filter(
-            (r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)
-          )
+          data
+            .filter((r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status))
+            .sort((a, b) => b.id - a.id)
         );
       } catch (err) {
         setRequests([]);
@@ -185,30 +187,93 @@ const President = () => {
       <div className="ml-64 flex-1 h-screen overflow-y-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-8 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-linear-to-r from-purple-600 to-purple-700 rounded-lg">
-                <FaCrown className="text-3xl text-white" />
+              <div className="p-2 bg-gradient-to-r from-white-600 to-white-700 rounded-lg">
+                <div className="text-3xl text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">President Dashboard</h1>
+                <div className="flex items-center w-full">
+                  <h1 className="text-2xl font-bold text-gray-900">President Dashboard</h1>
+                  <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
+                </div>
                 <p className="text-gray-600">Final approval stage for PPGS Head-endorsed requests</p>
+                {/* President Summary Boxes under title/desc */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-6">
+                  <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                    <div className="flex items-center">
+                      <div className="p-3 bg-blue-50 rounded-lg mr-4">
+                        <FaFileAlt className="text-xl text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-600 text-sm font-medium">Total Request</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                    <div className="flex items-center">
+                      <div className="p-3 bg-yellow-50 rounded-lg mr-4">
+                        <FaHourglassHalf className="text-xl text-yellow-600" />
+                      </div>
+                      <div>
+                        <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
+                        <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-linear-to-r from-purple-50 to-purple-100 text-purple-800 rounded-lg border border-purple-200 font-medium">
+            <div className="flex items-center gap-3 mt-4 md:mt-0">
+              <div className="px-4 py-2 text-blue-700 font-bold text-base flex items-center">
+                <FaCheckCircle className="inline-block mr-2 text-blue-500" />
                 {requests.length} Pending Approval
               </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 px-4 py-2 bg-white-100 hover:bg-white-200 text-black-700 font-semibold rounded-lg shadow transition-all border border-blue-200"
+                title="Refresh requests"
+              >
+                <FaSync className="mr-1" />
+                <span className="font-semibold">Refresh</span>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="px-8 py-6">
-          {requests.length === 0 ? (
+          <div className="flex items-center gap-4 mb-4">
+            <input
+              type="text"
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              placeholder="Search requests..."
+              className="px-3 py-2 border rounded-lg bg-white text-gray-700 w-64"
+            />
+            <button
+              onClick={() => setSearchTerm(searchValue)}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            >
+              Search
+            </button>
+            <button
+              onClick={() => { setSearchValue(""); setSearchTerm(""); }}
+              className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400"
+            >
+              Clear
+            </button>
+          </div>
+          {requests.filter(r =>
+            searchTerm === "" ||
+            r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
+          ).length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto">
-              <div className="w-24 h-24 bg-linear-to-r from-purple-50 to-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FaCheckCircle className="w-12 h-12 text-purple-400" />
+              <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaCheckCircle className="w-12 h-12 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">No pending presidential approvals</h3>
               <p className="text-gray-500 max-w-md mx-auto">
@@ -218,7 +283,12 @@ const President = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ml-5">
-              {requests.map((req) => (
+              {requests.filter(r =>
+                searchTerm === "" ||
+                r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((req) => (
                 <div 
                   key={req.id} 
                   className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group"
@@ -229,15 +299,15 @@ const President = () => {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <div className="p-2 bg-linear-to-r from-purple-100 to-blue-100 rounded-lg">
-                            <FaFileAlt className="w-4 h-4 text-purple-600" />
+                            <FaFileAlt className="w-4 h-4 text-blue-600" />
                           </div>
-                          <span className="text-sm font-semibold text-purple-600">
+                          <span className="text-sm font-semibold text-blue-600">
                             Request #{req.id}
                           </span>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900">{req.type_of_concern}</h3>
                       </div>
-                      <span className="px-3 py-1 bg-linear-to-r from-purple-100 to-purple-200 text-purple-800 text-xs font-semibold rounded-full border border-purple-200">
+                      <span className="px-3 py-1 bg-linear-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold rounded-full border border-blue-200">
                         Final Review
                       </span>
                     </div>

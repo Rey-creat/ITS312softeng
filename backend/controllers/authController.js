@@ -134,6 +134,7 @@ exports.login = (req, res) => {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
+        department: user.department,
         profile_picture: user.profile_picture,
       },
       sessionInfo: {

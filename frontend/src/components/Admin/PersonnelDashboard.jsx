@@ -22,6 +22,8 @@ import {
 } from "react-icons/fa";
 
 export default function PersonnelDashboard() {
+    const [searchValue, setSearchValue] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState(null);
   const [assignedRequests, setAssignedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function PersonnelDashboard() {
         };
       case "Approved":
         return {
-          color: "bg-purple-100 text-purple-800 border-purple-200",
+          color: "bg-blue-100 text-blue-800 border-blue-200",
           icon: FaCheckCircle,
           label: "Approved"
         };
@@ -98,12 +100,8 @@ export default function PersonnelDashboard() {
           r.assigned_to && r.assigned_to.trim() !== ""
         );
         
-        // Sort requests: In Progress/Approved first, then Done, then others
-        const sortedRequests = filteredRequests.sort((a, b) => {
-          const priority = { "In Progress": 1, "Approved": 2, "Done": 3, "Rejected": 4 };
-          return (priority[a.status] || 5) - (priority[b.status] || 5);
-        });
-
+        // Sort requests: largest id first (newest first)
+        const sortedRequests = filteredRequests.sort((a, b) => b.id - a.id);
         setAssignedRequests(sortedRequests);
       } catch (err) {
         if (err.response && err.response.status === 401) {
@@ -211,20 +209,48 @@ export default function PersonnelDashboard() {
       <div className="fixed inset-y-0 left-0 z-40 w-64">
         <AdminSidebar role="Personnel" />
       </div>
-      <div className="ml-64 flex-1 h-screen overflow-y-auto">
+      <div className="ml-72 flex-1 h-screen overflow-y-auto"> 
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-8 py-6">
           <div className="flex justify-between items-center">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg">
-                  <FaTools className="text-xl text-white" />
+                <div className="p-2 bg-gradient-to-r from-white-500 to-white-600 rounded-lg">
+                  <div className="text-xl text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Personnels Dashboard</h1>
+                  <div className="flex items-center w-full">
+                    <h1 className="text-2xl font-bold text-gray-900">Personnels Dashboard</h1>
+                    <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
+                  </div>
                   <p className="text-gray-600">
                     Welcome! Here are the assigned tasks and responsibilities.
                   </p>
+                  {/* Summary Boxes under title/desc */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-6">
+                    <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                      <div className="flex items-center">
+                        <div className="p-3 bg-blue-50 rounded-lg mr-4">
+                          <FaTools className="text-xl text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm font-medium">Total Request</p>
+                          <p className="text-2xl font-bold text-gray-900 mt-1">{assignedRequests.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                      <div className="flex items-center">
+                        <div className="p-3 bg-yellow-50 rounded-lg mr-4">
+                          <FaClock className="text-xl text-yellow-600" />
+                        </div>
+                        <div>
+                          <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
+                          <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -239,11 +265,32 @@ export default function PersonnelDashboard() {
         </div>
 
         <div className="px-8 py-6">
+          <div className="flex items-center gap-4 mb-4">
+            <input
+              type="text"
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              placeholder="Search by personnel name..."
+              className="px-3 py-2 border rounded-lg bg-white text-gray-700 w-64"
+            />
+            <button
+              onClick={() => setSearchTerm(searchValue)}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            >
+              Search
+            </button>
+            <button
+              onClick={() => { setSearchValue(""); setSearchTerm(""); }}
+              className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400"
+            >
+              Clear
+            </button>
+          </div>
 
           {/* Assigned Requests */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Your Assigned Requests</h2>
+              <h2 className="text-xl font-bold text-gray-900"></h2>
               <div className="flex items-center gap-2">
                 <FaClipboardCheck className="text-orange-500" />
                 <span className="text-sm font-medium text-gray-600">
@@ -265,10 +312,13 @@ export default function PersonnelDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ml-5">
-                {assignedRequests.map((req) => {
+                {assignedRequests.filter(r =>
+                  searchTerm === "" ||
+                  r.assigned_to?.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((req) => {
                   const statusInfo = getStatusInfo(req.status);
                   const StatusIcon = statusInfo.icon;
-                  
+                    
                   return (
                     <div 
                       key={req.id} 
@@ -298,42 +348,17 @@ export default function PersonnelDashboard() {
                       {/* Card Body */}
                       <div className="px-6 py-5">
                         <div className="space-y-4">
-                          {/* Assigned Personnel */}
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <FaUser className="w-4 h-4 text-blue-400" />
-                              <span className="text-xs font-medium text-blue-500">Assigned Personnel</span>
-                            </div>
-                            <p className="text-gray-900 font-medium pl-6">{(req.assigned_personnel_name === 'Reylan Malinao' ? '' : req.assigned_personnel_name) || (req.assigned_to === 'Reylan Malinao' ? '' : req.assigned_to)}</p>
-                          </div>
-
-                          {/* Description */}
-                          <div>
-                            <div className="flex items-start gap-2 mb-2">
-                              <FaAlignLeft className="w-4 h-4 text-gray-400 mt-0.5" />
-                              <span className="text-sm font-medium text-gray-500">Description</span>
-                            </div>
-                            <p className="text-gray-700 line-clamp-2 pl-6">{req.description}</p>
-                          </div>
-
-                          {/* Info Grid */}
+                          {/* Date Filed & Date Needed on same row */}
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <FaUser className="w-4 h-4 text-gray-400" />
-                                <span className="text-xs font-medium text-gray-500">Requester</span>
-                              </div>
-                              <p className="text-gray-900 font-medium pl-6">{req.requested_by}</p>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-2">
                                 <FaCalendarAlt className="w-4 h-4 text-gray-400" />
                                 <span className="text-xs font-medium text-gray-500">Date Filed</span>
                               </div>
                               <p className="text-gray-900 font-medium pl-6">{formatDate(req.date_filed)}</p>
                             </div>
                             <div>
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-2">
                                 <FaCalendarDay className="w-4 h-4 text-gray-400" />
                                 <span className="text-xs font-medium text-gray-500">Date Needed</span>
                               </div>
@@ -345,6 +370,33 @@ export default function PersonnelDashboard() {
                                 {formatDate(req.date_needed)}
                               </p>
                             </div>
+                          </div>
+
+                          {/* Description & Requester on next row */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="flex items-start gap-2 mb-2">
+                                <FaAlignLeft className="w-4 h-4 text-gray-400 mt-0.5" />
+                                <span className="text-sm font-medium text-gray-500">Description</span>
+                              </div>
+                              <p className="text-gray-700 line-clamp-2 pl-6">{req.description}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <FaUser className="w-4 h-4 text-gray-400" />
+                                <span className="text-xs font-medium text-gray-500">Requester</span>
+                              </div>
+                              <p className="text-gray-900 font-medium pl-6">{req.requested_by}</p>
+                            </div>
+                          </div>
+
+                          {/* Assigned Personnel under all */}
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <FaUser className="w-4 h-4 text-blue-400" />
+                              <span className="text-xs font-medium text-blue-500">Assigned Personnel</span>
+                            </div>
+                            <p className="text-gray-900 font-medium pl-6">{(req.assigned_personnel_name === 'Reylan Malinao' ? '' : req.assigned_personnel_name) || (req.assigned_to === 'Reylan Malinao' ? '' : req.assigned_to)}</p>
                           </div>
                         </div>
 

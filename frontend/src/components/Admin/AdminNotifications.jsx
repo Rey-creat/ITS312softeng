@@ -1,3 +1,5 @@
+    // Helper to check if reassign should be disabled
+    const isReassignDisabled = (req) => req.status === 'Done';
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -177,7 +179,7 @@ export default function AdminNotifications() {
 
     if (loading) {
         return (
-            <div className="flex h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+            <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
                 <AdminSidebar />
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
@@ -190,29 +192,33 @@ export default function AdminNotifications() {
     }
 
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50 overflow-hidden">
             <div className="fixed top-0 left-0 h-screen z-20">
                 <AdminSidebar />
             </div>
-            <div className="flex-1 ml-72 overflow-y-auto">
+            <div className="flex-1 ml-72">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200 px-6 py-5">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
-                                    <FaBell className="text-xl text-white" />
-                                </div>
-                                <h1 className="text-2xl font-bold text-gray-900">Admin Notifications</h1>
-                            </div>
-                            <p className="text-gray-600 text-sm mt-1">
-                                Assign personnel to President-approved requests for action
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                            <h1 className="text-2xl font-bold text-gray-900">Admin Notifications</h1>
+                            <p className="text-gray-600 text-sm">
+                                Assign personnel to requester approved requests for action
                             </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="px-4 py-2 bg-green-50 text-green-800 rounded-lg border border-green-200 font-medium text-sm">
-                                {filteredRequests.length} Requests Ready
+                            <div className="flex items-center gap-3 mt-2">
+                                <div className="px-4 py-2 bg-green-50 text-green-800 rounded-lg border border-green-200 font-medium text-sm">
+                                    {filteredRequests.length} Requests Ready
+                                </div>
                             </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                            >
+                                <FaSync className="mr-2" />
+                                Refresh
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -232,7 +238,6 @@ export default function AdminNotifications() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        
                         <div className="flex items-center gap-3">
                             <div className="px-4 py-2 bg-blue-50 text-blue-800 rounded-lg font-medium text-sm">
                                 Total: {requests.length}
@@ -245,10 +250,10 @@ export default function AdminNotifications() {
 
                     {/* Main Content */}
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                        <div className="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-green-50">
+                        <div className="px-5 py-4 border-b border-gray-200 bg-linear-to-r from-gray-50 to-green-50">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-lg font-bold text-gray-900">President-Approved Requests</h2>
+                                    <h2 className="text-lg font-bold text-gray-900">PPGS-Approved Requests</h2>
                                     <p className="text-gray-600 text-sm">
                                         Ready for personnel assignment and implementation
                                     </p>
@@ -273,178 +278,63 @@ export default function AdminNotifications() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
+                            <div className="overflow-x-auto max-h-[60vh] min-h-[300px] scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                                <table className="w-full text-sm">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 bg-gray-100 rounded">
-                                                        <span className="text-gray-700 font-bold">ID</span>
-                                                    </div>
-                                                </div>
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaUser className="text-gray-400" />
-                                                    <span>Requester</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaCalendarAlt className="text-gray-500" />
-                                                    <span>Date Filed</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaCalendarDay className="text-gray-500" />
-                                                    <span>Date Needed</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaTools className="text-gray-500" />
-                                                    <span>Type</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaAlignLeft className="text-gray-500" />
-                                                    <span>Description</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaClipboardCheck className="text-gray-500" />
-                                                    <span>Noted By</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaCheckCircle className="text-gray-500" />
-                                                    <span>President Status</span>
-                                                </div>
-                                            </th>
-                                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                                <div className="flex items-center gap-2">
-                                                    <FaUserPlus className="text-gray-500" />
-                                                    <span>Assign Personnel</span>
-                                                </div>
-                                            </th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assign Personnel</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
                                         {filteredRequests
                                             .sort((a, b) => b.id - a.id)
                                             .map((req) => (
-                                                <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-5 py-4 text-sm">
-                                                        <div className="font-bold text-blue-700">
-                                                            #{req.id}
-                                                        </div>
-                                                        {req.reference_code && (
-                                                            <div className="text-xs text-gray-500">
-                                                                {req.reference_code}
-                                                            </div>
-                                                        )}
-                                                    </td>
-                                                    
-                                                    <td className="px-5 py-4 text-sm">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                                                <FaUser className="text-blue-600 text-sm" />
-                                                            </div>
-                                                            <span className="font-medium text-gray-900">
-                                                                {req.requested_by}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-5 py-4 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <FaCalendarAlt className="text-gray-400" />
-                                                            <span className="text-gray-700 font-medium">
-                                                                {formatDate(req.date_filed)}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-5 py-4 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <FaCalendarDay className="text-gray-400" />
-                                                            <span className={`font-medium ${
-                                                                new Date(req.date_needed) < new Date() 
-                                                                    ? "text-red-600" 
-                                                                    : "text-gray-700"
-                                                            }`}>
-                                                                {formatDate(req.date_needed)}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-5 py-4 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <FaTools className="text-gray-400" />
-                                                            <span className="text-gray-700 font-medium">
-                                                                {req.type_of_concern}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-5 py-4 max-w-xs text-sm">
-                                                        <div className="flex items-start gap-2">
-                                                            <FaAlignLeft className="text-gray-400 mt-1" />
-                                                            <p className="text-gray-700 line-clamp-2">
-                                                                {req.description}
-                                                            </p>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <FaClipboardCheck className="text-green-500" />
-                                                            <span className="font-medium text-green-700">
-                                                                {req.noted_by || "—"}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    
-                                                    <td className="px-6 py-4">
-                                                        <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                                                <tr key={req.id} className="hover:bg-gray-50 transition-colors whitespace-nowrap">
+                                                    <td className="px-2 py-2 text-sm font-bold text-blue-700">REQ-{req.id}</td>
+                                                    <td className="px-2 py-2 text-sm text-gray-700">{formatDate(req.date_filed)}</td>
+                                                    <td className={`px-2 py-2 text-sm font-medium ${new Date(req.date_needed) < new Date() ? "text-red-600" : "text-gray-700"}`}>{formatDate(req.date_needed)}</td>
+                                                    <td className="px-2 py-2 text-sm text-gray-700 font-medium">{req.type_of_concern}</td>
+                                                    <td className="px-2 py-2 text-sm text-gray-700">{req.description}</td>
+                                                    <td className="px-2 py-2 text-sm font-medium text-gray-900">{req.requested_by}</td>
+                                                    <td className="px-2 py-2 font-medium text-green-700">{req.noted_by || "—"}</td>
+                                                    <td className="px-2 py-2">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
                                                             <FaCheckCircle className="mr-1.5" />
                                                             {req.status || "Approved"}
                                                         </span>
                                                     </td>
-                                                    
-                                                    <td className="px-6 py-4">
-                                                        {req.assigned_to ? (
-                                                            <div className="flex items-center justify-between">
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                                        <FaUserPlus className="text-green-600 text-sm" />
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="font-medium text-green-700">
-                                                                            {req.assigned_to}
-                                                                        </p>
-                                                                        <p className="text-xs text-gray-500">
-                                                                            Assigned
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
+                                                    <td className="px-2 py-2 min-w-[180px]">
+                                                        {req.status === 'Done' ? (
+                                                            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-green-200 text-green-800 border border-green-300">Completed</span>
+                                                        ) : req.assigned_to ? (
+                                                            <span className="inline-flex items-center gap-2">
+                                                                <span className="font-medium text-green-700 text-base">{req.assigned_to}</span>
+                                                                <span className="text-xs text-gray-500">Assigned</span>
                                                                 <button
-                                                                    onClick={() => openAssignModal(req.id)}
-                                                                    className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                                                    onClick={() => {
+                                                                        if (!isReassignDisabled(req)) openAssignModal(req.id);
+                                                                    }}
+                                                                    className={`px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    disabled={isReassignDisabled(req)}
                                                                 >
                                                                     Reassign
                                                                 </button>
-                                                            </div>
+                                                            </span>
                                                         ) : (
                                                             <button
-                                                                onClick={() => openAssignModal(req.id)}
-                                                                disabled={assigning[req.id]}
-                                                                className="w-full px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                onClick={() => {
+                                                                    if (!isReassignDisabled(req)) openAssignModal(req.id);
+                                                                }}
+                                                                disabled={assigning[req.id] || isReassignDisabled(req)}
+                                                                className={`px-6 py-3 text-base font-semibold text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 {assigning[req.id] ? (
                                                                     <>
@@ -468,13 +358,10 @@ export default function AdminNotifications() {
                         )}
                     </div>
                 </div>
-            </div>
-
-            {/* Assign Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-blue bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full">
-                        <div className="p-6">
+                {/* Modal for Assign Personnel */}
+                {showModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-blue bg-opacity-40">
+                        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-900">Assign Personnel</h2>
@@ -489,21 +376,18 @@ export default function AdminNotifications() {
                                     <FaTimes className="w-5 h-5" />
                                 </button>
                             </div>
-                            
                             {error && (
                                 <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2">
                                     <FaExclamationCircle />
                                     {error}
                                 </div>
                             )}
-                            
                             {success && (
                                 <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
                                     <FaCheck />
                                     {success}
                                 </div>
                             )}
-                            
                             <div className="mb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Personnel Name
@@ -518,7 +402,6 @@ export default function AdminNotifications() {
                                     onKeyPress={(e) => e.key === 'Enter' && handleAssignModal()}
                                 />
                             </div>
-                            
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowModal(false)}
@@ -529,7 +412,7 @@ export default function AdminNotifications() {
                                 <button
                                     onClick={handleAssignModal}
                                     disabled={assigning[modalRequestId]}
-                                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {assigning[modalRequestId] ? (
                                         <>
@@ -546,8 +429,8 @@ export default function AdminNotifications() {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

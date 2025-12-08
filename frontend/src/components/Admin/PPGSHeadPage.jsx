@@ -27,6 +27,7 @@ const PPGSHeadPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -130,7 +131,17 @@ const PPGSHeadPage = () => {
 
   // Filter requests for display
   const notedRequests = requests.filter(req => req.noted_by);
-  const pendingRequests = notedRequests.filter(req => req.ppgshead === "Pending");
+  // Filter pending requests by search query
+  const pendingRequests = notedRequests.filter(req => req.ppgshead === "Pending")
+    .filter(req => {
+      const query = searchQuery.toLowerCase();
+      return (
+        req.requested_by?.toLowerCase().includes(query) ||
+        req.type_of_concern?.toLowerCase().includes(query) ||
+        req.description?.toLowerCase().includes(query) ||
+        String(req.id).includes(query)
+      );
+    });
 
   if (loading) {
     return (
@@ -154,14 +165,21 @@ const PPGSHeadPage = () => {
         <div className="px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">PPGS Head Requests</h1>
                 <p className="text-gray-600 mt-1">
                   Review and process requests noted by department heads
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <input
+                  type="text"
+                  className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700 w-full md:w-64"
+                  placeholder="Search requests..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
                 {pendingRequests.length > 0 && (
                   <div className="flex items-center px-4 py-2 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
                     <FaExclamationTriangle className="mr-2" />

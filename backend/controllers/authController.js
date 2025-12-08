@@ -1,3 +1,26 @@
+// Direct password reset handler
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) return res.status(400).json({ message: "Email and new password are required." });
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], (err, result) => {
+      console.log(`[RESET PASSWORD] Email: ${email}, affectedRows: ${result?.affectedRows}`);
+      if (err) {
+        console.error("[RESET PASSWORD] DB error:", err);
+        return res.status(500).json({ message: "DB error", error: err });
+      }
+      if (result.affectedRows === 0) {
+        console.warn(`[RESET PASSWORD] No user found for email: ${email}`);
+        return res.status(400).json({ message: "No user found with that email." });
+      }
+      console.log(`[RESET PASSWORD] Password updated for email: ${email}`);
+      return res.status(200).json({ message: "Password reset successful." });
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Error resetting password." });
+  }
+};
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");

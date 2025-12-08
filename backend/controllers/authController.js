@@ -1,20 +1,16 @@
-// Direct password reset handler
-exports.resetPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
-  if (!email || !newPassword) return res.status(400).json({ message: "Email and new password are required." });
+// Direct password reset handler for /auth/direct-reset-password (no token, no email link)
+const directResetPassword = async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: "Email and new password are required." });
   try {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], (err, result) => {
-      console.log(`[RESET PASSWORD] Email: ${email}, affectedRows: ${result?.affectedRows}`);
       if (err) {
-        console.error("[RESET PASSWORD] DB error:", err);
         return res.status(500).json({ message: "DB error", error: err });
       }
       if (result.affectedRows === 0) {
-        console.warn(`[RESET PASSWORD] No user found for email: ${email}`);
         return res.status(400).json({ message: "No user found with that email." });
       }
-      console.log(`[RESET PASSWORD] Password updated for email: ${email}`);
       return res.status(200).json({ message: "Password reset successful." });
     });
   } catch (err) {
@@ -33,7 +29,7 @@ const SECRET = process.env.JWT_SECRET || "YOUR_SECRET_KEY";
 const activeSessions = new Map();
 
 // Updated register function to handle multipart/form-data
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   let { fullname, email, password, role, department } = req.body;
 
   console.log("[DEBUG] Register request body:", req.body);
@@ -99,7 +95,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = (req, res) => {
+const login = (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: "Email and password required" });
 
@@ -146,7 +142,7 @@ exports.login = (req, res) => {
 };
 
 // Middleware to verify JWT token
-exports.verifyToken = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -183,7 +179,7 @@ exports.verifyToken = (req, res, next) => {
 };
 
 // Logout - invalidate session
-exports.logout = (req, res) => {
+const logout = (req, res) => {
   const token = req.token;
 
   if (token) {
@@ -196,7 +192,7 @@ exports.logout = (req, res) => {
 };
 
 // Get active sessions count
-exports.getSessionInfo = (req, res) => {
+const getSessionInfo = (req, res) => {
   res.json({
     activeSessions: activeSessions.size,
     currentSession: {
@@ -205,4 +201,36 @@ exports.getSessionInfo = (req, res) => {
       role: req.user.role,
     },
   });
+};
+
+// Direct password reset handler for /reset-password (token-based or legacy)
+const resetPassword = async (req, res) => {
+  // Example implementation: expects email and newPassword
+  const { email, newPassword } = req.body;
+  if (!email || !newPassword) return res.status(400).json({ message: "Email and new password are required." });
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "DB error", error: err });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(400).json({ message: "No user found with that email." });
+      }
+      return res.status(200).json({ message: "Password reset successful." });
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Error resetting password." });
+  }
+};
+
+// Export all handlers after all function definitions
+module.exports = {
+  register,
+  login,
+  logout,
+  verifyToken,
+  getSessionInfo,
+  resetPassword,
+  directResetPassword
 };

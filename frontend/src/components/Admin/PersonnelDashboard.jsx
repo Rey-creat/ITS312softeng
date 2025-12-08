@@ -141,10 +141,10 @@ export default function PersonnelDashboard() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+
+      // Remove the request from the list after marking as done
       setAssignedRequests((prev) =>
-        prev.map((r) =>
-          r.id === requestId ? { ...r, status: newStatus, done_by: body.done_by || r.done_by } : r
-        )
+        prev.filter((r) => r.id !== requestId)
       );
 
       showNotification("Request marked as Done successfully!", "success");

@@ -79,6 +79,8 @@ exports.getRequests = (req, res) => {
   }
   if (hasAssigned) {
     where.push("assigned_to IS NOT NULL AND assigned_to != ''");
+    // Exclude requests marked as Done
+    where.push("status != 'Done'");
   }
   if (where.length > 0) {
     query += " WHERE " + where.join(" AND ");
@@ -132,15 +134,15 @@ exports.updateRequest = (req, res) => {
   // Debug log incoming body
   console.log('updateRequest body:', req.body);
 
-  // Only allow done_by update when marking as done by personnel
+  // When marking as done by personnel, update both done_by and status
   if (done_by !== undefined) {
     db.query(
-      "UPDATE requests SET done_by = ? WHERE id = ?",
+      "UPDATE requests SET done_by = ?, status = 'Done' WHERE id = ?",
       [done_by, id],
       (err, result) => {
         if (err) return res.status(500).json({ message: "DB error", error: err });
         if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-        res.status(200).json({ message: "Request done_by updated successfully" });
+        res.status(200).json({ message: "Request marked as Done successfully" });
       }
     );
     return;

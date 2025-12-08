@@ -75,7 +75,8 @@ export default function AdminDashboard() {
         total: requestsRes.data.length,
         pending: requestsRes.data.filter((r) => r.status === "Pending").length,
         approved: requestsRes.data.filter((r) => r.status === "Approved").length,
-        rejected: requestsRes.data.filter((r) => r.status === "Rejected").length,
+        // Count as rejected if either status or ppgshead is 'Rejected'
+        rejected: requestsRes.data.filter((r) => r.status === "Rejected" || r.ppgshead === "Rejected").length,
       };
 
       setStats(counts);
@@ -190,7 +191,7 @@ export default function AdminDashboard() {
                   COMPLETED
                 </span>
               </div>
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Approved</h3>
+              <h3 className="text-gray-600 text-sm font-medium mb-2">Completed</h3>
               <div className="flex items-end justify-between">
                 <p className="text-2xl font-bold text-green-600">
                   {stats.approved}
@@ -257,6 +258,7 @@ export default function AdminDashboard() {
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -289,14 +291,27 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-5 py-4">
                             <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${
-                              req.status === "Approved" 
-                                ? "bg-green-100 text-green-800" 
-                                : req.status === "Rejected" 
-                                ? "bg-red-100 text-red-800" 
+                              req.status === "Approved"
+                                ? "bg-green-100 text-green-800"
+                                : (req.status === "Rejected" || req.ppgshead === "Rejected")
+                                ? "bg-red-100 text-red-800"
                                 : "bg-yellow-100 text-yellow-800"
                             }`}>
-                              {req.status || "Pending"}
+                              {(req.status === "Rejected" || req.ppgshead === "Rejected")
+                                ? "Rejected"
+                                : req.status === "Approved"
+                                ? "Approved"
+                                : "Pending"}
                             </span>
+                          </td>
+                          <td className="px-5 py-4">
+                            {(req.status === "Done" || req.status === "Completed") ? (
+                              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-200 text-green-800 border border-green-300">
+                                <FaCheckCircle className="mr-1 text-green-700" /> Done
+                              </span>
+                            ) : (
+                              <span className="inline-block px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}

@@ -60,9 +60,9 @@ const President = () => {
         const data = await res.json();
 
         setRequests(
-          data.filter(
-            (r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status)
-          )
+          data
+            .filter((r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status))
+            .sort((a, b) => b.id - a.id)
         );
       } catch (err) {
         setRequests([]);
@@ -185,9 +185,9 @@ const President = () => {
       <div className="ml-64 flex-1 h-screen overflow-y-auto">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-8 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-linear-to-r from-white-600 to-white-700 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-white-600 to-white-700 rounded-lg">
                 <div className="text-3xl text-white" />
               </div>
               <div>
@@ -205,7 +205,7 @@ const President = () => {
                       </div>
                       <div>
                         <p className="text-gray-600 text-sm font-medium">Total Request</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">7</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
                       </div>
                     </div>
                   </div>
@@ -216,18 +216,26 @@ const President = () => {
                       </div>
                       <div>
                         <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
-                        <p className="text-2xl font-bold text-yellow-600 mt-1">7</p>
+                        <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="px-4 py-2 text-blue-700 font-bold text-base">
+            <div className="flex items-center gap-3 mt-4 md:mt-0">
+              <div className="px-4 py-2 text-blue-700 font-bold text-base flex items-center">
                 <FaCheckCircle className="inline-block mr-2 text-blue-500" />
                 {requests.length} Pending Approval
               </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2 px-4 py-2 bg-white-100 hover:bg-white-200 text-black-700 font-semibold rounded-lg shadow transition-all border border-blue-200"
+                title="Refresh requests"
+              >
+                <FaSync className="mr-1" />
+                <span className="font-semibold">Refresh</span>
+              </button>
             </div>
           </div>
         </div>
@@ -258,15 +266,15 @@ const President = () => {
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <div className="p-2 bg-linear-to-r from-purple-100 to-blue-100 rounded-lg">
-                            <FaFileAlt className="w-4 h-4 text-purple-600" />
+                            <FaFileAlt className="w-4 h-4 text-blue-600" />
                           </div>
-                          <span className="text-sm font-semibold text-purple-600">
+                          <span className="text-sm font-semibold text-blue-600">
                             Request #{req.id}
                           </span>
                         </div>
                         <h3 className="text-lg font-bold text-gray-900">{req.type_of_concern}</h3>
                       </div>
-                      <span className="px-3 py-1 bg-linear-to-r from-purple-100 to-purple-200 text-purple-800 text-xs font-semibold rounded-full border border-purple-200">
+                      <span className="px-3 py-1 bg-linear-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold rounded-full border border-blue-200">
                         Final Review
                       </span>
                     </div>

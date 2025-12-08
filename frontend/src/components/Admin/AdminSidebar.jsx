@@ -32,6 +32,8 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
   // Define icon mapping for each menu item
   const getIconForMenu = (name) => {
     switch(name) {
+      case "Superadmin Dashboard":
+        return <FaTachometerAlt className="text-xl" />;
       case "Dashboard":
         return <FaHome className="text-xl" />;
       case "Notifications":
@@ -62,22 +64,21 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
   // Define menu items for each role
   const roleMenus = {
     Admin: [
-      { name: "Dashboard", path: "/AdminDashboard", exact: true },
+      { name: "Superadmin Dashboard", path: "/SuperadminDashboard", exact: true },
       { name: "Notifications", path: "/AdminNotifications" },
       { name: "Dept. Office Head", path: "/DeptHeadPage" },
       { name: "Head of PPGS", path: "/PPGSHeadPage" },
       { name: "School President", path: "/President" },
-    ],  
+    ],
     "Dept Head": [
       { name: "SBIT Department  ", path: "/DeptHeadPage", exact: true },
       { name: "SSLATE Department", path: "/DeptHeadPage", exact: true },
       { name: "SARFAID Department", path: "/DeptHeadPage", exact: true },
       { name: "SHTM Department", path: "/DeptHeadPage", exact: true },
       { name: "IBED Department", path: "/DeptHeadPage", exact: true },
-
     ],
     "PPGS Head": [
-      { name: "Dashboard", path: "/AdminDashboard", exact: true },
+       { name: "Dashboard", path: "/AdminDashboard" },
       { name: "Requests", path: "/PPGSHeadPage" },
       { name: "Notifications", path: "/AdminNotifications" },
     ],
@@ -88,10 +89,7 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
       { name: "Requests", path: "/PersonnelDashboard", exact: true },
     ],
     User: [
-      { name: "Dashboard", path: "/dashboard", exact: true },
-      { name: "Create Request", path: "/createRequest" },
-      { name: "My Requests", path: "/myRequest" },
-      { name: "Reports", path: "/reports" },
+      // Removed Dashboard, Create Request, My Requests, Reports
     ],
   };
 

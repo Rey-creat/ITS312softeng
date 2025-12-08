@@ -19,7 +19,8 @@ import {
   FaCheck,
   FaArrowRight,
   FaCalendarDay,
-  FaClipboardList
+  FaClipboardList,
+  FaSync
 } from "react-icons/fa";
 
 const PPGSHeadPage = () => {
@@ -130,12 +131,13 @@ const PPGSHeadPage = () => {
 
   // Filter requests for display
   const notedRequests = requests.filter(req => req.noted_by);
-  const pendingRequests = notedRequests.filter(req => req.ppgshead === "Pending");
+  // Show both Pending and Rejected for review
+  const reviewRequests = notedRequests.filter(req => req.ppgshead === "Pending" || req.ppgshead === "Rejected");
 
   if (loading) {
     return (
       <div className="flex h-screen">
-        <AdminSidebar ppgsHeadHasRequests={pendingRequests.length > 0} />
+        <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -148,33 +150,42 @@ const PPGSHeadPage = () => {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar ppgsHeadHasRequests={pendingRequests.length > 0} />
-      
+      <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
       <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-gray-900">PPGS Head Requests</h1>
-                <div className="flex-1" />
-                <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center">
+                  <h1 className="text-2xl font-bold text-gray-900">PPGS Head Requests</h1>
+                  <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
+                </div>
+                <p className="text-gray-600">
+                  Review and process requests noted by department heads
+                </p>
               </div>
-              <p className="text-gray-600 mt-1">
-                Review and process requests noted by department heads
-              </p>
-              <div className="flex items-center gap-3">
-                {pendingRequests.length > 0 && (
-                  <div className="flex items-center px-4 py-2 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
-                    <FaExclamationTriangle className="mr-2" />
-                    <span className="font-medium">{pendingRequests.length} pending</span>
-                  </div>
-                )}
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <FaSync className="mr-2" />
+                  Refresh
+                </button>
               </div>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              {reviewRequests.filter(r => r.ppgshead === "Pending").length > 0 && (
+                <div className="flex items-center px-4 py-2 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
+                  <FaExclamationTriangle className="mr-2" />
+                  <span className="font-medium">{reviewRequests.filter(r => r.ppgshead === "Pending").length} pending</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {pendingRequests.length === 0 ? (
+          {reviewRequests.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto">
               <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FaClipboardList className="w-12 h-12 text-blue-400" />
@@ -187,7 +198,7 @@ const PPGSHeadPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {pendingRequests.map((req) => (
+              {reviewRequests.map((req) => (
                 <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
                   <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
                     <div className="flex items-center justify-between">
@@ -201,7 +212,11 @@ const PPGSHeadPage = () => {
                         </div>
                       </div>
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
-                        Pending Review
+                        {req.ppgshead === "Rejected" ? (
+                          <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full">Rejected</span>
+                        ) : (
+                          "Pending Review"
+                        )}
                       </span>
                     </div>
                   </div>

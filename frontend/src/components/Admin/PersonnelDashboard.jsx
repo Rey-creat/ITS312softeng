@@ -233,7 +233,7 @@ export default function PersonnelDashboard() {
                         </div>
                         <div>
                           <p className="text-gray-600 text-sm font-medium">Total Request</p>
-                          <p className="text-2xl font-bold text-gray-900 mt-1">7</p>
+                          <p className="text-2xl font-bold text-gray-900 mt-1">{assignedRequests.length}</p>
                         </div>
                       </div>
                     </div>
@@ -244,7 +244,7 @@ export default function PersonnelDashboard() {
                         </div>
                         <div>
                           <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
-                          <p className="text-2xl font-bold text-yellow-600 mt-1">7</p>
+                          <p className="text-2xl font-bold text-yellow-600 mt-1">{stats.pending}</p>
                         </div>
                       </div>
                     </div>

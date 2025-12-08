@@ -19,7 +19,7 @@ import {
   FaBuilding
 } from "react-icons/fa";
 
-const DeptHeadPage = () => {
+const DeptHeadPage = ({ department }) => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -32,7 +32,8 @@ const DeptHeadPage = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/depthead/all-requests");
+      // Fetch requests for the specific department
+      const res = await axios.get(`http://localhost:5000/api/depthead/all-requests?department=${department}`);
       // Only show requests where noted_by is null or 'Pending'
       const filtered = res.data.filter(req => !req.noted_by || req.noted_by === "Pending");
       setRequests(filtered.sort((a, b) => b.id - a.id));
@@ -119,7 +120,7 @@ const DeptHeadPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">Department Head Dashboard</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{department} Department Head Dashboard</h1>
                 {requests.length > 0 && (
                   <span className="w-3 h-3 bg-red-500 rounded-full animate-ping" title="You have requests to review"></span>
                 )}

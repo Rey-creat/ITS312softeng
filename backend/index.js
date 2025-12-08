@@ -36,6 +36,9 @@ app.use("/api", requestRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", reportRoutes);
 app.use("/api", personnelRoutes);
+// User routes
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/users", userRoutes);
 
 // DeptHead routes
 app.use("/api/depthead", (req, res, next) => {

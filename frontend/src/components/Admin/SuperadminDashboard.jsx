@@ -320,70 +320,72 @@ const SuperadminDashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Requests</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">{stats.counts.total}</p>
+        {/* Stats Cards: Only show on Requests tab */}
+        {activeTab === "requests" && (
+          <div className="px-8 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Total Requests</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.counts.total}</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <FiFileText className="text-blue-600 text-xl" />
+                  </div>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <FiFileText className="text-blue-600 text-xl" />
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">All time requests</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-500">All time requests</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.counts.inProgress}</p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Pending</p>
+                    <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.counts.inProgress}</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                    <FiActivity className="text-yellow-600 text-xl" />
+                  </div>
                 </div>
-                <div className="p-3 bg-yellow-50 rounded-lg">
-                  <FiActivity className="text-yellow-600 text-xl" />
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">Pending</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-500">Pending</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Complete</p>
-                  <p className="text-3xl font-bold text-green-600 mt-2">{stats.counts.approved}</p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Complete</p>
+                    <p className="text-3xl font-bold text-green-600 mt-2">{stats.counts.approved}</p>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <FiCheck className="text-green-600 text-xl" />
+                  </div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <FiCheck className="text-green-600 text-xl" />
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">Completed requests</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-500">Completed requests</span>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Rejected</p>
-                  <p className="text-3xl font-bold text-red-600 mt-2">{stats.counts.rejected}</p>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Rejected</p>
+                    <p className="text-3xl font-bold text-red-600 mt-2">{stats.counts.rejected}</p>
+                  </div>
+                  <div className="p-3 bg-red-50 rounded-lg">
+                    <FiX className="text-red-600 text-xl" />
+                  </div>
                 </div>
-                <div className="p-3 bg-red-50 rounded-lg">
-                  <FiX className="text-red-600 text-xl" />
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">Declined requests</span>
                 </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs text-gray-500">Declined requests</span>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Main Content */}
         <div className="px-8 pb-8">
@@ -418,10 +420,6 @@ const SuperadminDashboard = () => {
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
                       </select>
-                      <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <FiPlus className="mr-2" />
-                        New Request
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -430,13 +428,15 @@ const SuperadminDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Needed</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head Noted</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personnel (Done By)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -451,107 +451,38 @@ const SuperadminDashboard = () => {
                       ) : filteredRequests.length > 0 ? (
                         filteredRequests.sort((a, b) => b.id - a.id).map((req) => (
                           <tr key={req.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{req.id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{req.type_of_concern}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{req.requested_by || req.requester_name || "N/A"}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(req.status)}`}>
-                                {req.status || "Pending"}
+                            <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-gray-900">#{req.id}</td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-500">{formatDate(req.date_filed)}</td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-500">{req.date_needed ? formatDate(req.date_needed) : "—"}</td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{req.type_of_concern}</td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-700">{req.requested_by || req.requester_name || "N/A"}</td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.noted_by && req.noted_by !== "Pending" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                                {req.noted_by && req.noted_by !== "Pending" ? req.noted_by : "Pending"}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                              {req.assigned_to || (
-                                <span className="text-gray-400 italic">Unassigned</span>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.ppgshead === "Approved" ? "bg-emerald-100 text-emerald-800" : req.ppgshead === "Rejected" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+                                {req.ppgshead && req.ppgshead !== "Pending" ? req.ppgshead : "Pending"}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.status === "Approved" ? "bg-emerald-100 text-emerald-800" : req.status === "Rejected" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
+                                {req.status && req.status !== "Pending" ? req.status : "Pending"}
+                              </span>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              {req.done_by ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{req.done_by}</span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
                               )}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(req.created_at)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => setAssignId(req.id)}
-                                  className="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                                  title="Assign"
-                                >
-                                  <FiUserPlus className="mr-1.5" />
-                                  Assign
-                                </button>
-                                <div className="flex border-l border-gray-200 pl-2">
-                                  <button
-                                    onClick={() => handleReorderRequest(req.id, "up")}
-                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
-                                    title="Move Up"
-                                  >
-                                    <FiArrowUp size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleReorderRequest(req.id, "down")}
-                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded"
-                                    title="Move Down"
-                                  >
-                                    <FiArrowDown size={14} />
-                                  </button>
-                                </div>
-                                <button
-                                  onClick={() => setOverrideId(req.id)}
-                                  className="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                                  title="Override"
-                                >
-                                  Override
-                                </button>
-                                    {overrideId && (
-                                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                                        <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-                                          <div className="p-6">
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Override Request</h3>
-                                            <div className="space-y-4">
-                                              <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                  Override to Personnel
-                                                </label>
-                                                <input
-                                                  type="text"
-                                                  value={overridePersonnel}
-                                                  onChange={(e) => setOverridePersonnel(e.target.value)}
-                                                  placeholder="Enter personnel name"
-                                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                />
-                                              </div>
-                                            </div>
-                                            <div className="flex justify-end space-x-3 mt-6">
-                                              <button
-                                                onClick={() => {
-                                                  setOverrideId(null);
-                                                  setOverridePersonnel("");
-                                                }}
-                                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                                              >
-                                                Cancel
-                                              </button>
-                                              <button
-                                                onClick={handleOverrideRequest}
-                                                disabled={!overridePersonnel}
-                                                className={`px-4 py-2 rounded-lg font-medium ${
-                                                  overridePersonnel
-                                                    ? "bg-red-600 text-white hover:bg-red-700"
-                                                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                                }`}
-                                              >
-                                                Override Request
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                              </div>
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="7" className="px-6 py-12 text-center">
+                          <td colSpan="10" className="px-6 py-12 text-center">
                             <div className="text-gray-400">
                               <FiFileText className="mx-auto text-4xl mb-3" />
                               <p className="text-lg font-medium text-gray-900">No requests found</p>
@@ -586,7 +517,20 @@ const SuperadminDashboard = () => {
                       Add User
                     </button>
                   </div>
-                  
+
+                  {/* Total Users Stats Card */}
+                  <div className="mt-6 mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Users</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">{users.length}</p>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-lg">
+                        <FiUsers className="text-green-600 text-xl" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="mt-4">
                     <div className="relative max-w-md">
                       <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -616,7 +560,7 @@ const SuperadminDashboard = () => {
                     <tbody className="divide-y divide-gray-200">
                       {loading ? (
                         <tr>
-                          <td colSpan="5" className="px-6 py-8 text-center">
+                          <td colSpan="6" className="px-6 py-8 text-center">
                             <div className="flex justify-center">
                               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                             </div>
@@ -627,7 +571,7 @@ const SuperadminDashboard = () => {
                           <tr key={user.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm mr-3">
+                                <div className="h-10 w-10 rounded-full bg-linear-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm mr-3">
                                   {user.fullname.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -637,6 +581,7 @@ const SuperadminDashboard = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900">{user.email}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{user.password ? user.password : <span className="text-gray-400 italic">Hidden</span>}</td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
                                 {user.role}
@@ -756,7 +701,7 @@ const SuperadminDashboard = () => {
                 <div className="space-y-4">
                   {[...requests, ...users].sort((a, b) => b.id - a.id).slice(0, 10).map((item) => (
                     <div key={`${item.id}-${item.type_of_concern ? 'request' : 'user'}`} className="flex items-start p-4 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="shrink-0 mt-1">
                         {item.type_of_concern ? (
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                             <FiFileText className="text-blue-600" />
@@ -842,7 +787,7 @@ const SuperadminDashboard = () => {
       )}
 
       {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -899,26 +844,27 @@ const SuperadminDashboard = () => {
                     <option value="Personnel">Personnel</option>
                     <option value="PPGSHead">PPGS Head</option>
                     <option value="DeptHead">Department Head</option>
+                    <option value="President">President</option>
                     <option value="Superadmin">Superadmin</option>
                   </select>
                 </div>
 
-                {!editUser && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password
-                    </label>
-                    <input
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) =>
-                        setNewUser({ ...newUser, password: e.target.value })
-                      }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter password"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={editUser ? editUser.password || "" : newUser.password}
+                    onChange={(e) =>
+                      editUser
+                        ? setEditUser({ ...editUser, password: e.target.value })
+                        : setNewUser({ ...newUser, password: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter password"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3 mt-6">

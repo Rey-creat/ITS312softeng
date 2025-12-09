@@ -436,7 +436,8 @@ const SuperadminDashboard = () => {
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head Noted</th>
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personnel (Done By)</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Status</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed By</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -468,14 +469,17 @@ const SuperadminDashboard = () => {
                             </td>
                             <td className="px-2 py-2 whitespace-nowrap text-xs">
                               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.status === "Approved" ? "bg-emerald-100 text-emerald-800" : req.status === "Rejected" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
-                                {req.status && req.status !== "Pending" ? req.status : "Pending"}
+                                {req.status === "Approved" ? "Approved" : req.status === "Rejected" ? "Rejected" : "Pending"}
                               </span>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>{req.done_by ? "Done" : "Pending"}</span>
                             </td>
                             <td className="px-2 py-2 whitespace-nowrap text-xs">
                               {req.done_by ? (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{req.done_by}</span>
                               ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Pending</span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
                               )}
                             </td>
                           </tr>

@@ -407,13 +407,17 @@ export default function Reports() {
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">President</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                  report.status === "Approved"
-                                    ? "bg-emerald-100 text-emerald-800"
+                                  (report.status === "Approved" || report.status === "Done")
+                                    ? "bg-green-100 text-green-800"
                                     : report.status === "Rejected"
                                     ? "bg-red-100 text-red-800"
                                     : "bg-amber-100 text-amber-800"
                                 }`}>
-                                  {report.status || "Pending"}
+                                  {(report.status === "Approved" || report.status === "Done")
+                                    ? "Approved"
+                                    : report.status === "Rejected"
+                                    ? "Rejected"
+                                    : "Pending"}
                                 </span>
                               </div>
                             </div>

@@ -367,22 +367,35 @@ export default function Reports() {
                               <FaFileAlt className="mr-2 text-blue-500" />
                               Request Details
                             </h3>
-                            <div className="space-y-3">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
-                                  <p className="text-gray-900 mt-1">{formatDate(report.date_filed)}</p>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
+                                    <p className="text-gray-900 mt-1">{formatDate(report.date_filed)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
+                                    <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
+                                  </div>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
-                                  <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Urgency Level</p>
+                                  <p className={
+                                    `mt-1 font-semibold ` +
+                                    (report.urgency === 'Critical' || report.urgency === 'Emergency' ? 'text-red-600' :
+                                    report.urgency === 'High' || report.urgency === 'Urgent' ? 'text-orange-500' :
+                                    report.urgency === 'Medium' || report.urgency === 'Normal' ? 'text-yellow-500' :
+                                    report.urgency === 'Low' || report.urgency === 'Minor' ? 'text-green-600' :
+                                    'text-gray-900')
+                                  }>
+                                    {report.urgency || '—'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
+                                  <p className="text-gray-900 mt-1">{report.description}</p>
                                 </div>
                               </div>
-                              <div>
-                                <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
-                                <p className="text-gray-900 mt-1">{report.description}</p>
-                              </div>
-                            </div>
                           </div>
 
                           {/* Approval Process */}
@@ -407,13 +420,17 @@ export default function Reports() {
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">President</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                  report.status === "Approved"
-                                    ? "bg-emerald-100 text-emerald-800"
+                                  (report.status === "Approved" || report.status === "Done")
+                                    ? "bg-green-100 text-green-800"
                                     : report.status === "Rejected"
                                     ? "bg-red-100 text-red-800"
                                     : "bg-amber-100 text-amber-800"
                                 }`}>
-                                  {report.status || "Pending"}
+                                  {(report.status === "Approved" || report.status === "Done")
+                                    ? "Approved"
+                                    : report.status === "Rejected"
+                                    ? "Rejected"
+                                    : "Pending"}
                                 </span>
                               </div>
                             </div>

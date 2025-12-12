@@ -24,11 +24,16 @@ import {
 } from "react-icons/fa";
 
 const PPGSHeadPage = () => {
+      const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+      const [pendingRejectId, setPendingRejectId] = useState(null);
+    const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+    const [pendingApproveId, setPendingApproveId] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -57,32 +62,69 @@ const PPGSHeadPage = () => {
     fetchRequests();
   }, []);
 
-  const handleApprove = async (id) => {
+  const handleApprove = (id) => {
+    setPendingApproveId(id);
+    setShowApproveConfirm(true);
+  };
+
+  const confirmApprove = async () => {
+    if (!pendingApproveId) return;
     try {
-      await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/approve`);
+      await axios.put(`http://localhost:5000/api/ppgshead/requests/${pendingApproveId}/approve`);
       setRequests(prev =>
-        prev.map(req => (req.id === id ? { ...req, ppgshead: "Approved" } : req))
+        prev.map(req => (req.id === pendingApproveId ? { ...req, ppgshead: "Approved" } : req))
       );
       setShowDetails(false);
       showNotification("Request approved successfully", "success");
     } catch (err) {
       console.error("Error approving request:", err);
       showNotification("Error approving request", "error");
+    } finally {
+      setShowApproveConfirm(false);
+      setPendingApproveId(null);
     }
   };
 
-  const handleReject = async (id) => {
+  const cancelApprove = () => {
+    setShowApproveConfirm(false);
+    setPendingApproveId(null);
+  };
+
+  const handleReject = (id) => {
+    setPendingRejectId(id);
+    setRejectReason("");
+    setShowRejectConfirm(true);
+  };
+
+  const confirmReject = async () => {
+    if (!pendingRejectId) return;
+    if (!rejectReason.trim()) {
+      showNotification("Please provide a reason for rejection.", "error");
+      return;
+    }
     try {
-      await axios.put(`http://localhost:5000/api/ppgshead/requests/${id}/reject`);
+      await axios.put(`http://localhost:5000/api/ppgshead/requests/${pendingRejectId}/reject`, {
+        reason: rejectReason
+      });
       setRequests(prev =>
-        prev.map(req => (req.id === id ? { ...req, ppgshead: "Rejected" } : req))
+        prev.map(req => (req.id === pendingRejectId ? { ...req, ppgshead: "Rejected", reject_reason: rejectReason } : req))
       );
       setShowDetails(false);
       showNotification("Request rejected successfully", "success");
     } catch (err) {
       console.error("Error rejecting request:", err);
       showNotification("Error rejecting request", "error");
+    } finally {
+      setShowRejectConfirm(false);
+      setPendingRejectId(null);
+      setRejectReason("");
     }
+  };
+
+  const cancelReject = () => {
+    setShowRejectConfirm(false);
+    setPendingRejectId(null);
+    setRejectReason("");
   };
 
   const showNotification = (message, type) => {
@@ -132,8 +174,8 @@ const PPGSHeadPage = () => {
 
   // Filter requests for display
   const notedRequests = requests.filter(req => req.noted_by);
-  // Show both Pending and Rejected for review
-  let reviewRequests = notedRequests.filter(req => req.ppgshead === "Pending" || req.ppgshead === "Rejected");
+  // Show requests needing PPGS action: ppgshead is null or 'Pending', and also allow 'Rejected' for review
+  let reviewRequests = notedRequests.filter(req => req.ppgshead === null || req.ppgshead === undefined || req.ppgshead === "Pending" || req.ppgshead === "Rejected");
   // Apply search filter
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase();
@@ -149,7 +191,7 @@ const PPGSHeadPage = () => {
     return (
       <div className="flex h-screen">
         <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="flex-1 flex items-center justify-center bg-linear-to-br from-gray-50 to-blue-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading requests...</p>
@@ -162,7 +204,7 @@ const PPGSHeadPage = () => {
   return (
     <div className="flex h-screen">
       <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
@@ -213,7 +255,7 @@ const PPGSHeadPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {reviewRequests.map((req) => (
                 <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                  <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                  <div className="px-5 py-4 bg-linear-to-r from-gray-50 to-blue-50 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="p-2 bg-blue-100 rounded-lg mr-3">
@@ -283,22 +325,24 @@ const PPGSHeadPage = () => {
                       </div>
                     </div>
                     <div className="mt-6 pt-6 border-t border-gray-100">
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => handleApprove(req.id)}
-                          className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
-                        >
-                          <FaCheck className="w-4 h-4" />
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(req.id)}
-                          className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
-                        >
-                          <FaBan className="w-4 h-4" />
-                          Reject
-                        </button>
-                      </div>
+                      {(req.ppgshead === null || req.ppgshead === undefined || req.ppgshead === "Pending") && (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => handleApprove(req.id)}
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                          >
+                            <FaCheck className="w-4 h-4" />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(req.id)}
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                          >
+                            <FaBan className="w-4 h-4" />
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -397,19 +441,87 @@ const PPGSHeadPage = () => {
               <div className="flex gap-3 pt-6 border-t">
                 <button
                   onClick={() => handleApprove(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
                   <FaThumbsUp className="w-5 h-5" />
                   Approve Request
                 </button>
                 <button
                   onClick={() => handleReject(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
                   <FaThumbsDown className="w-5 h-5" />
                   Reject Request
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Confirmation Modal */}
+      {showApproveConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-200">
+            <div className="flex items-center mb-4">
+              <FaCheckCircle className="text-green-600 text-2xl mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">Confirm Approval</h2>
+            </div>
+            <p className="text-gray-700 mb-6">Are you sure you want to <span className="font-semibold text-green-700">approve</span> this request?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelApprove}
+                className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmApprove}
+                className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
+              >
+                <FaCheckCircle className="mr-2" />
+                Yes, Approve
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Confirmation Modal */}
+      {showRejectConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-200">
+            <div className="flex items-center mb-4">
+              <FaTimesCircle className="text-red-600 text-2xl mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">Confirm Rejection</h2>
+            </div>
+            <p className="text-gray-700 mb-4">Are you sure you want to <span className="font-semibold text-red-700">reject</span> this request? This action cannot be undone.</p>
+            <div className="mb-4">
+              <label htmlFor="reject-reason" className="block text-gray-700 font-medium mb-2">Reason for rejection <span className="text-red-500">*</span></label>
+              <textarea
+                id="reject-reason"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-gray-700 resize-none"
+                rows={3}
+                value={rejectReason}
+                onChange={e => setRejectReason(e.target.value)}
+                placeholder="Please provide a reason..."
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelReject}
+                className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReject}
+                className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
+              >
+                <FaTimesCircle className="mr-2" />
+                Yes, Reject
+              </button>
             </div>
           </div>
         </div>

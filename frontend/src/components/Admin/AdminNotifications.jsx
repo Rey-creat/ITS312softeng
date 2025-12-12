@@ -46,11 +46,11 @@ export default function AdminNotifications() {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 
-                // Filter only President-approved requests
+                // Show all president-approved requests, even if assigned
                 const filtered = res.data.filter(
-                    r => r.status === "Approved"
+                    r => r.status === "Approved" || r.status === "Done"
                 );
-                
+
                 setRequests(filtered);
                 setFilteredRequests(filtered);
             } catch (err) {
@@ -127,7 +127,7 @@ export default function AdminNotifications() {
                         : r
                 )
             );
-            
+            // Do not filter out assigned requests; keep all
             setFilteredRequests((prev) =>
                 prev.map((r) =>
                     r.id === modalRequestId

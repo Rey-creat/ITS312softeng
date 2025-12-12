@@ -291,7 +291,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-5 py-4">
                             <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${
-                              req.status === "Approved"
+                              req.status === "Approved" || req.status === "Done"
                                 ? "bg-green-100 text-green-800"
                                 : (req.status === "Rejected" || req.ppgshead === "Rejected")
                                 ? "bg-red-100 text-red-800"
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
                             }`}>
                               {(req.status === "Rejected" || req.ppgshead === "Rejected")
                                 ? "Rejected"
-                                : req.status === "Approved"
+                                : req.status === "Approved" || req.status === "Done"
                                 ? "Approved"
                                 : "Pending"}
                             </span>

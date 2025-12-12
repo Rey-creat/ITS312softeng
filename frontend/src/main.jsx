@@ -92,7 +92,7 @@ createRoot(document.getElementById("root")).render(
         />
         <Route
           path="/DeptHeadPage"
-          element={<RoleRoute element={DeptHeadPage} allowedRoles={["Dept Head"]} />}
+          element={<RoleRoute element={DeptHeadPage} allowedRoles={["Dept Head", "DeptHead", "depthead", "DEPTHEAD"]} />}
         />
         <Route
           path="/PPGSHeadPage"

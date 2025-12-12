@@ -36,6 +36,12 @@ const President = () => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
 
+  const [confirmModal, setConfirmModal] = useState({
+    open: false,
+    decision: null,
+    id: null,
+  });
+
   // Format date function
   const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -163,6 +169,11 @@ const President = () => {
       case "Rejected": return "bg-red-100 text-red-800 border-red-200";
       default: return "bg-yellow-100 text-yellow-800 border-yellow-200";
     }
+  };
+
+  // Close confirmation modal
+  const closeConfirmModal = () => {
+    setConfirmModal({ open: false, decision: null, id: null });
   };
 
   if (loading) {
@@ -396,7 +407,7 @@ const President = () => {
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <div className="flex gap-3">
                         <button
-                          onClick={() => handleDecision(req.id, "Approved")}
+                          onClick={() => setConfirmModal({ open: true, decision: "Approved", id: req.id })}
                           disabled={processingId === req.id || updating}
                           className="flex-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-all shadow-sm hover:shadow flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -413,7 +424,7 @@ const President = () => {
                           )}
                         </button>
                         <button
-                          onClick={() => handleDecision(req.id, "Rejected")}
+                          onClick={() => setConfirmModal({ open: true, decision: "Rejected", id: req.id })}
                           disabled={processingId === req.id || updating}
                           className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
@@ -594,6 +605,71 @@ const President = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal (PPGSHead Style) */}
+      {confirmModal.open && confirmModal.decision === "Approved" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-200">
+            <div className="flex items-center mb-4">
+              <FaCheckCircle className="text-green-600 text-2xl mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">Confirm Approval</h2>
+            </div>
+            <p className="text-gray-700 mb-6">Are you sure you want to <span className="font-semibold text-green-700">approve</span> this request?</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeConfirmModal}
+                className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                disabled={updating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  closeConfirmModal();
+                  handleDecision(confirmModal.id, confirmModal.decision);
+                }}
+                className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
+                disabled={updating}
+              >
+                <FaCheckCircle className="mr-2" />
+                {updating ? "Processing..." : "Yes, Approve"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmModal.open && confirmModal.decision === "Rejected" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-200">
+            <div className="flex items-center mb-4">
+              <FaTimesCircle className="text-red-600 text-2xl mr-3" />
+              <h2 className="text-lg font-bold text-gray-900">Confirm Rejection</h2>
+            </div>
+            <p className="text-gray-700 mb-4">Are you sure you want to <span className="font-semibold text-red-700">reject</span> this request? This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeConfirmModal}
+                className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                disabled={updating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  closeConfirmModal();
+                  handleDecision(confirmModal.id, confirmModal.decision);
+                }}
+                className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
+                disabled={updating}
+              >
+                <FaTimesCircle className="mr-2" />
+                {updating ? "Processing..." : "Yes, Reject"}
+              </button>
             </div>
           </div>
         </div>

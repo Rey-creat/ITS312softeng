@@ -27,9 +27,9 @@ export default function Login() {
       console.log("User role after login:", res.data.user.role);
 
       const role = res.data.user.role;
-      if (role === "Dept Head" || role === "DeptHead" || role.toLowerCase() === "depthead") {
+      if (["Dept Head", "DeptHead", "depthead", "DEPTHEAD"].includes(role) || role.toLowerCase() === "depthead") {
         navigate("/DeptHeadPage");
-      } else if (role === "PPGS Head" || role === "PPGSHead" || role.toLowerCase() === "ppgshead") {
+      } else if (["PPGS Head", "PPGSHead", "ppgshead", "PPGSHEAD"].includes(role) || role.toLowerCase() === "ppgshead") {
         navigate("/PPGSHeadPage");
       } else if (role === "President") {
         navigate("/President");

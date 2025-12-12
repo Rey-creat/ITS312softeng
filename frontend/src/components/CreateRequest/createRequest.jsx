@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../Sidebar/sidebar.jsx";
 import axios from "axios";
@@ -27,10 +27,27 @@ export default function CreateRequest() {
     date_needed: "",
     type_of_concern: "",
     description: "",
+    urgency: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
+  const [urgencyOptions, setUrgencyOptions] = useState(["Low", "Medium", "High"]);
+
+  // Fetch distinct urgency levels from backend
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/requests/urgency-options", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    })
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setUrgencyOptions(res.data.length ? res.data : ["Low", "Medium", "High"]);
+        }
+      })
+      .catch(() => {
+        setUrgencyOptions(["Low", "Medium", "High"]);
+      });
+  }, []);
 
   // FORMAT: Month Day, Year
   const formatDatePretty = (dateString) => {
@@ -66,6 +83,7 @@ export default function CreateRequest() {
     if (!formData.date_needed) newErrors.date_needed = "Date Needed is required.";
     if (!formData.type_of_concern) newErrors.type_of_concern = "Type of Concern is required.";
     if (!formData.description.trim()) newErrors.description = "Description is required.";
+    if (!formData.urgency) newErrors.urgency = "Urgency level is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,9 +102,10 @@ export default function CreateRequest() {
         ...formData,
         user_id: currentUser.id,
         requested_by: currentUser.fullname,
+        department: currentUser.department || formData.department || ""
       };
       await axios.post("http://localhost:5000/api/requests", payload, {
-        headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
       });
       setSuccessMsg("Request submitted successfully!");
       setTimeout(() => {
@@ -291,6 +310,28 @@ export default function CreateRequest() {
                     </div>
                   </label>
                 </div>
+              </div>
+
+              {/* Urgency Level (Dynamic from DB) */}
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <label htmlFor="urgency" className="flex items-center text-base font-medium text-gray-700 mb-2">
+                  <FaTools className="mr-2 text-red-500 text-sm" />
+                  Urgency Level <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  id="urgency"
+                  name="urgency"
+                  value={formData.urgency}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-gray-700"
+                  required
+                >
+                  <option value="">Select urgency</option>
+                  {urgencyOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                {errors.urgency && <span className="text-red-500 text-xs">{errors.urgency}</span>}
               </div>
 
               {/* Description */}

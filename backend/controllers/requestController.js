@@ -1,13 +1,13 @@
 // Filtered: Only requests approved by President (using status field only)
 exports.listPresidentApprovedRequests = (req, res) => {
-  db.query("SELECT id, status, requested_by, description FROM requests WHERE status = 'Approved'", (err, results) => {
+  db.query("SELECT id, status, requested_by, description, urgency FROM requests WHERE status = 'Approved'", (err, results) => {
     if (err) return res.status(500).json({ message: 'DB error', error: err });
     res.status(200).json(results);
   });
 };
 // TEMPORARY: List all requests for debugging
 exports.listAllRequests = (req, res) => {
-  db.query("SELECT id, status, requested_by, description FROM requests", (err, results) => {
+  db.query("SELECT id, status, requested_by, description, urgency FROM requests", (err, results) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
     res.status(200).json(results);
   });
@@ -62,6 +62,7 @@ const formatDate = (date) => {
 exports.getRequests = (req, res) => {
   const userId = req.query.user_id;
   const role = req.query.role;
+  const department = req.query.department;
   const assignedTo = req.query.assigned_to;
   const hasAssigned = req.query.has_assigned;
 
@@ -69,9 +70,9 @@ exports.getRequests = (req, res) => {
   let where = [];
   let values = [];
 
-  if (role !== "Admin" && userId) {
-    where.push("r.user_id = ?");
-    values.push(userId);
+  if (role !== "Admin" && department) {
+    where.push("department = ?");
+    values.push(department);
   }
   if (assignedTo) {
     where.push("assigned_to = ?");
@@ -85,7 +86,7 @@ exports.getRequests = (req, res) => {
   if (where.length > 0) {
     query += " WHERE " + where.join(" AND ");
   }
-    query += " ORDER BY date_filed DESC";
+  query += " ORDER BY date_filed DESC";
 
   db.query(query, values, (err, results) => {
     if (err) {
@@ -106,9 +107,10 @@ exports.getRequests = (req, res) => {
 
 // CREATE REQUEST
 exports.createRequest = (req, res) => {
-  const { user_id, date_filed, date_needed, type_of_concern, description, requested_by } = req.body;
-  if (!user_id || !date_filed || !date_needed || !type_of_concern || !description || !requested_by) {
-    return res.status(400).json({ message: "All fields are required" });
+  const { user_id, date_filed, date_needed, type_of_concern, description, requested_by, urgency, department } = req.body;
+  console.log('Received urgency:', urgency, 'Department:', department);
+  if (!user_id || !date_filed || !date_needed || !type_of_concern || !description || !requested_by || !urgency || !department) {
+    return res.status(400).json({ message: "All fields are required, including department" });
   }
 
   // Always set status, noted_by, and ppgshead to 'Pending' for new requests
@@ -117,10 +119,13 @@ exports.createRequest = (req, res) => {
   const ppgshead = 'Pending';
 
   db.query(
-    "INSERT INTO requests (user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by, ppgshead) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    [user_id, date_filed, date_needed, type_of_concern, description, requested_by, status, noted_by, ppgshead],
+    "INSERT INTO requests (user_id, date_filed, date_needed, type_of_concern, description, requested_by, urgency, department, status, noted_by, ppgshead) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [user_id, date_filed, date_needed, type_of_concern, description, requested_by, urgency, department, status, noted_by, ppgshead],
     (err, result) => {
-      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (err) {
+        console.error("DB error in createRequest:", err);
+        return res.status(500).json({ message: "DB error", error: err });
+      }
       res.status(201).json({ message: "Request created successfully", requestId: result.insertId });
     }
   );

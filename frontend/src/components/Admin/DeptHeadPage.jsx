@@ -19,29 +19,33 @@ import {
   FaBuilding
 } from "react-icons/fa";
 
-const DeptHeadPage = ({ department }) => {
-    const [searchTerm, setSearchTerm] = useState("");
+const DeptHeadPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [departments, setDepartments] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [currentRequestId, setCurrentRequestId] = useState(null);
-  const [notedBy, setNotedBy] = useState("");
+  // Removed modal and endorsement state
+  const [showNotedConfirm, setShowNotedConfirm] = useState(false);
+  const [pendingNotedId, setPendingNotedId] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Get the logged-in user's department from localStorage
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const department = user.department;
+
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      // Fetch requests for the specific department
-      const res = await axios.get(`http://localhost:5000/api/depthead/all-requests?department=${department}`);
-      // Only show requests where noted_by is null or 'Pending'
-      const filtered = res.data.filter(req => !req.noted_by || req.noted_by === "Pending");
+      // Fetch all requests for depthead, then filter by department
+      const res = await axios.get(`http://localhost:5000/api/depthead/all-requests`);
+      // Only show requests for this DeptHead's department and where noted_by is null or 'Pending'
+      const filtered = res.data.filter(req => (req.department === department) && (!req.noted_by || req.noted_by === "Pending"));
       setRequests(filtered.sort((a, b) => b.id - a.id));
-      // Extract unique departments from requests
-      const uniqueDepartments = Array.from(new Set(res.data.map(r => r.department).filter(Boolean)));
+      // Extract unique departments from requests (should only be one, but keep for dropdown logic)
+      const uniqueDepartments = Array.from(new Set(filtered.map(r => r.department).filter(Boolean)));
       setDepartments(uniqueDepartments);
     } catch (err) {
       console.error("Error fetching requests:", err);
@@ -50,44 +54,36 @@ const DeptHeadPage = ({ department }) => {
     }
   };
 
-  const handleNotedBySubmit = async (e) => {
-    e.preventDefault();
-    if (!notedBy.trim()) {
-      setFeedbackMessage("Please enter a name.");
-      setFeedbackType("error");
-      return;
-    }
+  // New: handle simple Noted action with confirmation
+  const handleNoted = (requestId) => {
+    setPendingNotedId(requestId);
+    setShowNotedConfirm(true);
+  };
 
+  const confirmNoted = async () => {
+    if (!pendingNotedId) return;
     try {
       await axios.put(
-        `http://localhost:5000/api/depthead/requests/${currentRequestId}/noted`,
-        { noted_by: notedBy }
+        `http://localhost:5000/api/depthead/requests/${pendingNotedId}/noted`,
+        { noted_by: user.fullname || "DeptHead" }
       );
-
-      const updatedRequest = requests.find(req => req.id === currentRequestId);
-
-      setRequests(prev => prev.filter(req => req.id !== currentRequestId));
-
-      // Save array of noted requests
-      const notedRequest = { ...updatedRequest, noted_by: notedBy };
-      const existing = JSON.parse(localStorage.getItem("notedRequests")) || [];
-      const updatedList = [...existing, notedRequest];
-      localStorage.setItem("notedRequests", JSON.stringify(updatedList));
-
-      setFeedbackMessage("Request noted successfully!");
+      setRequests(prev => prev.filter(req => req.id !== pendingNotedId));
+      setFeedbackMessage("Request marked as Noted.");
       setFeedbackType("success");
-
-      setShowModal(false);
-      setNotedBy("");
-      setCurrentRequestId(null);
-
       setTimeout(() => setFeedbackMessage(""), 3000);
-
     } catch (err) {
       console.error("Error updating noted_by:", err);
       setFeedbackMessage("Failed to save. Try again.");
       setFeedbackType("error");
+    } finally {
+      setShowNotedConfirm(false);
+      setPendingNotedId(null);
     }
+  };
+
+  const cancelNoted = () => {
+    setShowNotedConfirm(false);
+    setPendingNotedId(null);
   };
 
   useEffect(() => {
@@ -103,7 +99,7 @@ const DeptHeadPage = ({ department }) => {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
         <AdminSidebar deptHeadHasRequests={false} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -120,7 +116,34 @@ const DeptHeadPage = ({ department }) => {
       <div className="relative h-screen">
         <AdminSidebar deptHeadHasRequests={requests.length > 0} />
       </div>
-      <div className={`flex-1 p-6 bg-gray-100 overflow-y-auto h-screen ${showModal ? "blur-sm" : ""}`}>
+      <div className="flex-1 p-6 bg-gray-100 overflow-y-auto h-screen">
+              {/* Noted Confirmation Modal */}
+              {showNotedConfirm && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+                  <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full border border-gray-200">
+                    <div className="flex items-center mb-4">
+                      <FaCheckCircle className="text-blue-600 text-2xl mr-3" />
+                      <h2 className="text-lg font-bold text-gray-900">Confirm Noted</h2>
+                    </div>
+                    <p className="text-gray-700 mb-6">Are you sure you want to mark this request as <span className="font-semibold text-blue-700">Noted</span>? This action cannot be undone.</p>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={cancelNoted}
+                        className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={confirmNoted}
+                        className="px-5 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center"
+                      >
+                        <FaCheckCircle className="mr-2" />
+                        Yes, Noted
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
@@ -141,24 +164,6 @@ const DeptHeadPage = ({ department }) => {
                 <FaSync className="mr-2" />
                 Refresh
               </button>
-              {/* Department Dropdown */}
-              {departments.length > 0 && (
-                <select
-                  value={selectedDepartment}
-                  onChange={e => setSelectedDepartment(e.target.value)}
-                  className="ml-3 px-3 py-2 border rounded-lg bg-white text-gray-700"
-                >
-                  <option value="">All Departments</option>
-                  <option value="IBED">IBED</option>
-                  <option value="SARFAID">SARFAID</option>
-                  <option value="SSLATE">SSLATE</option>
-                  <option value="SHTM">SHTM</option>
-                  <option value="SBIT">SBIT</option>
-                  {departments.filter(dep => !["IBED","SARFAID","SSLATE","SHTM","SBIT"].includes(dep)).map(dep => (
-                    <option key={dep} value={dep}>{dep}</option>
-                  ))}
-                </select>
-              )}
               {/* Search Input */}
               <input
                 type="text"
@@ -213,7 +218,7 @@ const DeptHeadPage = ({ department }) => {
 
         {/* Requests Alert */}
         {requests.length > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+          <div className="mb-6 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg mr-3">
                 <FaExclamationTriangle className="text-blue-600" />
@@ -260,7 +265,7 @@ const DeptHeadPage = ({ department }) => {
               )
             ).map(req => (
               <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                <div className="px-5 py-4 bg-linear-to-r from-gray-50 to-blue-50 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="p-2 bg-blue-100 rounded-lg mr-3">
@@ -341,14 +346,11 @@ const DeptHeadPage = ({ department }) => {
                   
                   <div className="mt-6 pt-5 border-t border-gray-200">
                     <button
-                      onClick={() => {
-                        setCurrentRequestId(req.id);
-                        setShowModal(true);
-                      }}
-                      className="w-full flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+                      onClick={() => handleNoted(req.id)}
+                      className="w-full flex items-center justify-center bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                     >
-                      <FaPlusCircle className="mr-2" />
-                      Add Department Approval
+                      <FaCheckCircle className="mr-2" />
+                      Noted
                     </button>
                   </div>
                 </div>
@@ -358,73 +360,7 @@ const DeptHeadPage = ({ department }) => {
         )}
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-300">
-            <div className="px-6 py-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 rounded-t-2xl">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                    <FaClipboardCheck className="text-xl text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">Department Approval</h2>
-                    <p className="text-gray-600 text-sm mt-1">Add your department endorsement</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                >
-                  <FaTimes className="text-gray-500" />
-                </button>
-              </div>
-            </div>
-            
-            <form onSubmit={handleNotedBySubmit} className="p-6 space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  <span className="flex items-center">
-                    <FaBuilding className="mr-2 text-blue-500" />
-                    Department Endorsement
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={notedBy}
-                  onChange={(e) => setNotedBy(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 bg-white text-sm"
-                  placeholder="Enter department name or your name..."
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  This will mark the request as approved by the department head
-                </p>
-              </div>
-              
-              <div className="pt-4 border-t border-gray-200">
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center"
-                  >
-                    <FaCheckCircle className="mr-2" />
-                    Approve Request
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* No modal needed for Noted action */}
     </div>
   );
 };

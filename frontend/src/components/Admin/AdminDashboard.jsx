@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       const counts = {
         total: requestsRes.data.length,
         pending: requestsRes.data.filter((r) => r.status === "Pending").length,
-        approved: requestsRes.data.filter((r) => r.status === "Approved").length,
+        approved: requestsRes.data.filter((r) => r.status === "Done").length, // Updated to count completed requests
         // Count as rejected if either status or ppgshead is 'Rejected'
         rejected: requestsRes.data.filter((r) => r.status === "Rejected" || r.ppgshead === "Rejected").length,
       };
@@ -254,6 +254,7 @@ export default function AdminDashboard() {
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
@@ -277,6 +278,9 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-5 py-4">
                             <span className="text-gray-700">{req.type_of_concern}</span>
+                          </td>
+                          <td className="px-5 py-4">
+                            <span className="text-gray-700">{req.urgency}</span>
                           </td>
                           <td className="px-5 py-4 max-w-xs">
                             <span className="text-gray-700 line-clamp-2">{req.description}</span>

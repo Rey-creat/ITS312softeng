@@ -212,6 +212,23 @@ export default function Reports() {
     fetchReports();
   }, []);
 
+  const handleMarkAsDone = async (requestId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `http://localhost:5000/api/requests/${requestId}`,
+        { status: "Done" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReports((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Done" } : r)));
+      setFilteredReports((prev) => prev.map((r) => (r.id === requestId ? { ...r, status: "Done" } : r)));
+      alert("Request marked as done.");
+    } catch (err) {
+      console.error("Error marking request as done", err);
+      alert("Failed to mark request as done.");
+    }
+  };
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-gray-50 to-blue-50">

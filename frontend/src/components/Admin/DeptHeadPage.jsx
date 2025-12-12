@@ -342,6 +342,14 @@ const DeptHeadPage = () => {
                         <p className="font-medium text-sm">Awaiting department head approval</p>
                       </div>
                     </div>
+                    {/* Add urgency field to the request details */}
+                    <div className="flex items-center text-gray-700">
+                        <FaExclamationTriangle className="text-gray-400 mr-2" />
+                        <div>
+                            <p className="text-xs text-gray-500">Urgency</p>
+                            <p className="font-medium text-sm">{req.urgency}</p>
+                        </div>
+                    </div>
                   </div>
                   
                   <div className="mt-6 pt-5 border-t border-gray-200">

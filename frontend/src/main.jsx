@@ -23,7 +23,6 @@ import DeptHeadPage from "./components/Admin/DeptHeadPage.jsx";
 import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
 import President from "./components/Admin/President.jsx";
 import AdminNotifications from "./components/Admin/AdminNotifications.jsx";
-import PersonnelDashboard from "./components/Admin/PersonnelDashboard.jsx";
 import SuperadminDashboard from "./components/Admin/SuperadminDashboard.jsx";
 
 // --------------------
@@ -101,10 +100,6 @@ createRoot(document.getElementById("root")).render(
         <Route
           path="/President"
           element={<RoleRoute element={President} allowedRoles={["President"]} />}
-        />
-        <Route
-          path="/PersonnelDashboard"
-          element={<RoleRoute element={PersonnelDashboard} allowedRoles={["Personnel"]} />}
         />
         <Route path="/superadmin" element={<RoleRoute element={SuperadminDashboard} allowedRoles={["Superadmin"]} />} />
         {/* Catch-all redirect */}

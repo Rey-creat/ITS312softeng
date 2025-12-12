@@ -1,4 +1,4 @@
-    // Helper to check if reassign should be disabled
+// Helper to check if reassign should be disabled
     const isReassignDisabled = (req) => req.status === 'Done';
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -152,6 +152,54 @@ export default function AdminNotifications() {
         setAssigning((prev) => ({ ...prev, [modalRequestId]: false }));
     };
 
+    const handleMarkAsDone = async (requestId) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                `http://localhost:5000/api/requests/${requestId}`,
+                { status: "Done", done_by: "Admin" }, // Include done_by field
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Update the request status in the state immediately
+            setRequests((prev) =>
+                prev.map((req) =>
+                    req.id === requestId ? { ...req, status: "Done" } : req
+                )
+            );
+            setFilteredRequests((prev) =>
+                prev.map((req) =>
+                    req.id === requestId ? { ...req, status: "Done" } : req
+                )
+            );
+
+            alert("Request marked as done.");
+        } catch (err) {
+            console.error("Error marking request as done", err);
+            alert("Failed to mark request as done.");
+        }
+    };
+
+    const handleAssignPersonnel = async (requestId, personnelName) => {
+        try {
+            const token = localStorage.getItem("token");
+            await axios.put(
+                `http://localhost:5000/api/requests/${requestId}/assign`,
+                { assigned_to: personnelName },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setRequests((prev) =>
+                prev.map((req) =>
+                    req.id === requestId ? { ...req, assigned_to: personnelName } : req
+                )
+            );
+            alert("Personnel assigned successfully.");
+        } catch (err) {
+            console.error("Error assigning personnel", err);
+            alert("Failed to assign personnel.");
+        }
+    };
+
     const showNotification = (message, type = "success") => {
         const notification = document.createElement("div");
         notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 ${
@@ -254,7 +302,7 @@ export default function AdminNotifications() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="text-lg font-bold text-gray-900">PPGS-Approved Requests</h2>
-                                    <p className="text-gray-600 text-sm">
+                                    <p className="text-gray-600 text-sm mt-1">
                                         Ready for personnel assignment and implementation
                                     </p>
                                 </div>
@@ -286,11 +334,13 @@ export default function AdminNotifications() {
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assign Personnel</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -302,6 +352,7 @@ export default function AdminNotifications() {
                                                     <td className="px-2 py-2 text-sm text-gray-700">{formatDate(req.date_filed)}</td>
                                                     <td className={`px-2 py-2 text-sm font-medium ${new Date(req.date_needed) < new Date() ? "text-red-600" : "text-gray-700"}`}>{formatDate(req.date_needed)}</td>
                                                     <td className="px-2 py-2 text-sm text-gray-700 font-medium">{req.type_of_concern}</td>
+                                                    <td className="px-2 py-2 text-sm text-gray-700 font-medium">{req.urgency}</td>
                                                     <td className="px-2 py-2 text-sm text-gray-700">{req.description}</td>
                                                     <td className="px-2 py-2 text-sm font-medium text-gray-900">{req.requested_by}</td>
                                                     <td className="px-2 py-2 font-medium text-green-700">{req.noted_by || "—"}</td>
@@ -334,7 +385,7 @@ export default function AdminNotifications() {
                                                                     if (!isReassignDisabled(req)) openAssignModal(req.id);
                                                                 }}
                                                                 disabled={assigning[req.id] || isReassignDisabled(req)}
-                                                                className={`px-6 py-3 text-base font-semibold text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 {assigning[req.id] ? (
                                                                     <>
@@ -347,6 +398,23 @@ export default function AdminNotifications() {
                                                                         Assign Personnel
                                                                     </>
                                                                 )}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-2 py-2">
+                                                        {req.status === 'Done' ? (
+                                                            <button
+                                                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                                disabled
+                                                            >
+                                                                Completed
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleMarkAsDone(req.id)}
+                                                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                                            >
+                                                                Mark as Done
                                                             </button>
                                                         )}
                                                     </td>

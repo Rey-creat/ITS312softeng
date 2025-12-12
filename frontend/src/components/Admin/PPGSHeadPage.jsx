@@ -313,6 +313,13 @@ const PPGSHeadPage = () => {
                             <p className="font-medium text-sm">{req.noted_by || "—"}</p>
                           </div>
                         </div>
+                        <div className="flex items-center text-gray-700">
+                          <FaExclamationTriangle className="text-gray-400 mr-2" />
+                          <div>
+                            <p className="text-xs text-gray-500">Urgency</p>
+                            <p className="font-medium text-sm">{req.urgency}</p>
+                          </div>
+                        </div>
                       </div>
                       <div>
                         <div className="flex items-start text-gray-700">
@@ -423,6 +430,14 @@ const PPGSHeadPage = () => {
                   <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedRequest.ppgshead)}`}>
                     {selectedRequest.ppgshead || "Pending"}
                   </span>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaExclamationTriangle className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Urgency</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{selectedRequest.urgency}</p>
                 </div>
               </div>
 

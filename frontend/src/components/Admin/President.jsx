@@ -18,7 +18,8 @@ import {
   FaArrowRight,
   FaExclamationCircle,
   FaCheck,
-  FaBan
+  FaBan,
+  FaExclamationTriangle
 } from "react-icons/fa";
 
 const President = () => {
@@ -363,6 +364,15 @@ const President = () => {
                         <p className="text-gray-900 font-medium pl-6">{req.requested_by}</p>
                       </div>
 
+                      {/* Urgency */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <FaExclamationTriangle className="w-4 h-4 text-gray-400" />
+                          <span className="text-xs font-medium text-gray-500">Urgency</span>
+                        </div>
+                        <p className="text-gray-900 font-medium pl-6">{req.urgency}</p>
+                      </div>
+
                       {/* Approval Chain */}
                       <div className="pt-4 border-t border-gray-100">
                         <div className="space-y-3">
@@ -503,6 +513,20 @@ const President = () => {
                     <h3 className="text-sm font-semibold text-gray-700">Requested By</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{selectedRequest.requested_by}</p>
+                </div>
+              </div>
+
+              {/* Urgency */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Urgency Level</h3>
+                <div className="flex items-center gap-3 bg-yellow-50 p-4 rounded-xl">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <FaExclamationTriangle className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{selectedRequest.urgency}</p>
+                    <p className="text-sm text-gray-600">Indicates the urgency of the request</p>
+                  </div>
                 </div>
               </div>
 

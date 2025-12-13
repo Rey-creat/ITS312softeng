@@ -186,7 +186,6 @@ export default function CreateRequest() {
                     </p>
                   )}
                 </div>
-
                 {/* Date Needed - Right */}
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <label htmlFor="date_needed" className="flex items-center text-base font-medium text-gray-700 mb-2">
@@ -212,7 +211,6 @@ export default function CreateRequest() {
                   )}
                 </div>
               </div>
-
               {/* Type of Concern - Radio Buttons */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label className="flex items-center text-base font-medium text-gray-700 mb-3">
@@ -220,7 +218,6 @@ export default function CreateRequest() {
                   Type of Concern <span className="text-red-500 ml-1">*</span>
                 </label>
                 {errors.type_of_concern && <p className="text-red-500 text-xs mb-2 font-medium">{errors.type_of_concern}</p>}
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Repair */}
                   <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
@@ -243,7 +240,6 @@ export default function CreateRequest() {
                       <span className="text-base text-gray-500 mt-0.5 block">Fix or restore something that's broken</span>
                     </div>
                   </label>
-
                   {/* Construction */}
                   <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
                     formData.type_of_concern === 'Construction' 
@@ -265,7 +261,6 @@ export default function CreateRequest() {
                       <span className="text-base text-gray-500 mt-0.5 block">Build new structures or major renovations</span>
                     </div>
                   </label>
-
                   {/* Maintenance */}
                   <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
                     formData.type_of_concern === 'Maintenance' 
@@ -287,7 +282,6 @@ export default function CreateRequest() {
                       <span className="text-base text-gray-500 mt-0.5 block">Regular upkeep or preventive maintenance</span>
                     </div>
                   </label>
-
                   {/* Installation */}
                   <label className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
                     formData.type_of_concern === 'Installation' 
@@ -311,8 +305,7 @@ export default function CreateRequest() {
                   </label>
                 </div>
               </div>
-
-              {/* Urgency Level (Dynamic from DB) */}
+              {/* Urgency Level */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label htmlFor="urgency" className="flex items-center text-base font-medium text-gray-700 mb-2">
                   <FaTools className="mr-2 text-red-500 text-sm" />
@@ -327,13 +320,12 @@ export default function CreateRequest() {
                   required
                 >
                   <option value="">Select urgency</option>
-                  {urgencyOptions.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
+                  <option value="Critical">Critical – Immediate safety risk</option>
+                  <option value="High">High – Affects operations</option>
+                  <option value="Medium">Medium – Minor issue</option>
+                  <option value="Low">Low – Non-urgent / cosmetic</option>
                 </select>
-                {errors.urgency && <span className="text-red-500 text-xs">{errors.urgency}</span>}
               </div>
-
               {/* Description */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label htmlFor="description" className="flex items-center text-base font-medium text-gray-700 mb-2">
@@ -360,7 +352,6 @@ export default function CreateRequest() {
                   </span>
                 </div>
               </div>
-
               {/* Submit Button */}
               <div className="pt-4 border-t border-gray-200">
                 <button
@@ -386,7 +377,6 @@ export default function CreateRequest() {
               </div>
             </form>
           </div>
-
           {/* Quick Tips */}
           <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
             <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center">

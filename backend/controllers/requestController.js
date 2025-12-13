@@ -1,3 +1,10 @@
+// BULK DELETE ALL REQUESTS
+exports.deleteAllRequests = (req, res) => {
+  db.query("DELETE FROM requests", (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err });
+    res.status(200).json({ message: "All requests deleted successfully" });
+  });
+};
 // Filtered: Only requests approved by President (using status field only)
 exports.listPresidentApprovedRequests = (req, res) => {
   db.query("SELECT id, status, requested_by, description, urgency FROM requests WHERE status = 'Approved'", (err, results) => {
@@ -15,13 +22,16 @@ exports.listAllRequests = (req, res) => {
 // ASSIGN PERSONNEL TO REQUEST
 exports.assignPersonnel = (req, res) => {
   const { id } = req.params;
-  const { personnelName } = req.body;
+  const { personnelName, personnelRole } = req.body;
   if (!personnelName || typeof personnelName !== 'string' || !personnelName.trim()) {
     return res.status(400).json({ message: "Personnel name required" });
   }
+  if (!personnelRole || typeof personnelRole !== 'string' || !personnelRole.trim()) {
+    return res.status(400).json({ message: "Personnel role required" });
+  }
   db.query(
-    "UPDATE requests SET assigned_to = ?, assigned_personnel_name = ? WHERE id = ?",
-    [personnelName.trim(), personnelName.trim(), id],
+    "UPDATE requests SET assigned_to = ?, assigned_personnel_name = ?, assigned_role = ? WHERE id = ?",
+    [personnelName.trim(), personnelName.trim(), personnelRole.trim(), id],
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
@@ -99,6 +109,8 @@ exports.getRequests = (req, res) => {
       date_filed: formatDate(r.date_filed),
       date_needed: formatDate(r.date_needed),
       assigned_personnel_name: r.assigned_personnel_name || null,
+      assigned_role: r.assigned_role || null,
+      date_done: r.date_done ? formatDate(r.date_done) : null,
     }));
 
     res.status(200).json(formatted);
@@ -139,11 +151,19 @@ exports.updateRequest = (req, res) => {
   // Debug log incoming body
   console.log('updateRequest body:', req.body);
 
-  // When marking as done by personnel, update both done_by and status
-  if (done_by !== undefined) {
+  // If marking as done (either by personnel or admin), set date_done
+  if ((done_by !== undefined) || (status && status.toLowerCase() === 'done')) {
+    let query, params;
+    if (done_by !== undefined) {
+      query = "UPDATE requests SET done_by = ?, status = 'Done', date_done = NOW() WHERE id = ?";
+      params = [done_by, id];
+    } else {
+      query = "UPDATE requests SET status = 'Done', date_done = NOW() WHERE id = ?";
+      params = [id];
+    }
     db.query(
-      "UPDATE requests SET done_by = ?, status = 'Done' WHERE id = ?",
-      [done_by, id],
+      query,
+      params,
       (err, result) => {
         if (err) return res.status(500).json({ message: "DB error", error: err });
         if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });

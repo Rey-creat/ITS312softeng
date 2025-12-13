@@ -361,17 +361,17 @@ export default function AdminNotifications() {
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Personnel</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Filed</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date Needed</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Urgency</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Personnel</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -379,21 +379,21 @@ export default function AdminNotifications() {
                                             .sort((a, b) => b.id - a.id)
                                             .map((req) => (
                                                 <tr key={req.id} className="hover:bg-gray-50 transition-colors whitespace-nowrap">
-                                                    <td className="px-2 py-2 text-sm font-bold text-blue-700">REQ-{req.id}</td>
-                                                    <td className="px-2 py-2 text-sm text-gray-700">{formatDate(req.date_filed)}</td>
-                                                    <td className={`px-2 py-2 text-sm font-medium ${new Date(req.date_needed) < new Date() ? "text-red-600" : "text-gray-700"}`}>{formatDate(req.date_needed)}</td>
-                                                    <td className="px-2 py-2 text-sm text-gray-700 font-medium">{req.type_of_concern}</td>
-                                                    <td className="px-2 py-2 text-sm text-gray-700 font-medium">{req.urgency}</td>
-                                                    <td className="px-2 py-2 text-sm text-gray-700">{req.description}</td>
-                                                    <td className="px-2 py-2 text-sm font-medium text-gray-900">{req.requested_by}</td>
-                                                    <td className="px-2 py-2 font-medium text-green-700">{req.noted_by || "—"}</td>
-                                                    <td className="px-2 py-2">
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                                                            <div className="mr-1.5" />
+                                                    <td className="px-0.5 py-1 text-xs font-bold text-blue-700">REQ-{req.id}</td>
+                                                    <td className="px-0.5 py-1 text-xs text-gray-700">{formatDate(req.date_filed)}</td>
+                                                    <td className={`px-0.5 py-1 text-xs font-medium ${new Date(req.date_needed) < new Date() ? "text-red-600" : "text-gray-700"}`}>{formatDate(req.date_needed)}</td>
+                                                    <td className="px-0.5 py-1 text-xs text-gray-700 font-medium">{req.type_of_concern}</td>
+                                                    <td className="px-0.5 py-1 text-xs text-gray-700 font-medium">{req.urgency}</td>
+                                                    <td className="px-0.5 py-1 text-xs text-gray-700">{req.description}</td>
+                                                    <td className="px-0.5 py-1 text-xs font-medium text-gray-900">{req.requested_by}</td>
+                                                    <td className="px-0.5 py-1 font-medium text-green-700">{req.noted_by || "—"}</td>
+                                                    <td className="px-0.5 py-1">
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+                                                            <div className="mr-1" />
                                                             Approved
                                                         </span>
                                                     </td>
-                                                    <td className="px-2 py-2 min-w-[180px]">
+                                                    <td className="px-0.5 py-1 min-w-[100px] text-center">
                                                         {req.status === 'Done' ? (
                                                             <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-green-200 text-green-800 border border-green-300">
                                                                 Completed

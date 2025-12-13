@@ -470,6 +470,12 @@ export default function Reports() {
                                 <div>
                                   <p className="text-xs font-semibold text-gray-500 uppercase">Completed By</p>
                                   <p className="text-gray-900 mt-1">{report.assigned_personnel_name || report.done_by || "Unknown"}</p>
+                                  {report.assigned_role && (
+                                    <p className="text-xs text-gray-500 mt-1">Role: <span className="font-semibold text-gray-700">{report.assigned_role}</span></p>
+                                  )}
+                                  {report.date_done && (
+                                    <p className="text-xs text-gray-500 mt-1">Marked done by Admin on: <span className="font-semibold text-gray-700">{report.date_done}</span></p>
+                                  )}
                                 </div>
                               )}
                             </div>

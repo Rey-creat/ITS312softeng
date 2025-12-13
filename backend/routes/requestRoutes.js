@@ -1,3 +1,5 @@
+// BULK DELETE ALL REQUESTS (Admin only)
+router.delete("/requests", verifyToken, require("../controllers/requestController").deleteAllRequests);
 const express = require("express");
    const router = express.Router();
    const { verifyToken } = require("../controllers/authController");

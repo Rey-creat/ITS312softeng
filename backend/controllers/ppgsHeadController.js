@@ -3,7 +3,7 @@ const db = require("../db");
 // GET all requests for PPGS Head: show requests that are Noted and need PPGS action, or already processed
 exports.getApprovedRequests = (req, res) => {
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by
+    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by, urgency
     FROM requests
     WHERE (noted_by IS NOT NULL AND noted_by != 'Pending' AND (ppgshead IS NULL OR ppgshead = 'Pending'))
       OR ppgshead = 'Approved'

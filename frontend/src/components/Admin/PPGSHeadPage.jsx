@@ -187,30 +187,6 @@ const PPGSHeadPage = () => {
     );
   }
 
-  const approveAllRequests = async () => {
-    if (loading) return;
-    const pendingRequests = requests.filter(req => req.ppgshead === null || req.ppgshead === "Pending");
-    if (pendingRequests.length === 0) {
-      showNotification("No pending requests to approve", "info");
-      return;
-    }
-    setLoading(true);
-    try {
-      await Promise.all(pendingRequests.map(req =>
-        axios.put(`http://localhost:5000/api/ppgshead/requests/${req.id}/approve`)
-      ));
-      setRequests(prev =>
-        prev.map(req => (req.ppgshead === null || req.ppgshead === "Pending" ? { ...req, ppgshead: "Approved" } : req))
-      );
-      showNotification("All pending requests approved", "success");
-    } catch (err) {
-      console.error("Error approving requests:", err);
-      showNotification("Error approving requests", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex h-screen">
@@ -240,12 +216,6 @@ const PPGSHeadPage = () => {
                 </p>
               </div>
               <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                <button
-                  onClick={approveAllRequests}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all mr-2"
-                >
-                  Approve All
-                </button>
                 <input
                   type="text"
                   className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700 w-full md:w-64"
@@ -343,13 +313,6 @@ const PPGSHeadPage = () => {
                             <p className="font-medium text-sm">{req.noted_by || "—"}</p>
                           </div>
                         </div>
-                        <div className="flex items-center text-gray-700">
-                          <FaExclamationTriangle className="text-gray-400 mr-2" />
-                          <div>
-                            <p className="text-xs text-gray-500">Urgency</p>
-                            <p className="font-medium text-sm">{req.urgency}</p>
-                          </div>
-                        </div>
                       </div>
                       <div>
                         <div className="flex items-start text-gray-700">
@@ -366,14 +329,16 @@ const PPGSHeadPage = () => {
                         <div className="flex gap-3">
                           <button
                             onClick={() => handleApprove(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
+                            <FaCheck className="w-4 h-4" />
                             Approve
                           </button>
                           <button
                             onClick={() => handleReject(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
+                            <FaBan className="w-4 h-4" />
                             Reject
                           </button>
                         </div>
@@ -459,14 +424,6 @@ const PPGSHeadPage = () => {
                     {selectedRequest.ppgshead || "Pending"}
                   </span>
                 </div>
-
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaExclamationTriangle className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Urgency</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{selectedRequest.urgency}</p>
-                </div>
               </div>
 
               {/* Full Description */}
@@ -484,14 +441,16 @@ const PPGSHeadPage = () => {
               <div className="flex gap-3 pt-6 border-t">
                 <button
                   onClick={() => handleApprove(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r  bg-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
+                  <FaThumbsUp className="w-5 h-5" />
                   Approve Request
                 </button>
                 <button
                   onClick={() => handleReject(selectedRequest.id)}
                   className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
+                  <FaThumbsDown className="w-5 h-5" />
                   Reject Request
                 </button>
               </div>

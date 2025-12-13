@@ -249,7 +249,7 @@ export default function Reports() {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
               <p className="text-gray-600 mt-2">Monitor and track all your requests with detailed status updates</p>
             </div>
             <div className="flex items-center space-x-3">
@@ -461,7 +461,7 @@ export default function Reports() {
                             </h3>
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-gray-700">Marked by Personnel</span>
+                                <span className="text-gray-700">Marked by Admin</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
                                   {report.done_by ? "Done" : "Pending"}
                                 </span>
@@ -469,7 +469,7 @@ export default function Reports() {
                               {report.done_by && (
                                 <div>
                                   <p className="text-xs font-semibold text-gray-500 uppercase">Completed By</p>
-                                  <p className="text-gray-900 mt-1">{report.done_by}</p>
+                                  <p className="text-gray-900 mt-1">{report.assigned_personnel_name || report.done_by || "Unknown"}</p>
                                 </div>
                               )}
                             </div>

@@ -33,9 +33,6 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const SuperadminDashboard = () => {
-  // ...existing code...
-
-
   // All useState hooks (only once each, at the top)
   const [activeTab, setActiveTab] = useState("requests");
   const [requests, setRequests] = useState([]);
@@ -47,8 +44,9 @@ const SuperadminDashboard = () => {
   const [newUser, setNewUser] = useState({
     fullname: "",
     email: "",
-    role: "Personnel",
+    role: "",
     password: "",
+    confirmPassword: ""
   });
   const [assignId, setAssignId] = useState(null);
   const [overrideId, setOverrideId] = useState(null);
@@ -109,6 +107,7 @@ const SuperadminDashboard = () => {
       });
       setUsers(res.data || []);
     } catch (err) {
+      console.error("Error fetching users:", err);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -116,39 +115,105 @@ const SuperadminDashboard = () => {
   };
 
   const handleAddUser = async () => {
+    // Validate passwords match
+    if (newUser.password !== newUser.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    // Validate required fields
+    if (!newUser.fullname || !newUser.email || !newUser.role || !newUser.password) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/users", newUser, {
+      
+      // Prepare user data without confirmPassword
+      const userData = {
+        fullname: newUser.fullname,
+        email: newUser.email,
+        role: newUser.role,
+        password: newUser.password,
+      };
+      
+      const res = await axios.post("http://localhost:5000/api/users", userData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setShowUserModal(false);
-      setNewUser({
-        fullname: "",
-        email: "",
-        role: "Personnel",
-        password: "",
-      });
-      fetchUsers();
+      
+      if (res.status === 201) {
+        // Success: close modal, reset form, and refresh
+        setShowUserModal(false);
+        setNewUser({
+          fullname: "",
+          email: "",
+          role: "",
+          password: "",
+          confirmPassword: "",
+        });
+        fetchUsers();
+        
+        // Show success message
+        alert("User created successfully!");
+      }
     } catch (err) {
       console.error("Error adding user:", err);
+      alert(`Error creating user: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleEditUser = async () => {
     try {
+      // Validate required fields
+      if (!editUser.fullname || !editUser.email || !editUser.role) {
+        alert("Please fill in all required fields");
+        return;
+      }
+
       const token = localStorage.getItem("token");
-      await axios.put(
+      
+      // Prepare update data - only send changed fields
+      const updateData = {
+        fullname: editUser.fullname,
+        email: editUser.email,
+        role: editUser.role,
+      };
+      
+      // Only include password if it was provided and not empty
+      if (editUser.password && editUser.password.trim() !== "") {
+        updateData.password = editUser.password;
+      }
+      
+      console.log("Updating user ID:", editUser.id);
+      console.log("Sending update data:", updateData);
+      
+      const res = await axios.put(
         `http://localhost:5000/api/users/${editUser.id}`,
-        editUser,
+        updateData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
         }
       );
-      setEditUser(null);
-      setShowUserModal(false);
-      fetchUsers();
+      
+      console.log("Update response:", res.data);
+      
+      if (res.status === 200) {
+        // Success: close modal and refresh
+        setEditUser(null);
+        setShowUserModal(false);
+        fetchUsers();
+        
+        // Show success message
+        alert("User updated successfully!");
+      }
     } catch (err) {
       console.error("Error editing user:", err);
+      console.error("Error details:", err.response?.data);
+      alert(`Error updating user: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -160,8 +225,10 @@ const SuperadminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchUsers();
+      alert("User deleted successfully!");
     } catch (err) {
       console.error("Error deleting user:", err);
+      alert(`Error deleting user: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -232,11 +299,8 @@ const SuperadminDashboard = () => {
       pending: requests.filter(
         (r) => !r.done_by && (r.status?.toLowerCase() === "pending" || !r.status)
       ).length,
-      approved: requests.filter(
-        (r) => r.done_by || (r.status && r.status.toLowerCase().includes("approve"))
-      ).length,
       completed: requests.filter(
-        (r) => r.status && r.status.toLowerCase().includes("complete")
+        (r) => r.done_by || (r.status && r.status.toLowerCase().includes("approve"))
       ).length,
       rejected: requests.filter(
         (r) => r.status && r.status.toLowerCase().includes("reject")
@@ -246,10 +310,9 @@ const SuperadminDashboard = () => {
   };
 
   const pieChartData = [
-    { name: 'Approved', value: stats.counts.approved, color: '#10b981' },
+    { name: 'Completed', value: stats.counts.completed, color: '#10b981' },
     { name: 'Pending', value: stats.counts.pending, color: '#f59e0b' },
     { name: 'Rejected', value: stats.counts.rejected, color: '#ef4444' },
-    { name: 'Completed', value: stats.counts.completed, color: '#3b82f6' },
   ];
 
   const tabs = [
@@ -383,7 +446,7 @@ const SuperadminDashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Completed</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">{stats.counts.approved}</p>
+                    <p className="text-3xl font-bold text-green-600 mt-2">{stats.counts.completed}</p>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg">
                     <FiCheckCircle className="text-green-600 text-xl" />
@@ -464,7 +527,6 @@ const SuperadminDashboard = () => {
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
                             <option value="rejected">Rejected</option>
-                            <option value="completed">Completed</option>
                           </select>
                         </div>
                         <div>
@@ -506,8 +568,8 @@ const SuperadminDashboard = () => {
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head Noted</th>
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
                         <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Status</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed By</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Personnel</th>
+                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Done</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -563,14 +625,14 @@ const SuperadminDashboard = () => {
                               </span>
                             </td>
                             <td className="px-2 py-2 whitespace-nowrap text-xs">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>{req.done_by ? "Done" : "Pending"}</span>
-                            </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs">
-                              {req.done_by ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{req.done_by}</span>
+                              {req.assigned_personnel_name ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{req.assigned_personnel_name}</span>
                               ) : (
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
                               )}
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-xs">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>{req.done_by ? "Done" : "Pending"}</span>
                             </td>
                           </tr>
                         ))
@@ -678,7 +740,13 @@ const SuperadminDashboard = () => {
                               <div className="flex items-center space-x-2">
                                 <button
                                   onClick={() => {
-                                    setEditUser(user);
+                                    setEditUser({
+                                      id: user.id,
+                                      fullname: user.fullname,
+                                      email: user.email,
+                                      role: user.role,
+                                      password: "", // Start with empty password
+                                    });
                                     setShowUserModal(true);
                                   }}
                                   className="inline-flex items-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
@@ -763,7 +831,7 @@ const SuperadminDashboard = () => {
                       </ResponsiveContainer>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         {pieChartData.map((item) => (
                           <div key={item.name} className="text-center">
                             <div className="text-2xl font-bold" style={{ color: item.color }}>
@@ -785,7 +853,7 @@ const SuperadminDashboard = () => {
                         {[
                           { label: "Total Requests", value: stats.counts.total, icon: <FiFileText className="text-blue-600" /> },
                           { label: "Pending Actions", value: stats.counts.pending, icon: <FiClock className="text-amber-600" /> },
-                          { label: "Completed Repairs", value: stats.counts.approved, icon: <FiCheckCircle className="text-green-600" /> },
+                          { label: "Completed Requests", value: stats.counts.completed, icon: <FiCheckCircle className="text-green-600" /> },
                           { label: "Rejection Rate", value: `${((stats.counts.rejected / stats.counts.total) * 100 || 0).toFixed(1)}%`, icon: <FiTrendingUp className="text-red-600" /> },
                         ].map((stat) => (
                           <div key={stat.label} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
@@ -815,8 +883,18 @@ const SuperadminDashboard = () => {
                                 Filed by {req.requested_by || "Unknown"} • {formatDate(req.created_at)}
                               </div>
                             </div>
-                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(req.status)}`}>
-                              {req.status || "Pending"}
+                            <span className={`px-2 py-1 rounded text-xs font-medium border ${
+                              req.status === "Approved" || req.status === "Done"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : req.status === "Rejected"
+                                ? "bg-red-50 text-red-700 border-red-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
+                            }`}>
+                              {req.status === "Approved" || req.status === "Done"
+                                ? "Approved"
+                                : req.status === "Rejected"
+                                ? "Rejected"
+                                : "Pending"}
                             </span>
                           </div>
                         ))}
@@ -891,8 +969,8 @@ const SuperadminDashboard = () => {
 
       {/* User Modal */}
       {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -902,8 +980,15 @@ const SuperadminDashboard = () => {
                   onClick={() => {
                     setShowUserModal(false);
                     setEditUser(null);
+                    setNewUser({
+                      fullname: "",
+                      email: "",
+                      role: "",
+                      password: "",
+                      confirmPassword: ""
+                    });
                   }}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <FiX className="text-xl" />
                 </button>
@@ -912,7 +997,7 @@ const SuperadminDashboard = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
+                    Full Name *
                   </label>
                   <input
                     type="text"
@@ -924,12 +1009,13 @@ const SuperadminDashboard = () => {
                     }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter full name"
+                    required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
+                    Email Address *
                   </label>
                   <input
                     type="email"
@@ -941,33 +1027,13 @@ const SuperadminDashboard = () => {
                     }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter email address"
+                    required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Role
-                  </label>
-                  <select
-                    value={editUser ? editUser.role : newUser.role}
-                    onChange={(e) =>
-                      editUser
-                        ? setEditUser({ ...editUser, role: e.target.value })
-                        : setNewUser({ ...newUser, role: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="Personnel">Maintenance Personnel</option>
-                    <option value="PPGSHead">PPGS Head</option>
-                    <option value="DeptHead">Department Head</option>
-                    <option value="President">President</option>
-                    <option value="Superadmin">Superadmin</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
+                    Password {editUser ? "(leave blank to keep current)" : "*"}
                   </label>
                   <input
                     type="password"
@@ -978,8 +1044,50 @@ const SuperadminDashboard = () => {
                         : setNewUser({ ...newUser, password: e.target.value })
                     }
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={editUser ? "Leave blank to keep current" : "Enter password"}
+                    placeholder={editUser ? "Enter new password (leave blank to keep current)" : "Enter password"}
+                    minLength={6}
                   />
+                  {editUser && editUser.password && editUser.password.length < 6 && editUser.password.length > 0 && (
+                    <p className="text-red-500 text-xs mt-1">Password must be at least 6 characters</p>
+                  )}
+                </div>
+
+                {!editUser && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confirm Password *
+                    </label>
+                    <input
+                      type="password"
+                      value={newUser.confirmPassword || ""}
+                      onChange={(e) => setNewUser({ ...newUser, confirmPassword: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Confirm password"
+                      minLength={6}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role *
+                  </label>
+                  <select
+                    value={editUser ? editUser.role : newUser.role}
+                    onChange={(e) =>
+                      editUser
+                        ? setEditUser({ ...editUser, role: e.target.value })
+                        : setNewUser({ ...newUser, role: e.target.value })
+                    }
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select a role</option>
+                    <option value="PPGSHead">PPGS Head</option>
+                    <option value="DeptHead">Department Head</option>
+                    <option value="President">President</option>
+                    <option value="Superadmin">Superadmin</option>
+                  </select>
                 </div>
               </div>
 
@@ -988,6 +1096,13 @@ const SuperadminDashboard = () => {
                   onClick={() => {
                     setShowUserModal(false);
                     setEditUser(null);
+                    setNewUser({
+                      fullname: "",
+                      email: "",
+                      role: "",
+                      password: "",
+                      confirmPassword: ""
+                    });
                   }}
                   className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                 >

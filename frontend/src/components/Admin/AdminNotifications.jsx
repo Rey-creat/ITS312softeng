@@ -1,5 +1,3 @@
-// Helper to check if reassign should be disabled
-    const isReassignDisabled = (req) => req.status === 'Done';
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -21,7 +19,8 @@ import {
   FaExclamationCircle,
   FaCheck,
   FaTimes,
-  FaSync
+  FaSync,
+  FaHardHat
 } from "react-icons/fa";
 
 export default function AdminNotifications() {
@@ -33,9 +32,13 @@ export default function AdminNotifications() {
     const [showModal, setShowModal] = useState(false);
     const [modalRequestId, setModalRequestId] = useState(null);
     const [personnelName, setPersonnelName] = useState("");
+    const [personnelRole, setPersonnelRole] = useState("Carpentry"); // Default role
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const navigate = useNavigate();
+
+    // Role options for dropdown
+    const roleOptions = ["Carpentry", "Aircon Technician", "Plumbing", "Electrical"];
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -84,6 +87,18 @@ export default function AdminNotifications() {
         setFilteredRequests(filtered);
     }, [searchTerm, requests]);
 
+    // Helper to check if reassign should be disabled
+    const isReassignDisabled = (req) => req.status === 'Done';
+
+    // Helper to check if Mark as Done should be disabled
+    const isMarkDoneDisabled = (req) => {
+        // Disable if:
+        // 1. Status is already 'Done'
+        // 2. No personnel is assigned
+        // 3. Personnel name is empty
+        return req.status === 'Done' || !req.assigned_to || req.assigned_to.trim() === '';
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return "—";
         const date = new Date(dateString);
@@ -97,6 +112,7 @@ export default function AdminNotifications() {
     const openAssignModal = (requestId) => {
         setModalRequestId(requestId);
         setPersonnelName("");
+        setPersonnelRole("Carpentry"); // Reset to default
         setShowModal(true);
         setError("");
         setSuccess("");
@@ -108,6 +124,11 @@ export default function AdminNotifications() {
             return;
         }
         
+        if (!personnelRole.trim()) {
+            setError("Please select a role.");
+            return;
+        }
+        
         setAssigning((prev) => ({ ...prev, [modalRequestId]: true }));
         setError("");
         setSuccess("");
@@ -116,22 +137,32 @@ export default function AdminNotifications() {
             const token = localStorage.getItem("token");
             await axios.post(
                 `http://localhost:5000/api/requests/${modalRequestId}/assign`,
-                { personnelName: personnelName.trim() },
+                { 
+                    personnelName: personnelName.trim(),
+                    personnelRole: personnelRole.trim()
+                },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            
+            // Update the request with both name and role
+            const updatedRequest = {
+                assigned_to: personnelName.trim(),
+                assigned_role: personnelRole.trim(),
+                assigned_personnel_name: personnelName.trim()
+            };
             
             setRequests((prev) =>
                 prev.map((r) =>
                     r.id === modalRequestId
-                        ? { ...r, assigned_to: personnelName.trim(), assigned_personnel_name: personnelName.trim() }
+                        ? { ...r, ...updatedRequest }
                         : r
                 )
             );
-            // Do not filter out assigned requests; keep all
+            
             setFilteredRequests((prev) =>
                 prev.map((r) =>
                     r.id === modalRequestId
-                        ? { ...r, assigned_to: personnelName.trim(), assigned_personnel_name: personnelName.trim() }
+                        ? { ...r, ...updatedRequest }
                         : r
                 )
             );
@@ -339,7 +370,7 @@ export default function AdminNotifications() {
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
-                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assign Personnel</th>
+                                            <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Personnel</th>
                                             <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
                                         </tr>
                                     </thead>
@@ -358,34 +389,44 @@ export default function AdminNotifications() {
                                                     <td className="px-2 py-2 font-medium text-green-700">{req.noted_by || "—"}</td>
                                                     <td className="px-2 py-2">
                                                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-                                                            <FaCheckCircle className="mr-1.5" />
-                                                            {req.status || "Approved"}
+                                                            <div className="mr-1.5" />
+                                                            Approved
                                                         </span>
                                                     </td>
                                                     <td className="px-2 py-2 min-w-[180px]">
                                                         {req.status === 'Done' ? (
-                                                            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-green-200 text-green-800 border border-green-300">Completed</span>
+                                                            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-green-200 text-green-800 border border-green-300">
+                                                                Completed
+                                                            </span>
                                                         ) : req.assigned_to ? (
-                                                            <span className="inline-flex items-center gap-2">
-                                                                <span className="font-medium text-green-700 text-base">{req.assigned_to}</span>
-                                                                <span className="text-xs text-gray-500">Assigned</span>
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <FaUser className="text-green-600 text-sm" />
+                                                                    <span className="font-medium text-green-700 text-sm">{req.assigned_to}</span>
+                                                                </div>
+                                                                {req.assigned_role && (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <FaHardHat className="text-blue-600 text-sm" />
+                                                                        <span className="text-xs text-gray-600 font-medium">{req.assigned_role}</span>
+                                                                    </div>
+                                                                )}
                                                                 <button
                                                                     onClick={() => {
                                                                         if (!isReassignDisabled(req)) openAssignModal(req.id);
                                                                     }}
-                                                                    className={`px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                    className={`px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors mt-1 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                                     disabled={isReassignDisabled(req)}
                                                                 >
                                                                     Reassign
                                                                 </button>
-                                                            </span>
+                                                            </div>
                                                         ) : (
                                                             <button
                                                                 onClick={() => {
                                                                     if (!isReassignDisabled(req)) openAssignModal(req.id);
                                                                 }}
                                                                 disabled={assigning[req.id] || isReassignDisabled(req)}
-                                                                className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`px-4 py-2 text-sm font-small text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 {assigning[req.id] ? (
                                                                     <>
@@ -412,9 +453,10 @@ export default function AdminNotifications() {
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleMarkAsDone(req.id)}
-                                                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                                                disabled={isMarkDoneDisabled(req)}
+                                                                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isMarkDoneDisabled(req) ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                                                             >
-                                                                Mark as Done
+                                                                {isMarkDoneDisabled(req) ? 'Assign Personnel First' : 'Mark as Done'}
                                                             </button>
                                                         )}
                                                     </td>
@@ -456,21 +498,38 @@ export default function AdminNotifications() {
                                     {success}
                                 </div>
                             )}
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Personnel Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={personnelName}
-                                    onChange={(e) => setPersonnelName(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                    placeholder="Enter personnel name"
-                                    autoFocus
-                                    onKeyPress={(e) => e.key === 'Enter' && handleAssignModal()}
-                                />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Personnel Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={personnelName}
+                                        onChange={(e) => setPersonnelName(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                        placeholder="Enter personnel name"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Role
+                                    </label>
+                                    <select
+                                        value={personnelRole}
+                                        onChange={(e) => setPersonnelRole(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                                    >
+                                        {roleOptions.map((role) => (
+                                            <option key={role} value={role}>
+                                                {role}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"

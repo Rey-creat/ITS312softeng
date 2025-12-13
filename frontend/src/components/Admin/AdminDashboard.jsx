@@ -271,30 +271,30 @@ export default function AdminDashboard() {
                             {req.reference_code || `REQ-${req.id}`}
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-gray-700">{formatDate(req.date_filed)}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_filed)}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-gray-700">{formatDate(req.date_needed)}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_needed)}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-gray-700">{req.type_of_concern}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{req.type_of_concern}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-gray-700">{req.urgency}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{req.urgency}</span>
                           </td>
                           <td className="px-5 py-4 max-w-xs">
-                            <span className="text-gray-700 line-clamp-2">{req.description}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{req.description}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className="text-gray-700">{req.requested_by}</span>
+                            <span className="text-gray-700 whitespace-nowrap">{req.requested_by}</span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className={`font-medium ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
+                            <span className={`font-medium whitespace-nowrap ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
                               {req.noted_by || "—"}
                             </span>
                           </td>
                           <td className="px-5 py-4">
-                            <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold ${
+                            <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
                               req.status === "Approved" || req.status === "Done"
                                 ? "bg-green-100 text-green-800"
                                 : (req.status === "Rejected" || req.ppgshead === "Rejected")

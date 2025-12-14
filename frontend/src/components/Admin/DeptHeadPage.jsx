@@ -34,14 +34,24 @@ const DeptHeadPage = () => {
 
   // Get the logged-in user's department from localStorage
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const department = user.department;
+  // For DeptHead roles, extract department from role (e.g., "DeptHead-SBIT" -> "SBIT")
+  let department = user.department;
+  if (user.role && user.role.startsWith("DeptHead-")) {
+    department = user.role.split("-")[1];
+  }
+
+  // Debug: log full user object
+  console.log('[DEBUG] Full user object:', user);
 
   const fetchRequests = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:5000/api/depthead/all-requests`);
-      // Only show requests for this DeptHead's department and where noted_by is null or 'Pending'
-      const filtered = res.data.filter(req => (req.department === department) && (!req.noted_by || req.noted_by === "Pending"));
+      // Debug: log all departments in API response
+      console.log('[DEBUG] API returned requests:', res.data.map(r => r.department));
+      console.log('[DEBUG] Filtering for department:', department);
+      const filtered = res.data.filter(req => req.department?.toLowerCase() === department?.toLowerCase());
+      console.log('[DEBUG] Filtered requests:', filtered);
       setRequests(filtered.sort((a, b) => b.id - a.id));
       const uniqueDepartments = Array.from(new Set(filtered.map(r => r.department).filter(Boolean)));
       setDepartments(uniqueDepartments);
@@ -128,6 +138,8 @@ const DeptHeadPage = () => {
     );
   }
 
+  // Debug: show current user department
+  console.log('[DEBUG] DeptHeadPage user.department:', department);
   return (
     <div className="flex h-screen">
       <div className="relative h-screen">

@@ -21,7 +21,6 @@ import {
   FiCalendar,
   FiChevronRight,
   FiUserPlus,
-  FiSettings,
   FiDownload,
   FiTrendingUp,
   FiClock,
@@ -61,6 +60,7 @@ const SuperadminDashboard = () => {
   });
   // Notification state
   const [notif, setNotif] = useState({ show: false, message: '', type: 'success' });
+  const [simpleAddUserNotif, setSimpleAddUserNotif] = useState("");
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState({ show: false, user: null });
 
@@ -119,51 +119,43 @@ const SuperadminDashboard = () => {
   };
 
   const handleAddUser = async () => {
-    // Validate passwords match
-    if (newUser.password !== newUser.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
     // Validate required fields
     if (!newUser.fullname || !newUser.email || !newUser.role || !newUser.password) {
-      alert("Please fill in all required fields");
+      setSimpleAddUserNotif("Please fill in all required fields");
+      setTimeout(() => setSimpleAddUserNotif("") , 2000);
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
-      
       // Prepare user data without confirmPassword
       const userData = {
         fullname: newUser.fullname,
         email: newUser.email,
         role: newUser.role,
+        department: newUser.department,
         password: newUser.password,
       };
-      
       const res = await axios.post("http://localhost:5000/api/users", userData, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
       if (res.status === 201) {
-        // Success: close modal, reset form, and refresh
-        setShowUserModal(false);
         setNewUser({
           fullname: "",
           email: "",
           role: "",
+          department: "",
           password: "",
           confirmPassword: "",
         });
         fetchUsers();
-        
-        // Show success message
-        alert("User created successfully!");
+        setSimpleAddUserNotif("User added successfully!");
+        setTimeout(() => setSimpleAddUserNotif("") , 2000);
       }
     } catch (err) {
       console.error("Error adding user:", err);
-      alert(`Error creating user: ${err.response?.data?.message || err.message}`);
+      setSimpleAddUserNotif(`Error creating user: ${err.response?.data?.message || err.message}`);
+      setTimeout(() => setSimpleAddUserNotif("") , 2000);
     }
   };
 
@@ -304,11 +296,14 @@ const SuperadminDashboard = () => {
     return true;
   });
 
-  const filteredUsers = users.filter(user =>
-    user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users
+    .slice()
+    .sort((a, b) => b.id - a.id)
+    .filter(user =>
+      user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   // Statistics data for pie chart - updated to use overall status
   const stats = {
@@ -324,16 +319,15 @@ const SuperadminDashboard = () => {
 
   const pieChartData = [
     { name: 'Completed', value: stats.counts.completed, color: '#10b981' },
-    { name: 'Approved', value: stats.counts.approved, color: '#3b82f6' },
     { name: 'Pending', value: stats.counts.pending, color: '#f59e0b' },
     { name: 'Rejected', value: stats.counts.rejected, color: '#ef4444' },
   ];
 
   const tabs = [
-    { id: "requests", label: "Requests", icon: <FiFileText /> },
-    { id: "users", label: "User Management", icon: <FiUsers /> },
-    { id: "analytics", label: "Analytics", icon: <FiBarChart2 /> },
-    { id: "logs", label: "Activity Logs", icon: <FiActivity /> },
+     { id: "requests", label: "Requests", icon: <FiFileText /> },
+     { id: "users", label: "User Management", icon: <FiUsers /> },
+     { id: "analytics", label: "Analytics", icon: <FiBarChart2 /> },
+     { id: "logs", label: "Activity Logs", icon: <FiActivity /> },
   ];
 
   const formatDate = (dateString) => {
@@ -361,8 +355,8 @@ const SuperadminDashboard = () => {
       {/* Fixed Sidebar */}
       <div className="fixed inset-y-0 left-0 z-40 w-64">
         <AdminSidebar
-          role={currentUser?.role || "Superadmin"}
-          fullname={currentUser?.fullname || "Superadmin"}
+          role={currentUser?.role || newUser.role || "Superadmin"}
+          fullname={currentUser?.fullname || newUser.fullname || "Superadmin"}
         />
       </div>
       
@@ -390,16 +384,12 @@ const SuperadminDashboard = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors duration-200">
-                <FiSettings className="mr-2" />
-                Settings
-              </button>
               <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-4 py-2">
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">{currentUser?.fullname || "Superadmin"}</p>
                   <p className="text-xs text-gray-500">{currentUser?.role || "Superadmin"}</p>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-linear-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
                   {currentUser?.fullname?.charAt(0) || "S"}
                 </div>
               </div>
@@ -432,66 +422,63 @@ const SuperadminDashboard = () => {
           <div className="px-8 py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Total Requests Card */}
-              <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-sm border border-blue-100 p-6 hover:shadow-md transition-shadow duration-200">
+              <div className="bg-gray-50 rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Requests</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.counts.total}</p>
+                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.counts.total}</p>
+                  </div>
+                  <div className="p-3 bg-gray-100 rounded-lg">
+                    <FiFileText className="text-gray-600 text-xl" />
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">All requests</span>
+                </div>
+              </div>
+              {/* Pending Card */}
+              <div className="bg-blue-50 rounded-xl shadow-sm border border-blue-100 p-6 hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Pending</p>
+                    <p className="text-3xl font-bold text-blue-600 mt-2">{stats.counts.pending}</p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
-                    <FiFileText className="text-blue-600 text-xl" />
+                    <FiClock className="text-blue-600 text-xl" />
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">All time facility requests</span>
+                <div className="mt-4 pt-4 border-t border-blue-100">
+                  <span className="text-xs text-blue-500">Requests pending</span>
                 </div>
               </div>
-
-              {/* Pending Card */}
-              <div className="bg-gradient-to-br from-amber-50 to-white rounded-xl shadow-sm border border-amber-100 p-6 hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Pending</p>
-                    <p className="text-3xl font-bold text-amber-600 mt-2">{stats.counts.pending}</p>
-                  </div>
-                  <div className="p-3 bg-amber-100 rounded-lg">
-                    <FiClock className="text-amber-600 text-xl" />
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">Awaiting action</span>
-                </div>
-              </div>
-
               {/* Completed Card */}
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-sm border border-green-100 p-6 hover:shadow-md transition-shadow duration-200">
+              <div className="bg-green-50 rounded-xl shadow-sm border border-green-100 p-6 hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Completed</p>
+                    <p className="text-sm font-medium text-green-600">Completed</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">{stats.counts.completed}</p>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg">
                     <FiCheckCircle className="text-green-600 text-xl" />
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">Repairs completed</span>
+                <div className="mt-4 pt-4 border-t border-green-100">
+                  <span className="text-xs text-green-500">Requests completed</span>
                 </div>
               </div>
-
               {/* Rejected Card */}
-              <div className="bg-gradient-to-br from-red-50 to-white rounded-xl shadow-sm border border-red-100 p-6 hover:shadow-md transition-shadow duration-200">
+              <div className="bg-linear-to-br from-red-50 to-white rounded-xl shadow-sm border border-red-100 p-6 hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Rejected</p>
+                    <p className="text-sm font-medium text-red-600">Rejected</p>
                     <p className="text-3xl font-bold text-red-600 mt-2">{stats.counts.rejected}</p>
                   </div>
                   <div className="p-3 bg-red-100 rounded-lg">
                     <FiXCircle className="text-red-600 text-xl" />
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <span className="text-xs text-gray-500">Requests declined</span>
+                <div className="mt-4 pt-4 border-t border-red-100">
+                  <span className="text-xs text-red-500">Requests declined</span>
                 </div>
               </div>
             </div>
@@ -580,22 +567,22 @@ const SuperadminDashboard = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                   <thead className="bg-gray-50">
-  <tr>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Needed</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personnel</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
-  </tr>
-</thead>
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">ID</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date Filed</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date Needed</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Type</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requester</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Dept Head</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">PPGS Head</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">President</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Personnel</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Role</th>
+                        <th className="px-1 py-1 text-left font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Admin</th>
+                      </tr>
+                    </thead>
                  <tbody className="divide-y divide-gray-200">
   {loading ? (
     <tr>
@@ -721,15 +708,15 @@ const SuperadminDashboard = () => {
           <td className="px-6 py-4 whitespace-nowrap">
             {isRejected ? (
               <span className="text-gray-400 text-sm">—</span>
-            ) : req.specialization ? (
+            ) : req.assigned_role ? (
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                req.specialization === "Carpentry" ? "bg-amber-100 text-amber-800" :
-                req.specialization === "Aircon Technician" ? "bg-blue-100 text-blue-800" :
-                req.specialization === "Electrical" ? "bg-yellow-100 text-yellow-800" :
-                req.specialization === "Plumbing" ? "bg-cyan-100 text-cyan-800" :
+                req.assigned_role === "Carpentry" ? "bg-amber-100 text-amber-800" :
+                req.assigned_role === "Aircon Technician" ? "bg-blue-100 text-blue-800" :
+                req.assigned_role === "Electrical" ? "bg-yellow-100 text-yellow-800" :
+                req.assigned_role === "Plumbing" ? "bg-cyan-100 text-cyan-800" :
                 "bg-gray-100 text-gray-800"
               }`}>
-                {req.specialization}
+                {req.assigned_role}
               </span>
             ) : (
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
@@ -786,7 +773,7 @@ const SuperadminDashboard = () => {
                         setShowUserModal(true);
                         setEditUser(null);
                       }}
-                      className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="flex items-center px-4 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       <FiUserPlus className="mr-2" />
                       Add User
@@ -832,7 +819,7 @@ const SuperadminDashboard = () => {
                           <tr key={user.id} className="hover:bg-gray-50 transition-colors duration-150">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm mr-3">
+                                <div className="h-10 w-10 rounded-full bg-linear-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm mr-3">
                                   {user.fullname.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
@@ -1207,7 +1194,11 @@ const SuperadminDashboard = () => {
                   >
                     <option value="">Select a role</option>
                     <option value="PPGSHead">PPGS Head</option>
-                    <option value="DeptHead">Department Head</option>
+                    <option value="DeptHead-IBED">IBED Department Head</option>
+                    <option value="DeptHead-SARFAID">SARFAID Department Head</option>
+                    <option value="DeptHead-SSLATE">SSLATE Department Head</option>
+                    <option value="DeptHead-SHTM">SHTM Department Head</option>
+                    <option value="DeptHead-SBIT">SBIT Department Head</option>
                     <option value="President">President</option>
                     <option value="Superadmin">Superadmin</option>
                   </select>
@@ -1233,7 +1224,7 @@ const SuperadminDashboard = () => {
                 </button>
                 <button
                   onClick={editUser ? handleEditUser : handleAddUser}
-                  className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+                  className="px-4 py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
                 >
                   {editUser ? "Save Changes" : "Create User"}
                 </button>
@@ -1261,7 +1252,7 @@ const SuperadminDashboard = () => {
               </button>
               <button
                 onClick={() => handleDeleteUser(deleteModal.user.id)}
-                className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200"
+                className="px-4 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200"
               >
                 Yes, Delete
               </button>

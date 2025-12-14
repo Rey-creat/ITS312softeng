@@ -83,19 +83,22 @@ createRoot(document.getElementById("root")).render(
         {/* Admin / Role Protected Pages */}
         <Route
           path="/AdminDashboard"
-          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "Dept Head", "PPGS Head", "President"]} />}
+          element={<RoleRoute element={AdminDashboard} allowedRoles={["Admin", "Dept Head", "PPGS Head", "PPGSHead", "ppgshead", "PPGSHEAD", "President"]} />}
         />
         <Route
           path="/AdminNotifications"
-          element={<RoleRoute element={AdminNotifications} allowedRoles={["Admin", "PPGS Head"]} />}
+          element={<RoleRoute element={AdminNotifications} allowedRoles={["Admin", "PPGS Head", "PPGSHead", "ppgshead", "PPGSHEAD"]} />}
         />
         <Route
           path="/DeptHeadPage"
-          element={<RoleRoute element={DeptHeadPage} allowedRoles={["Dept Head", "DeptHead", "depthead", "DEPTHEAD"]} />}
+          element={<RoleRoute element={DeptHeadPage} allowedRoles={["DeptHead-IBED", "DeptHead-SARFAID", "DeptHead-SSLATE", "DeptHead-SHTM", "DeptHead-SBIT"]} />}
         />
+
+        
+        
         <Route
           path="/PPGSHeadPage"
-          element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGS Head"]} />}
+          element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGSHead", "PPGS Head", "ppgshead", "PPGSHEAD"]} />}
         />
         <Route
           path="/President"

@@ -27,17 +27,32 @@ export default function Login() {
       console.log("User role after login:", res.data.user.role);
 
       const role = res.data.user.role;
-      if (["Dept Head", "DeptHead", "depthead", "DEPTHEAD"].includes(role) || role.toLowerCase() === "depthead") {
+      console.log("[DEBUG] User role after login:", role);
+      // Department head roles (new values)
+      const deptHeadRoles = [
+        "DeptHead-IBED",
+        "DeptHead-SARFAID",
+        "DeptHead-SSLATE",
+        "DeptHead-SHTM",
+        "DeptHead-SBIT"
+      ];
+      // Normalize role for comparison
+      const normalizedRole = (role || "").replace(/\s+/g, "").toLowerCase();
+      if (deptHeadRoles.map(r => r.toLowerCase()).includes(role.toLowerCase())) {
+        // Store department for DeptHeadPage
+        if (res.data.user.department) {
+          localStorage.setItem("department", res.data.user.department);
+        }
         navigate("/DeptHeadPage");
-      } else if (["PPGS Head", "PPGSHead", "ppgshead", "PPGSHEAD"].includes(role) || role.toLowerCase() === "ppgshead") {
+      } else if (["ppgshead", "ppgs head"].includes(normalizedRole)) {
         navigate("/PPGSHeadPage");
-      } else if (role === "President") {
+      } else if (normalizedRole === "president") {
         navigate("/President");
-      } else if (role === "Admin") {
+      } else if (normalizedRole === "admin") {
         navigate("/AdminDashboard");
-      } else if (role === "Superadmin") {
+      } else if (normalizedRole === "superadmin") {
         navigate("/superadmin");
-      } else if (role === "Personnel") {
+      } else if (normalizedRole === "personnel") {
         navigate("/PersonnelDashboard");
       } else {
         navigate("/dashboard");
@@ -52,7 +67,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen w-full flex overflow-hidden bg-linear-to-br from-gray-50 to-blue-50">
       
       {/* LEFT SIDE IMAGE - Clean Version */}
       <div className="hidden lg:flex lg:w-1/2 relative">
@@ -173,7 +188,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none"
+                  className="w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">

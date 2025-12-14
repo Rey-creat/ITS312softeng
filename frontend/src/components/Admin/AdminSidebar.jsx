@@ -26,8 +26,13 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
   const [collapsed, setCollapsed] = useState(false);
   
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const role = user.role || "User";
+  let role = user.role || "User";
   const fullname = user.fullname || "User";
+  // Normalize DeptHead-* roles to 'Dept Head' for menu
+  let sidebarRole = role;
+  if (/^DeptHead-/i.test(role)) {
+    sidebarRole = "Dept Head";
+  }
 
   // Define icon mapping for each menu item
   const getIconForMenu = (name) => {
@@ -73,11 +78,14 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
     ],
     "Dept Head": [
       { name: "Requests ", path: "/DeptHeadPage", exact: true },
-      
-  
     ],
     "PPGS Head": [
-       { name: "Dashboard", path: "/AdminDashboard" },
+      { name: "Dashboard", path: "/AdminDashboard" },
+      { name: "Requests", path: "/PPGSHeadPage" },
+      { name: "Notifications", path: "/AdminNotifications" },
+    ],
+    PPGSHead: [
+      { name: "Dashboard", path: "/AdminDashboard" },
       { name: "Requests", path: "/PPGSHeadPage" },
       { name: "Notifications", path: "/AdminNotifications" },
     ],
@@ -92,11 +100,11 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
     ],
   };
 
-  const menu = roleMenus[role] || roleMenus.User;
+  const menu = roleMenus[sidebarRole] || roleMenus.User;
 
   // Role-based icon for profile
   const getRoleIcon = () => {
-    switch(role) {
+    switch(sidebarRole) {
       case "Admin":
         return <FaUserCircle className="text-2xl text-blue-300" />;
       case "Dept Head":
@@ -158,10 +166,10 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
           
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold truncate">{role === 'Personnel' ? '' : fullname}</h1>
+              <h1 className="text-lg font-bold truncate">{sidebarRole === 'Personnel' ? '' : fullname}</h1>
               <div className="flex items-center mt-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
-                <p className="text-sm text-blue-200 truncate font-medium">{role}</p>
+                <p className="text-sm text-blue-200 truncate font-medium">{role}{user.department ? ` (${user.department})` : ''}</p>
               </div>
             </div>
           )}

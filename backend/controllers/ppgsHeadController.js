@@ -3,7 +3,7 @@ const db = require("../db");
 // GET all requests for PPGS Head: show requests that are Noted and need PPGS action, or already processed
 exports.getApprovedRequests = (req, res) => {
   const query = `
-    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by, urgency
+    SELECT id, user_id, date_filed, date_needed, type_of_concern, description, requested_by, ppgshead, noted_by, urgency, ppgs_reject_reason
     FROM requests
     WHERE (noted_by IS NOT NULL AND noted_by != 'Pending' AND (ppgshead IS NULL OR ppgshead = 'Pending'))
       OR ppgshead = 'Approved'
@@ -31,8 +31,9 @@ exports.approveRequest = (req, res) => {
 // REJECT a request
 exports.rejectRequest = (req, res) => {
   const { id } = req.params;
-  const query = `UPDATE requests SET ppgshead = 'Rejected' WHERE id = ?`;
-  db.query(query, [id], (err, result) => {
+  const { reason } = req.body;
+  const query = `UPDATE requests SET ppgshead = 'Rejected', ppgs_reject_reason = ? WHERE id = ?`;
+  db.query(query, [reason, id], (err, result) => {
     if (err) return res.status(500).json({ message: "DB error", error: err });
     if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
     res.json({ message: "Request rejected successfully" });

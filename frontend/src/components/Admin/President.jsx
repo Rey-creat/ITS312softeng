@@ -133,7 +133,8 @@ function President() {
       const payload = {
         status: decision,
         president_by,
-        message: decision === "Rejected" ? rejectReason : message,
+        president_reject_reason: decision === "Rejected" ? rejectReason : undefined,
+        message: decision !== "Rejected" ? message : undefined,
       };
 
       const res = await fetch(

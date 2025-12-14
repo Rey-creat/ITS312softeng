@@ -183,16 +183,15 @@ export default function AdminNotifications() {
         setAssigning((prev) => ({ ...prev, [modalRequestId]: false }));
     };
 
+
     const handleMarkAsDone = async (requestId) => {
         try {
             const token = localStorage.getItem("token");
             await axios.put(
                 `http://localhost:5000/api/requests/${requestId}`,
-                { status: "Done", done_by: "Admin" }, // Include done_by field
+                { status: "Done", done_by: "Admin" },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-
-            // Update the request status in the state immediately
             setRequests((prev) =>
                 prev.map((req) =>
                     req.id === requestId ? { ...req, status: "Done" } : req
@@ -203,11 +202,10 @@ export default function AdminNotifications() {
                     req.id === requestId ? { ...req, status: "Done" } : req
                 )
             );
-
-            alert("Request marked as done.");
+            showNotification("Request marked as done.", "success");
         } catch (err) {
             console.error("Error marking request as done", err);
-            alert("Failed to mark request as done.");
+            showNotification("Failed to mark request as done.", "error");
         }
     };
 

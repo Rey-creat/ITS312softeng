@@ -59,6 +59,10 @@ const SuperadminDashboard = () => {
     start: "",
     end: ""
   });
+  // Notification state
+  const [notif, setNotif] = useState({ show: false, message: '', type: 'success' });
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState({ show: false, user: null });
 
   // Polling interval for refreshing requests
   useEffect(() => {
@@ -167,27 +171,22 @@ const SuperadminDashboard = () => {
     try {
       // Validate required fields
       if (!editUser.fullname || !editUser.email || !editUser.role) {
-        alert("Please fill in all required fields");
+        setNotif({ show: true, message: "Please fill in all required fields", type: "error" });
+        setTimeout(() => setNotif({ show: false, message: '', type: 'success' }), 2500);
         return;
       }
 
       const token = localStorage.getItem("token");
-      
       // Prepare update data - only send changed fields
       const updateData = {
         fullname: editUser.fullname,
         email: editUser.email,
         role: editUser.role,
       };
-      
       // Only include password if it was provided and not empty
       if (editUser.password && editUser.password.trim() !== "") {
         updateData.password = editUser.password;
       }
-      
-      console.log("Updating user ID:", editUser.id);
-      console.log("Sending update data:", updateData);
-      
       const res = await axios.put(
         `http://localhost:5000/api/users/${editUser.id}`,
         updateData,
@@ -198,38 +197,33 @@ const SuperadminDashboard = () => {
           },
         }
       );
-      
-      console.log("Update response:", res.data);
-      
       if (res.status === 200) {
-        // Success: close modal and refresh
         setEditUser(null);
         setShowUserModal(false);
         fetchUsers();
-        
-        // Show success message
-        alert("User updated successfully!");
+        setNotif({ show: true, message: "User updated successfully!", type: "success" });
+        setTimeout(() => setNotif({ show: false, message: '', type: 'success' }), 2500);
       }
     } catch (err) {
-      console.error("Error editing user:", err);
-      console.error("Error details:", err.response?.data);
-      alert(`Error updating user: ${err.response?.data?.message || err.message}`);
+      setNotif({ show: true, message: `Error updating user: ${err.response?.data?.message || err.message}`, type: "error" });
+      setTimeout(() => setNotif({ show: false, message: '', type: 'success' }), 2500);
     }
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchUsers();
-      alert("User deleted successfully!");
+      setNotif({ show: true, message: "User deleted successfully!", type: "success" });
+      setTimeout(() => setNotif({ show: false, message: '', type: 'success' }), 2500);
     } catch (err) {
-      console.error("Error deleting user:", err);
-      alert(`Error deleting user: ${err.response?.data?.message || err.message}`);
+      setNotif({ show: true, message: `Error deleting user: ${err.response?.data?.message || err.message}`, type: "error" });
+      setTimeout(() => setNotif({ show: false, message: '', type: 'success' }), 2500);
     }
+    setDeleteModal({ show: false, user: null });
   };
 
   const handleAssignRequest = async () => {
@@ -354,6 +348,14 @@ const SuperadminDashboard = () => {
       
       {/* Main Content shifted right */}
       <div className="ml-64 flex-1 pl-6">
+        {/* Notification UI */}
+        {notif.show && (
+          <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all duration-300
+            ${notif.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+          >
+            {notif.message}
+          </div>
+        )}
         {/* Header */}
         <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-8 py-4">
           <div className="flex justify-between items-center">
@@ -755,12 +757,38 @@ const SuperadminDashboard = () => {
                                   <FiEdit2 />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteUser(user.id)}
+                                  onClick={() => setDeleteModal({ show: true, user })}
                                   className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
                                   title="Delete"
                                 >
                                   <FiTrash2 />
                                 </button>
+                                    {/* Delete Confirmation Modal (single instance, outside table) */}
+                                    {deleteModal.show && (
+                                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+                                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+                                          <div className="flex items-center mb-4">
+                                            <FiTrash2 className="text-red-500 text-2xl mr-2" />
+                                            <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+                                          </div>
+                                          <p className="text-gray-700 mb-6">Are you sure you want to delete <span className="font-semibold">{deleteModal.user?.fullname}</span>? This action cannot be undone.</p>
+                                          <div className="flex justify-end space-x-3">
+                                            <button
+                                              onClick={() => setDeleteModal({ show: false, user: null })}
+                                              className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                                            >
+                                              Cancel
+                                            </button>
+                                            <button
+                                              onClick={() => handleDeleteUser(deleteModal.user.id)}
+                                              className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200"
+                                            >
+                                              Yes, Delete
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                               </div>
                             </td>
                           </tr>

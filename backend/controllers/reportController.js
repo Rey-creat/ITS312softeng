@@ -12,7 +12,9 @@ exports.getReports = (req, res) => {
       is_fully_approved,
       date_reported,
       date_updated,
-      created_at
+      created_at,
+      ppgs_reject_reason,
+      president_reject_reason
     FROM requests
     ORDER BY date_reported DESC
   `;

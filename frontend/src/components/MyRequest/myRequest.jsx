@@ -211,7 +211,7 @@ export default function MyRequest() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredRequests.map((req) => {
-                    const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.status === "Personnel" || req.status === "President";
+                    const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.ppgshead === "Rejected" || req.status === "Personnel" || req.status === "President";
                     return (
                       <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-blue-700">
@@ -375,7 +375,11 @@ export default function MyRequest() {
                 </button>
                 <button
                   onClick={handleUpdate}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center"
+                  disabled={form.status === "Rejected" || form.ppgshead === "Rejected"}
+                  className={`px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center ${
+                    form.status === "Rejected" || form.ppgshead === "Rejected" ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title={form.status === "Rejected" || form.ppgshead === "Rejected" ? "Cannot edit a rejected request" : ""}
                 >
                   <FaSave className="mr-2" />
                   Save Changes

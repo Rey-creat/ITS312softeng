@@ -434,6 +434,13 @@ export default function Reports() {
                                   {report.ppgshead || "Pending"}
                                 </span>
                               </div>
+                              {/* Show PPGS rejection reason if rejected */}
+                              {report.ppgshead === "Rejected" && report.ppgs_reject_reason && (
+                                <div className="mt-2">
+                                  <p className="text-xs font-semibold text-red-500 uppercase">PPGS Rejection Reason</p>
+                                  <p className="text-gray-900 mt-1">{report.ppgs_reject_reason}</p>
+                                </div>
+                              )}
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">President</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
@@ -450,6 +457,13 @@ export default function Reports() {
                                     : "Pending"}
                                 </span>
                               </div>
+                              {/* Show President rejection reason if rejected */}
+                              {report.status === "Rejected" && report.president_reject_reason && (
+                                <div className="mt-2">
+                                  <p className="text-xs font-semibold text-red-500 uppercase">President Rejection Reason</p>
+                                  <p className="text-gray-900 mt-1">{report.president_reject_reason}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
 

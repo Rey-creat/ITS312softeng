@@ -40,25 +40,14 @@ const PPGSHeadPage = () => {
       try {
         setLoading(true);
         const res = await axios.get("http://localhost:5000/api/ppgshead/approved-requests");
-        let allRequests = res.data.sort((a, b) => b.id - a.id);
-
-        // Load all noted requests stored from Dept Head
-        const storedRequests = JSON.parse(localStorage.getItem("notedRequests")) || [];
-
-        storedRequests.forEach(stored => {
-          if (!allRequests.find(r => r.id === stored.id)) {
-            allRequests.unshift(stored);
-          }
-        });
-
-        setRequests(allRequests.sort((a, b) => b.id - a.id));
+        // Only use backend data, ignore localStorage
+        setRequests(res.data.sort((a, b) => b.id - a.id));
       } catch (err) {
         console.error("Error fetching requests:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchRequests();
   }, []);
 
@@ -103,9 +92,11 @@ const PPGSHeadPage = () => {
       return;
     }
     try {
-      await axios.put(`http://localhost:5000/api/ppgshead/requests/${pendingRejectId}/reject`, {
-        reason: rejectReason
-      });
+      await axios.put(
+        `http://localhost:5000/api/ppgshead/requests/${pendingRejectId}/reject`,
+        { reason: rejectReason },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
       setRequests(prev =>
         prev.map(req => (req.id === pendingRejectId ? { ...req, ppgshead: "Rejected", reject_reason: rejectReason } : req))
       );
@@ -382,7 +373,7 @@ const PPGSHeadPage = () => {
                   </div>
                   <p className="text-gray-900 font-medium">{selectedRequest.type_of_concern}</p>
                 </div>
-                
+
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <FaCalendarAlt className="w-5 h-5 text-blue-500" />
@@ -423,6 +414,15 @@ const PPGSHeadPage = () => {
                   <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedRequest.ppgshead)}`}>
                     {selectedRequest.ppgshead || "Pending"}
                   </span>
+                </div>
+
+                {/* Urgency Level */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaExclamationTriangle className="w-5 h-5 text-red-500" />
+                    <h3 className="text-sm font-semibold text-gray-700">Urgency Level</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{selectedRequest.urgency || "—"}</p>
                 </div>
               </div>
 

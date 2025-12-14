@@ -42,13 +42,21 @@ exports.assignPersonnel = (req, res) => {
 // PRESIDENT DECISION ENDPOINT
 exports.setPresidentDecision = (req, res) => {
   const { id } = req.params;
-  const { status, president_by } = req.body;
+  const { status, president_by, president_reject_reason } = req.body;
   if (!status) {
     return res.status(400).json({ message: "President decision required" });
   }
+  let query = "UPDATE requests SET status = ?";
+  let params = [status];
+  if (status === "Rejected" && president_reject_reason) {
+    query += ", president_reject_reason = ?";
+    params.push(president_reject_reason);
+  }
+  query += " WHERE id = ?";
+  params.push(id);
   db.query(
-    "UPDATE requests SET status = ? WHERE id = ?",
-    [status, id],
+    query,
+    params,
     (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });

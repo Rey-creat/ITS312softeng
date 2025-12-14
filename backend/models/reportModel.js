@@ -5,14 +5,14 @@ class Report {
   static getAll({ userId, role }) {
     return new Promise((resolve, reject) => {
             let query = `SELECT id, request_id, filed_by, type_of_concern AS concern, description, ppgshead,
-                 current_approval_stage, is_fully_approved, date_reported, date_updated, created_at
+                 current_approval_stage, is_fully_approved, date_reported, date_updated, created_at, ppgs_reject_reason, president_reject_reason
                FROM requests
                ORDER BY date_reported DESC`;
       let values = [];
 
       if (role !== "Admin" && userId) {
          query = `SELECT id, request_id, filed_by, type_of_concern AS concern, description, ppgshead,
-               current_approval_stage, is_fully_approved, date_reported, date_updated, created_at
+               current_approval_stage, is_fully_approved, date_reported, date_updated, created_at, ppgs_reject_reason, president_reject_reason
              FROM requests WHERE user_id = ? ORDER BY date_reported DESC`;
         values = [userId];
       }

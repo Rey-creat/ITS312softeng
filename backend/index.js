@@ -17,6 +17,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
+// Ensure express.json() middleware is used for JSON body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(upload.single("profile_picture"));

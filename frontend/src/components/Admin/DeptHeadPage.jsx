@@ -22,6 +22,7 @@ import {
 
 const DeptHeadPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [urgencyFilter, setUrgencyFilter] = useState("");
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -53,6 +54,10 @@ const DeptHeadPage = () => {
 
   // Filter requests based on search term
   const filteredRequests = requests.filter(req => {
+    // Filter by urgency if set
+    if (urgencyFilter && req.urgency?.toLowerCase() !== urgencyFilter.toLowerCase()) {
+      return false;
+    }
     // Filter by search term
     if (searchTerm.trim() !== "") {
       const searchLower = searchTerm.toLowerCase();
@@ -64,7 +69,6 @@ const DeptHeadPage = () => {
         (req.reference_code && req.reference_code.toLowerCase().includes(searchLower))
       );
     }
-    
     return true;
   });
 
@@ -259,6 +263,46 @@ const DeptHeadPage = () => {
           </div>
         )}
 
+        {/* Urgency Filter Buttons */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button
+            key="All"
+            onClick={() => setUrgencyFilter("")}
+            className={
+              "px-4 py-2 rounded-lg font-semibold border-2 transition-colors duration-150 focus:outline-none " +
+              (urgencyFilter === "" ? "bg-blue-600 text-white border-blue-700 ring-2 ring-offset-2" : "bg-white text-blue-700 border-blue-400 hover:bg-blue-50")
+            }
+          >
+            All
+          </button>
+          {["Critical", "High", "Medium", "Low"].map(level => {
+            let base = "px-4 py-2 rounded-lg font-semibold border-2 transition-colors duration-150 focus:outline-none ";
+            let color = "";
+            let border = "";
+            if (level === "Critical") {
+              color = urgencyFilter === level ? "bg-red-600 text-white" : "bg-white text-red-700 hover:bg-red-50";
+              border = urgencyFilter === level ? "border-red-700" : "border-red-400";
+            } else if (level === "High") {
+              color = urgencyFilter === level ? "bg-orange-500 text-white" : "bg-white text-orange-600 hover:bg-orange-50";
+              border = urgencyFilter === level ? "border-orange-600" : "border-orange-400";
+            } else if (level === "Medium") {
+              color = urgencyFilter === level ? "bg-yellow-400 text-white" : "bg-white text-yellow-600 hover:bg-yellow-50";
+              border = urgencyFilter === level ? "border-yellow-500" : "border-yellow-400";
+            } else {
+              color = urgencyFilter === level ? "bg-green-500 text-white" : "bg-white text-green-700 hover:bg-green-50";
+              border = urgencyFilter === level ? "border-green-600" : "border-green-400";
+            }
+            return (
+              <button
+                key={level}
+                onClick={() => setUrgencyFilter(urgencyFilter === level ? "" : level)}
+                className={base + color + " " + border + (urgencyFilter === level ? " ring-2 ring-offset-2" : "")}
+              >
+                {level}
+              </button>
+            );
+          })}
+        </div>
         {/* Requests Grid */}
         {filteredRequests.length === 0 ? (
           <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
@@ -329,6 +373,14 @@ const DeptHeadPage = () => {
                         <div>
                           <p className="text-xs text-gray-500">Concern Type</p>
                           <p className="font-medium text-sm">{req.type_of_concern}</p>
+                        </div>
+                      </div>
+                      {/* Urgency Level */}
+                      <div className="flex items-center text-gray-700">
+                        <FaExclamationTriangle className="text-yellow-500 mr-2" />
+                        <div>
+                          <p className="text-xs text-gray-500">Urgency Level</p>
+                          <p className="font-medium text-sm">{req.urgency || "—"}</p>
                         </div>
                       </div>
                       

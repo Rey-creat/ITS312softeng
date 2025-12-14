@@ -169,7 +169,7 @@ const DeptHeadPage = () => {
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">Department Head Dashboard</h1>
                 {requests.length > 0 && (
-                  <span className="w-3 h-3 bg-red-500 rounded-full animate-ping" title="You have requests to review"></span>
+                  <span className="w-3 h-3 bg-white-500 rounded-full animate-ping" title="You have requests to review"></span>
                 )}
               </div>
               <p className="text-gray-600 text-sm">Review and process facility repair requests from your department</p>
@@ -263,46 +263,21 @@ const DeptHeadPage = () => {
           </div>
         )}
 
-        {/* Urgency Filter Buttons */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          <button
-            key="All"
-            onClick={() => setUrgencyFilter("")}
-            className={
-              "px-4 py-2 rounded-lg font-semibold border-2 transition-colors duration-150 focus:outline-none " +
-              (urgencyFilter === "" ? "bg-blue-600 text-white border-blue-700 ring-2 ring-offset-2" : "bg-white text-blue-700 border-blue-400 hover:bg-blue-50")
-            }
+        {/* Urgency Filter - Dropdown Added */}
+        <div className="flex items-center space-x-4 mb-4">
+          <select
+            value={urgencyFilter}
+            onChange={(e) => setUrgencyFilter(e.target.value)}
+            className="px-3 py-2 border rounded-lg bg-white text-gray-700"
           >
-            All
-          </button>
-          {["Critical", "High", "Medium", "Low"].map(level => {
-            let base = "px-4 py-2 rounded-lg font-semibold border-2 transition-colors duration-150 focus:outline-none ";
-            let color = "";
-            let border = "";
-            if (level === "Critical") {
-              color = urgencyFilter === level ? "bg-red-600 text-white" : "bg-white text-red-700 hover:bg-red-50";
-              border = urgencyFilter === level ? "border-red-700" : "border-red-400";
-            } else if (level === "High") {
-              color = urgencyFilter === level ? "bg-orange-500 text-white" : "bg-white text-orange-600 hover:bg-orange-50";
-              border = urgencyFilter === level ? "border-orange-600" : "border-orange-400";
-            } else if (level === "Medium") {
-              color = urgencyFilter === level ? "bg-yellow-400 text-white" : "bg-white text-yellow-600 hover:bg-yellow-50";
-              border = urgencyFilter === level ? "border-yellow-500" : "border-yellow-400";
-            } else {
-              color = urgencyFilter === level ? "bg-green-500 text-white" : "bg-white text-green-700 hover:bg-green-50";
-              border = urgencyFilter === level ? "border-green-600" : "border-green-400";
-            }
-            return (
-              <button
-                key={level}
-                onClick={() => setUrgencyFilter(urgencyFilter === level ? "" : level)}
-                className={base + color + " " + border + (urgencyFilter === level ? " ring-2 ring-offset-2" : "")}
-              >
-                {level}
-              </button>
-            );
-          })}
+            <option value="">All</option>
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
         </div>
+
         {/* Requests Grid */}
         {filteredRequests.length === 0 ? (
           <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 text-center">
@@ -353,69 +328,83 @@ const DeptHeadPage = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex items-center text-gray-700">
-                        <FaCalendarAlt className="text-gray-400 mr-2" />
+                        <div className="text-gray-400 mr-2" />
                         <div>
-                          <p className="text-xs text-gray-500">Date Filed</p>
-                          <p className="font-medium text-sm">{formatDate(req.date_filed)}</p>
+                          <p className="text-xs text-black">Date Filed</p>
+                          <p className="font-medium text-sm text-black">{formatDate(req.date_filed)}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center text-gray-700">
-                        <FaCalendarAlt className="text-gray-400 mr-2" />
+                        <div className="text-gray-400 mr-2" />
                         <div>
-                          <p className="text-xs text-gray-500">Date Needed</p>
-                          <p className="font-medium text-sm">{formatDate(req.date_needed)}</p>
+                          <p className="text-xs text-black">Date Needed</p>
+                          <p className="font-medium text-sm text-black">{formatDate(req.date_needed)}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center text-gray-700">
-                        <FaTools className="text-gray-400 mr-2" />
+                        <div className="text-gray-400 mr-2" />
                         <div>
-                          <p className="text-xs text-gray-500">Concern Type</p>
-                          <p className="font-medium text-sm">{req.type_of_concern}</p>
+                          <p className="text-xs text-black">Concern Type</p>
+                          <p className="font-medium text-sm text-black">{req.type_of_concern}</p>
                         </div>
                       </div>
-                      {/* Urgency Level */}
+                     {/* Urgency Level */}
+  <div className="flex items-center text-gray-700">
+    <div className="mr-2">
+      <div className={`w-1 h-1 rounded-full ${
+        req.urgency === "Critical" ? "bg-white-500" :
+        req.urgency === "High" ? "bg-white-500" :
+        req.urgency === "Medium" ? "bg-white-500" :
+        "bg-white-500"
+      }`} />
+    </div>
+  <div>
+    <p className="text-xs text-black">Urgency Level</p>
+    <p className={`font-medium text-sm ${
+      req.urgency === "Critical" ? "text-red-700" :
+      req.urgency === "High" ? "text-orange-700" :
+      req.urgency === "Medium" ? "text-yellow-700" :
+      "text-green-700"
+    }`}>
+      {req.urgency || "—"}
+    </p>
+  </div>
+</div>
+                      
                       <div className="flex items-center text-gray-700">
-                        <FaExclamationTriangle className="text-yellow-500 mr-2" />
+                        <div className="text-gray-400 mr-2" />
                         <div>
-                          <p className="text-xs text-gray-500">Urgency Level</p>
-                          <p className="font-medium text-sm">{req.urgency || "—"}</p>
+                          <p className="text-xs text-black">Requested By</p>
+                          <p className="font-medium text-sm text-black">{req.requested_by}</p>
                         </div>
                       </div>
                       
                       <div className="flex items-center text-gray-700">
-                        <FaUser className="text-gray-400 mr-2" />
+                        <div className="text-gray-400 mr-2" />
                         <div>
-                          <p className="text-xs text-gray-500">Requested By</p>
-                          <p className="font-medium text-sm">{req.requested_by}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center text-gray-700">
-                        <FaBuilding className="text-gray-400 mr-2" />
-                        <div>
-                          <p className="text-xs text-gray-500">Department</p>
-                          <p className="font-medium text-sm">{req.department || department}</p>
+                          <p className="text-xs text-black">Department</p>
+                          <p className="font-medium text-sm text-black">{req.department || department}</p>
                         </div>
                       </div>
                     </div>
                     
                     <div>
                       <div className="flex items-start text-gray-700">
-                        <FaAlignLeft className="text-gray-400 mr-2 mt-1" />
+                        <div className="text-gray-400 mr-2 mt-1" />
                         <div>
-                          <p className="text-xs text-gray-500">Description</p>
-                          <p className="font-medium text-sm mt-1">{req.description}</p>
+                          <p className="text-xs text-black">Description</p>
+                          <p className="font-medium text-sm mt-1 text-black">{req.description}</p>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center text-gray-700">
-                      <FaClipboardCheck className="text-gray-400 mr-2" />
+                      <div className="text-gray-400 mr-2" />
                       <div>
-                        <p className="text-xs text-gray-500">Current Status</p>
-                        <p className="font-medium text-sm">Awaiting department head approval</p>
+                        <p className="text-xs text-black">Current Status</p>
+                        <p className="font-medium text-sm text-black">Awaiting department head approval</p>
                       </div>
                     </div>
                   </div>

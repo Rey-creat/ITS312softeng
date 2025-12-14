@@ -11,7 +11,8 @@ import {
   FaSignOutAlt,
   FaUserCircle,
   FaCog,
-  FaBell
+  FaBell,
+  FaHome
 } from "react-icons/fa";
 
 export default function Sidebar({ role, profilePicture, fullname }) {
@@ -24,7 +25,7 @@ export default function Sidebar({ role, profilePicture, fullname }) {
 
   // Sidebar menu items for Teachers, Faculty, and Staff
   let menu = [
-    { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt className="text-lg" />, exact: true },
+    { name: "Dashboard", path: "/dashboard", icon: <FaHome className="text-lg" />, exact: true },
     { name: "Create Request", path: "/createRequest", icon: <FaPlusCircle className="text-lg" /> },
     { name: "My Requests", path: "/myRequest", icon: <FaListAlt className="text-lg" /> },
     { name: "Reports", path: "/reports", icon: <FaChartBar className="text-lg" /> },

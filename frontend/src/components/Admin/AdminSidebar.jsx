@@ -67,11 +67,13 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
       { name: "Superadmin Dashboard", path: "/SuperadminDashboard", exact: true },
       { name: "Notifications", path: "/AdminNotifications" },
       { name: "Dept. Office Head", path: "/DeptHeadPage" },
+
       { name: "Head of PPGS", path: "/PPGSHeadPage" },
       { name: "School President", path: "/President" },
     ],
     "Dept Head": [
-      { name: "Request ", path: "/DeptHeadPage", exact: true },
+      { name: "Requests ", path: "/DeptHeadPage", exact: true },
+      
   
     ],
     "PPGS Head": [
@@ -174,7 +176,7 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
               <FaUniversity className="text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold">School Facilities</h2>
+              <h2 className="text-sm font-semibold"> Lccb School Facilities</h2>
               <p className="text-xs text-blue-300">Repair Management System</p>
             </div>
           </div>
@@ -230,6 +232,7 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
           );
         })}
       </nav>
+
 
       {/* Logout Section */}
       <div className="p-4 border-t border-blue-700/50">

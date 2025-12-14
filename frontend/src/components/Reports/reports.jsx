@@ -34,52 +34,6 @@ const formatDate = (dateString) => {
 };
 
 export default function Reports() {
-    // Export filtered reports to CSV
-    const handleExport = () => {
-      if (!filteredReports.length) return;
-      // Define CSV headers
-      const headers = [
-        "Reference Code",
-        "Type of Concern",
-        "Requested By",
-        "Date Filed",
-        "Date Needed",
-        "Description",
-        "Dept Head",
-        "PPGS Head",
-        "President",
-        "Completion Status",
-        "Completed By"
-      ];
-      // Map reports to CSV rows
-      const rows = filteredReports.map(r => [
-        r.reference_code || `REQ-${r.id}`,
-        r.type_of_concern,
-        r.requested_by,
-        r.date_filed,
-        r.date_needed || "",
-        r.description,
-        r.noted_by,
-        r.ppgshead,
-        r.status,
-        r.done_by ? "Done" : "Pending",
-        r.done_by || ""
-      ]);
-      // Build CSV string
-      const csvContent = [headers, ...rows]
-        .map(e => e.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
-        .join("\n");
-      // Download CSV
-      const blob = new Blob([csvContent], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "reports.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    };
   const [user, setUser] = useState(null);
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
@@ -135,6 +89,36 @@ export default function Reports() {
     }
   };
 
+  // Get final status for main row
+  const getFinalStatus = (report) => {
+    // If President rejected
+    if (report.president_reject_reason || report.status === "Rejected") {
+      return { text: "Rejected", color: "red", icon: <div className="mr-1.5" /> };
+    }
+    // If PPGS rejected
+    if (report.ppgshead === "Rejected") {
+      return { text: "Rejected", color: "red", icon: <div className="mr-1.5" /> };
+    }
+    // If Admin marked as done (and President approved)
+    if (report.done_by) {
+      return { text: "Completed", color: "green", icon: <div className="mr-1.5" /> };
+    }
+    // If President approved
+    if (report.status === "Approved" || report.status === "Done") {
+      return { text: "Approved", color: "green", icon: <div className="mr-1.5" /> };
+    }
+    // If PPGS approved, waiting for President
+    if (report.ppgshead === "Approved") {
+      return { text: "Pending", color: "amber", icon: <div className="mr-1.5" /> };
+    }
+    // If PPGS pending
+    if (report.ppgshead === "Pending" || !report.ppgshead) {
+      return { text: "Pending", color: "amber", icon: <div className="mr-1.5" /> };
+    }
+    // Default
+    return { text: "Pending", color: "amber", icon: <div className="mr-1.5" /> };
+  };
+
   // Filter and search logic
   useEffect(() => {
     let filtered = reports;
@@ -149,16 +133,18 @@ export default function Reports() {
     }
 
     if (statusFilter !== "All") {
-      if (statusFilter === "Pending") {
-        filtered = filtered.filter(
-          (report) =>
-            report.ppgshead === "Pending" ||
-            report.status === "Pending" ||
-            !report.done_by
-        );
-      } else {
-        filtered = filtered.filter((report) => report.ppgshead === statusFilter);
-      }
+      filtered = filtered.filter((report) => {
+        const finalStatus = getFinalStatus(report);
+        
+        if (statusFilter === "Pending") {
+          return finalStatus.text === "Pending";
+        } else if (statusFilter === "Completed") {
+          return finalStatus.text === "Completed";
+        } else if (statusFilter === "Rejected") {
+          return finalStatus.text === "Rejected";
+        }
+        return true;
+      });
     }
 
     setFilteredReports(filtered);
@@ -176,25 +162,10 @@ export default function Reports() {
       case "Completed":
         return "bg-green-100 text-green-800";
       case "Rejected":
+      case "—": // Added this for rejected chain
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "Pending":
-        return <FaClock className="mr-1.5" />;
-      case "In Progress":
-        return <FaExclamationTriangle className="mr-1.5" />;
-      case "Approved":
-      case "Completed":
-        return <FaCheckCircle className="mr-1.5" />;
-      case "Rejected":
-        return <FaTimesCircle className="mr-1.5" />;
-      default:
-        return <FaClock className="mr-1.5" />;
     }
   };
 
@@ -259,49 +230,40 @@ export default function Reports() {
               >
                 <FaSync className="mr-2" />
                 Refresh
-                
-              </button>
-              
-              <button
-                onClick={handleExport}
-                className="flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
-              >
-                <FaDownload className="mr-2" />
-                Export Report
               </button>
             </div>
           </div>
         </div>
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search requests by reference, concern, or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+          {/* Search and Status Filter Side by Side */}
+          <div className="flex items-center space-x-4">
+            {/* Search */}
+            <div className="relative">
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search requests Id..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-60 pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <FaFilter className="text-gray-400 mr-2" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="All">All Status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-              </div>
+            
+            {/* Status Filter */}
+            <div className="flex items-center">
+              <div className="text-gray-400 mr-2" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+              </select>
             </div>
           </div>
         </div>
@@ -326,6 +288,25 @@ export default function Reports() {
             <div className="divide-y divide-gray-200">
               {filteredReports.map((report) => {
                 const isExpanded = expandedRows.has(report.id);
+                const finalStatus = getFinalStatus(report);
+                
+                // Determine President status for expanded view
+                const getPresidentStatus = () => {
+                  if (report.ppgshead === "Rejected") {
+                    return { text: "—", color: "red" };
+                  } else if (report.president_reject_reason || report.status === "Rejected") {
+                    return { text: "Rejected", color: "red" };
+                  } else if (report.status === "Approved" || report.status === "Done" || report.done_by) {
+                    return { text: "Approved", color: "green" };
+                  } else if (report.ppgshead === "Pending" || !report.ppgshead || report.ppgshead === "") {
+                    return { text: "—", color: "red" };
+                  } else {
+                    return { text: "Pending", color: "amber" };
+                  }
+                };
+                
+                const presidentStatus = getPresidentStatus();
+                
                 return (
                   <div key={report.id} className="hover:bg-gray-50 transition-colors duration-200">
                     {/* Main Row */}
@@ -348,25 +329,26 @@ export default function Reports() {
                               </span>
                             </div>
                             <div className="flex items-center mt-1 text-sm text-gray-600">
-                              <FaUser className="mr-2" />
+                              <div className="mr-1 text-gray-400" />
                               <span>{report.requested_by}</span>
                               <span className="mx-2">•</span>
-                              <FaCalendarAlt className="mr-2" />
+                              <div className="mr-1 text-gray-400" />
                               <span>{formatDate(report.date_filed)}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <div className="flex items-center space-x-3">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(report.ppgshead || "Pending")}`}>
-                              {getStatusIcon(report.ppgshead || "Pending")}
-                              {report.ppgshead || "Pending"}
-                            </span>
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusColor(report.done_by ? "Completed" : "Pending")}`}>
-                              {report.done_by ? <FaCheckCircle className="mr-1.5" /> : <FaClock className="mr-1.5" />}
-                              {report.done_by ? "Done" : "Pending"}
-                            </span>
-                          </div>
+                          {/* Show FINAL status badge in main row */}
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
+                            finalStatus.color === "red"
+                              ? "bg-red-100 text-red-800"
+                              : finalStatus.color === "green"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}>
+                            {finalStatus.icon}
+                            {finalStatus.text}
+                          </span>
                           <div>
                             {isExpanded ? <FaChevronUp className="text-gray-400" /> : <FaChevronDown className="text-gray-400" />}
                           </div>
@@ -384,35 +366,35 @@ export default function Reports() {
                               <FaFileAlt className="mr-2 text-blue-500" />
                               Request Details
                             </h3>
-                              <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
-                                    <p className="text-gray-900 mt-1">{formatDate(report.date_filed)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
-                                    <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
-                                  </div>
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Filed</p>
+                                  <p className="text-gray-900 mt-1">{formatDate(report.date_filed)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase">Urgency Level</p>
-                                  <p className={
-                                    `mt-1 font-semibold ` +
-                                    (report.urgency === 'Critical' || report.urgency === 'Emergency' ? 'text-red-600' :
-                                    report.urgency === 'High' || report.urgency === 'Urgent' ? 'text-orange-500' :
-                                    report.urgency === 'Medium' || report.urgency === 'Normal' ? 'text-yellow-500' :
-                                    report.urgency === 'Low' || report.urgency === 'Minor' ? 'text-green-600' :
-                                    'text-gray-900')
-                                  }>
-                                    {report.urgency || '—'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
-                                  <p className="text-gray-900 mt-1">{report.description}</p>
+                                  <p className="text-xs font-semibold text-gray-500 uppercase">Date Needed</p>
+                                  <p className="text-gray-900 mt-1">{report.date_needed ? formatDate(report.date_needed) : "—"}</p>
                                 </div>
                               </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase">Urgency Level</p>
+                                <p className={
+                                  `mt-1 font-semibold ` +
+                                  (report.urgency === 'Critical' || report.urgency === 'Emergency' ? 'text-red-600' :
+                                  report.urgency === 'High' || report.urgency === 'Urgent' ? 'text-orange-500' :
+                                  report.urgency === 'Medium' || report.urgency === 'Normal' ? 'text-yellow-500' :
+                                  report.urgency === 'Low' || report.urgency === 'Minor' ? 'text-green-600' :
+                                  'text-gray-900')
+                                }>
+                                  {report.urgency || '—'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
+                                <p className="text-gray-900 mt-1">{report.description}</p>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Approval Process */}
@@ -422,18 +404,38 @@ export default function Reports() {
                               Approval Process
                             </h3>
                             <div className="space-y-4">
+                              {/* Dept Head */}
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">Dept Head</span>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.noted_by && report.noted_by !== "Pending" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                  report.noted_by && report.noted_by !== "Pending" 
+                                    ? "bg-emerald-100 text-emerald-800" 
+                                    : "bg-amber-100 text-amber-800"
+                                }`}>
                                   {report.noted_by && report.noted_by !== "Pending" ? report.noted_by : "Pending"}
                                 </span>
                               </div>
+
+                              {/* PPGS Head */}
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">PPGS Head</span>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.ppgshead === "Approved" ? "bg-emerald-100 text-emerald-800" : report.ppgshead === "Rejected" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`}>
-                                  {report.ppgshead || "Pending"}
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                  report.ppgshead === "Approved" 
+                                    ? "bg-emerald-100 text-emerald-800" 
+                                    : report.ppgshead === "Rejected" 
+                                    ? "bg-red-100 text-red-800" 
+                                    : report.noted_by === "Pending" || !report.noted_by || report.noted_by === ""
+                                    ? "bg-gray-100 text-gray-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}>
+                                  {report.ppgshead === "Rejected" 
+                                    ? "Rejected" 
+                                    : (report.noted_by === "Pending" || !report.noted_by || report.noted_by === "")
+                                    ? "—"
+                                    : report.ppgshead || "Pending"}
                                 </span>
                               </div>
+                              
                               {/* Show PPGS rejection reason if rejected */}
                               {report.ppgshead === "Rejected" && report.ppgs_reject_reason && (
                                 <div className="mt-2">
@@ -441,57 +443,69 @@ export default function Reports() {
                                   <p className="text-gray-900 mt-1">{report.ppgs_reject_reason}</p>
                                 </div>
                               )}
+
+                              {/* President */}
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">President</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                  (report.status === "Approved" || report.status === "Done")
-                                    ? "bg-green-100 text-green-800"
-                                    : report.status === "Rejected"
+                                  presidentStatus.color === "red"
                                     ? "bg-red-100 text-red-800"
-                                    : "bg-amber-100 text-amber-800"
+                                    : presidentStatus.color === "green"
+                                    ? "bg-green-100 text-green-800"
+                                    : presidentStatus.color === "amber"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-gray-100 text-gray-800"
                                 }`}>
-                                  {(report.status === "Approved" || report.status === "Done")
-                                    ? "Approved"
-                                    : report.status === "Rejected"
-                                    ? "Rejected"
-                                    : "Pending"}
+                                  {presidentStatus.text}
                                 </span>
                               </div>
+                              
                               {/* Show President rejection reason if rejected */}
-                              {report.status === "Rejected" && report.president_reject_reason && (
+                              {presidentStatus.text === "Rejected" && report.president_reject_reason && (
                                 <div className="mt-2">
                                   <p className="text-xs font-semibold text-red-500 uppercase">President Rejection Reason</p>
                                   <p className="text-gray-900 mt-1">{report.president_reject_reason}</p>
                                 </div>
                               )}
                             </div>
-                          </div>
+                          </div>  
 
                           {/* Completion Status */}
                           <div>
                             <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                              <FaTools className="mr-2 text-purple-500" />
+                              <FaTools className="mr-2 text-blue-500" />
                               Completion Status
                             </h3>
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-700">Marked by Admin</span>
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${report.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
-                                  {report.done_by ? "Done" : "Pending"}
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                  report.ppgshead === "Rejected" || presidentStatus.text === "Rejected"
+                                    ? "bg-red-100 text-red-800"
+                                    : report.done_by
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}>
+                                  {report.ppgshead === "Rejected" || presidentStatus.text === "Rejected"
+                                    ? "—"
+                                    : report.done_by
+                                    ? "Done"
+                                    : "Pending"}
                                 </span>
                               </div>
-                              {report.done_by && (
+                              
+                              {report.done_by && report.ppgshead !== "Rejected" && presidentStatus.text !== "Rejected" && (
                                 <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase">Completed By</p>
+                                  <p className="text-s font-semibold text-gray-700 uppercase">Completed by:</p>
                                   <p className="text-gray-900 mt-1">{report.assigned_personnel_name || report.done_by || "Unknown"}</p>
                                   {report.assigned_role && (
-                                    <p className="text-xs text-gray-500 mt-1">Role: <span className="font-semibold text-gray-700">{report.assigned_role}</span></p>
+                                    <p className="text-m text-gray-700 mt-1">Role: <span className="font-semibold text-gray-700">{report.assigned_role}</span></p>
                                   )}
                                   {report.date_done && (
-                                    <p className="text-xs text-gray-500 mt-1">Marked done by Admin on: <span className="font-semibold text-gray-700">{report.date_done}</span></p>
+                                    <p className="text-m text-gray-700 mt-1">Marked done by Admin on: <span className="font-semibold text-gray-700">{report.date_done}</span></p>
                                   )}
                                 </div>
-                              )}
+                              )}  
                             </div>
                           </div>
                         </div>

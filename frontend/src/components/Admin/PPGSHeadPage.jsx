@@ -34,6 +34,7 @@ const PPGSHeadPage = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [rejectReason, setRejectReason] = useState("");
+  const [urgencyFilter, setUrgencyFilter] = useState("All");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -177,12 +178,16 @@ const PPGSHeadPage = () => {
       String(req.id).includes(query)
     );
   }
+  // Apply urgency filter
+  if (urgencyFilter !== "All") {
+    reviewRequests = reviewRequests.filter(req => req.urgency === urgencyFilter);
+  }
 
   if (loading) {
     return (
       <div className="flex h-screen">
         <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-        <div className="flex-1 flex items-center justify-center bg-linear-to-br from-gray-50 to-blue-50">
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading requests...</p>
@@ -195,7 +200,7 @@ const PPGSHeadPage = () => {
   return (
     <div className="flex h-screen">
       <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-      <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-blue-50">
+      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
@@ -231,6 +236,21 @@ const PPGSHeadPage = () => {
             </div>
           </div>
 
+          {/* Urgency Filter Section */}
+          <div className="flex items-center space-x-4 mb-4">
+            <select
+              value={urgencyFilter}
+              onChange={(e) => setUrgencyFilter(e.target.value)}
+              className="px-3 py-2 border rounded-lg bg-white text-gray-700"
+            >
+              <option value="All">All</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+
           {reviewRequests.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto">
               <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -246,23 +266,21 @@ const PPGSHeadPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {reviewRequests.map((req) => (
                 <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                  <div className="px-5 py-4 bg-linear-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                  <div className={`px-5 py-4 ${req.ppgshead === "Rejected" ? "bg-gradient-to-r from-red-50 to-red-100" : "bg-gradient-to-r from-gray-50 to-blue-50"} border-b border-gray-200`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                          <FaFileAlt className="text-blue-600" />
+                        <div className={`p-2 ${req.ppgshead === "Rejected" ? "bg-red-100" : "bg-blue-100"} rounded-lg mr-3`}>
+                          <FaFileAlt className={req.ppgshead === "Rejected" ? "text-red-600" : "text-blue-600"} />
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900">Request #{req.id}</h3>
-                          <p className="text-gray-600 text-xs mt-1">Awaiting PPGS approval</p>
+                          <h3 className={`font-bold ${req.ppgshead === "Rejected" ? "text-red-900" : "text-gray-900"}`}>Request #{req.id}</h3>
+                          <p className={`${req.ppgshead === "Rejected" ? "text-red-600" : "text-gray-600"} text-xs mt-1`}>
+                            {req.ppgshead === "Rejected" ? "Request Rejected" : "Awaiting PPGS approval"}
+                          </p>
                         </div>
                       </div>
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
-                        {req.ppgshead === "Rejected" ? (
-                          <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full">Rejected</span>
-                        ) : (
-                          "Pending Review"
-                        )}
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${req.ppgshead === "Rejected" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"}`}>
+                        {req.ppgshead === "Rejected" ? "Rejected" : "Pending Review"}
                       </span>
                     </div>
                   </div>
@@ -270,47 +288,64 @@ const PPGSHeadPage = () => {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center text-gray-700">
-                          <FaCalendarAlt className="text-gray-400 mr-2" />
+                          <div className="text-gray-400 mr-2" />
                           <div>
-                            <p className="text-xs text-gray-500">Date Filed</p>
-                            <p className="font-medium text-sm">{formatDate(req.date_filed)}</p>
+                            <p className="text-xs text-black">Date Filed</p>
+                            <p className="font-medium text-sm text-black">{formatDate(req.date_filed)}</p>
                           </div>
                         </div>
                         <div className="flex items-center text-gray-700">
-                          <FaCalendarAlt className="text-gray-400 mr-2" />
+                          <div className="text-gray-400 mr-2" />
                           <div>
-                            <p className="text-xs text-gray-500">Date Needed</p>
-                            <p className="font-medium text-sm">{formatDate(req.date_needed)}</p>
+                            <p className="text-xs text-black">Date Needed</p>
+                            <p className="font-medium text-sm text-black">{formatDate(req.date_needed)}</p>
                           </div>
                         </div>
                         <div className="flex items-center text-gray-700">
-                          <FaTools className="text-gray-400 mr-2" />
+                          <div className="text-gray-400 mr-2" />
                           <div>
-                            <p className="text-xs text-gray-500">Concern Type</p>
-                            <p className="font-medium text-sm">{req.type_of_concern}</p>
+                            <p className="text-xs text-black">Concern Type</p>
+                            <p className="font-medium text-sm text-black">{req.type_of_concern}</p>
                           </div>
                         </div>
                         <div className="flex items-center text-gray-700">
-                          <FaUser className="text-gray-400 mr-2" />
+                          <div className="text-gray-400 mr-2" />
                           <div>
-                            <p className="text-xs text-gray-500">Requested By</p>
-                            <p className="font-medium text-sm">{req.requested_by}</p>
+                            <p className="text-xs text-black">Requested By</p>
+                            <p className="font-medium text-sm text-black">{req.requested_by}</p>
                           </div>
                         </div>
                         <div className="flex items-center text-gray-700">
-                          <FaClipboardCheck className="text-green-500 mr-2" />
+                          <div className="text-gray-400 mr-2" />
                           <div>
-                            <p className="text-xs text-gray-500">Noted By</p>
-                            <p className="font-medium text-sm">{req.noted_by || "—"}</p>
+                            </div>
+                             {/* Urgency Display */}
+                      <div className="flex flex-col items-left">
+                        <span className="text-sm font-medium text-gray-900">Urgency</span>
+                        <span className={`px-2.5 py-1 rounded-full text-sm font-semibold ${
+                          req.urgency === "Critical" ? "bg-red-100 text-red-800" :
+                          req.urgency === "High" ? "bg-orange-100 text-orange-800" :
+                          req.urgency === "Medium" ? "bg-yellow-100 text-yellow-800" :
+                          "bg-green-100 text-green-800"
+                        }`}>  
+                          {req.urgency} 
+                        </span>
+                      </div>
+                            </div>
+                        <div className="flex items-center text-black-700">
+                          <div className="text-green-500 mr-2" />
+                          <div>
+                            <p className="text-xs text-gray-900">Noted By</p>
+                            <p className="font-medium text-green-600 ml-2">{req.noted_by || "—"}</p>
                           </div>
                         </div>
                       </div>
                       <div>
                         <div className="flex items-start text-gray-700">
-                          <FaAlignLeft className="text-gray-400 mr-2 mt-1" />
+                          <div className="text-gray-400 mr-2 mt-1" />
                           <div>
-                            <p className="text-xs text-gray-500">Description</p>
-                            <p className="font-medium text-sm mt-1">{req.description}</p>
+                            <p className="text-xs text-black">Description</p>
+                            <p className="font-medium text-sm mt-1 text-black">{req.description}</p>
                           </div>
                         </div>
                       </div>
@@ -320,16 +355,16 @@ const PPGSHeadPage = () => {
                         <div className="flex gap-3">
                           <button
                             onClick={() => handleApprove(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
-                            <FaCheck className="w-4 h-4" />
+                            <FaCheck className="mr-2" />
                             Approve
                           </button>
                           <button
                             onClick={() => handleReject(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
-                            <FaBan className="w-4 h-4" />
+                            <FaTimesCircle className="mr-2" />
                             Reject
                           </button>
                         </div>
@@ -368,68 +403,67 @@ const PPGSHeadPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaTools className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Type of Concern</h3>
+                    <div className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Type of Concern</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{selectedRequest.type_of_concern}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaCalendarAlt className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Date Filed</h3>
+                    <div className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Date Filed</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_filed)}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaCalendarDay className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Date Needed</h3>
+                    <div className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Date Needed</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_needed)}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaUser className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Requested By</h3>
+                    <div className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Requested By</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{selectedRequest.requested_by}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaClipboardCheck className="w-5 h-5 text-green-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Noted By</h3>
+                    <div className="w-5 h-5 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Urgency</h3>
+                  </div>
+                  <p className="text-gray-900 font-medium">{selectedRequest.urgency}</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 text-green-500" />
+                    <h3 className="text-sm font-semibold text-green-700">Noted By</h3>
                   </div>
                   <p className="text-gray-900 font-medium">{selectedRequest.noted_by || "—"}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <FaHourglassHalf className="w-5 h-5 text-yellow-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Current Status</h3>
+                    <div className="w-5 h-5 text-yellow-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Current Status</h3>
                   </div>
                   <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(selectedRequest.ppgshead)}`}>
                     {selectedRequest.ppgshead || "Pending"}
                   </span>
-                </div>
-
-                {/* Urgency Level */}
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaExclamationTriangle className="w-5 h-5 text-red-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Urgency Level</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{selectedRequest.urgency || "—"}</p>
                 </div>
               </div>
 
               {/* Full Description */}
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaAlignLeft className="w-5 h-5 text-blue-500" />
+                  <div className="w-5 h-5 text-blue-500" />
                   <h3 className="text-lg font-semibold text-gray-900">Full Description</h3>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-5">
@@ -441,16 +475,16 @@ const PPGSHeadPage = () => {
               <div className="flex gap-3 pt-6 border-t">
                 <button
                   onClick={() => handleApprove(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
-                  <FaThumbsUp className="w-5 h-5" />
+                  <FaCheckCircle className="w-5 h-5" />
                   Approve Request
                 </button>
                 <button
                   onClick={() => handleReject(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
-                  <FaThumbsDown className="w-5 h-5" />
+                  <FaTimesCircle className="w-5 h-5" />
                   Reject Request
                 </button>
               </div>
@@ -477,7 +511,7 @@ const PPGSHeadPage = () => {
               </button>
               <button
                 onClick={confirmApprove}
-                className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
+                className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
               >
                 <FaCheckCircle className="mr-2" />
                 Yes, Approve
@@ -517,7 +551,7 @@ const PPGSHeadPage = () => {
               </button>
               <button
                 onClick={confirmReject}
-                className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
+                className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
               >
                 <FaTimesCircle className="mr-2" />
                 Yes, Reject

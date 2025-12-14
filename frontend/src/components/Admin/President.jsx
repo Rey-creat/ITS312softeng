@@ -2,20 +2,26 @@ import React, { useState, useEffect } from "react";
 import AdminSidebar from "./AdminSidebar";
 import {
   FaFileAlt,
-  FaHourglassHalf,
   FaCheckCircle,
-  FaSync,
+  FaTimesCircle,
   FaUser,
   FaCalendarAlt,
-  FaCalendarDay,
-  FaAlignLeft,
-  FaBuilding,
-  FaUserTie,
-  FaCrown,
   FaTools,
-  FaTimesCircle,
-  FaCheck,
+  FaAlignLeft,
+  FaClipboardCheck,
+  FaHourglassHalf,
+  FaExclamationTriangle,
+  FaThumbsUp,
+  FaThumbsDown,
+  FaEye,
   FaBan,
+  FaCheck,
+  FaArrowRight,
+  FaCalendarDay,
+  FaClipboardList,
+  FaSync,
+  FaSearch,
+  FaUserTie
 } from "react-icons/fa";
 
 // Utility function for date formatting
@@ -31,55 +37,17 @@ function formatDate(dateString) {
 
 function President() {
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [processingId, setProcessingId] = useState(null);
-  const [updating, setUpdating] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
-  const [decision, setDecision] = useState("");
-  const [message, setMessage] = useState("");
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [feedbackType, setFeedbackType] = useState("");
+  const [processingId, setProcessingId] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [urgencyFilter, setUrgencyFilter] = useState("All");
 
   // Fetch requests
-    // Modal logic handlers
-    const openConfirmModal = (id, action) => {
-      // Find the full request object for details modal, or just set id for card actions
-      const req = requests.find(r => r.id === id) || { id };
-      setSelectedRequest(req);
-      if (action === "Approved") {
-        setShowApproveConfirm(true);
-      } else {
-        setShowRejectConfirm(true);
-      }
-    };
-
-    const closeConfirmModal = () => {
-      setShowApproveConfirm(false);
-      setShowRejectConfirm(false);
-      setRejectReason("");
-    };
-
-    const confirmApprove = () => {
-      if (!selectedRequest) return;
-      handleDecision(selectedRequest.id, "Approved");
-      closeConfirmModal();
-    };
-
-    const confirmReject = () => {
-      if (!rejectReason.trim()) {
-        alert("Rejection reason is required");
-        return;
-      }
-      if (!selectedRequest) return;
-      handleDecision(selectedRequest.id, "Rejected");
-      closeConfirmModal();
-    };
   useEffect(() => {
     const fetchRequests = async () => {
       setLoading(true);
@@ -93,12 +61,14 @@ function President() {
 
         const data = await res.json();
 
+        // Filter for PPGS Approved and President Pending
         setRequests(
           data
-            .filter((r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status))
+            .filter((r) => r.ppgshead === "Approved" && (r.status === "Pending" || !r.status || r.status === ""))
             .sort((a, b) => b.id - a.id)
         );
       } catch (err) {
+        console.error("Error fetching requests:", err);
         setRequests([]);
       } finally {
         setLoading(false);
@@ -117,24 +87,53 @@ function President() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
+  // Modal logic handlers
+  const openConfirmModal = (id, action) => {
+    const req = requests.find(r => r.id === id);
+    setSelectedRequest(req);
+    if (action === "Approved") {
+      setShowApproveConfirm(true);
+    } else {
+      setShowRejectConfirm(true);
+    }
+  };
+
+  const closeConfirmModal = () => {
+    setShowApproveConfirm(false);
+    setShowRejectConfirm(false);
+    setRejectReason("");
+  };
+
+  const confirmApprove = async () => {
+    if (!selectedRequest) return;
+    await handleDecision(selectedRequest.id, "Approved");
+    closeConfirmModal();
+  };
+
+  const confirmReject = async () => {
+    if (!rejectReason.trim()) {
+      showNotification("Please provide a reason for rejection.", "error");
+      return;
+    }
+    if (!selectedRequest) return;
+    await handleDecision(selectedRequest.id, "Rejected");
+    closeConfirmModal();
+  };
+
   // Handle decision
   const handleDecision = async (id, decision) => {
     setProcessingId(id);
-    setUpdating(true);
-    setFeedbackMessage("");
-    setFeedbackType("");
-
+    
     try {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const president_by = user?.fullname || user?.name || "President";
 
-      // Always send rejectReason if rejecting, otherwise message
       const payload = {
         status: decision,
         president_by,
-        president_reject_reason: decision === "Rejected" ? rejectReason : undefined,
-        message: decision !== "Rejected" ? message : undefined,
+        ...(decision === "Rejected" && { president_reject_reason: rejectReason }),
+        ...(decision === "Approved" && { message: "Approved by President" })
       };
 
       const res = await fetch(
@@ -150,9 +149,7 @@ function President() {
       );
 
       if (res.ok) {
-        setDecision(decision);
         setRequests((prev) => prev.filter((r) => r.id !== id));
-        setMessage("");
         showNotification(
           `Request ${decision === "Approved" ? "approved" : "rejected"} successfully`,
           "success"
@@ -165,7 +162,6 @@ function President() {
     } catch (err) {
       showNotification("Error updating request. Please try again.", "error");
     } finally {
-      setUpdating(false);
       setProcessingId(null);
     }
   };
@@ -196,14 +192,19 @@ function President() {
     }, 3000);
   };
 
-  // Get status color
-  const getStatusColor = (status) => {
-    switch(status) {
-      case "Approved": return "bg-green-100 text-green-800 border-green-200";
-      case "Rejected": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    }
-  };
+  // Filter requests for display
+  const filteredRequests = searchQuery.trim() ? 
+    requests.filter(req =>
+      req.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.requested_by?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.type_of_concern?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(req.id).includes(searchQuery)
+    ) : requests;
+
+  // Filter requests by urgency
+  const urgencyFilteredRequests = filteredRequests.filter(req => 
+    urgencyFilter === "All" || req.urgency === urgencyFilter
+  );
 
   if (loading) {
     return (
@@ -220,100 +221,92 @@ function President() {
   }
 
   return (
-    <div className="flex min-h-screen bg-linear-to-br from-gray-50 to-blue-50">
-      <div className="fixed inset-y-0 left-0 z-40 w-64">
-        <AdminSidebar presidentHasRequests={requests.length > 0} />
-      </div>
-      <div className="ml-64 flex-1 h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-8 py-6">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-gradient-to-r from-white-600 to-white-700 rounded-lg">
-                <div className="text-3xl text-white" />
-              </div>
-              <div>
-                <div className="flex items-center w-full">
-                  <h1 className="text-2xl font-bold text-gray-900">President Dashboard</h1>
-                  <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
-                </div>
-                <p className="text-gray-600">Final approval stage for PPGS Head-endorsed requests</p>
-                {/* President Summary Boxes under title/desc */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-6">
-                  <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-3 bg-blue-50 rounded-lg mr-4">
-                        <FaFileAlt className="text-xl text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-gray-600 text-sm font-medium">Total Request</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-3 bg-yellow-50 rounded-lg mr-4">
-                        <FaHourglassHalf className="text-xl text-yellow-600" />
-                      </div>
-                      <div>
-                        <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
-                        <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 mt-4 md:mt-0">
-              <div className="px-4 py-2 text-blue-700 font-bold text-base flex items-center">
-                <FaCheckCircle className="inline-block mr-2 text-blue-500" />
-                {requests.length} Pending Approval
-              </div>
-              <button
-                onClick={() => window.location.reload()}
-                className="flex items-center gap-2 px-4 py-2 bg-white-100 hover:bg-white-200 text-black-700 font-semibold rounded-lg shadow transition-all border border-blue-200"
-                title="Refresh requests"
-              >
-                <FaSync className="mr-1" />
-                <span className="font-semibold">Refresh</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
+    <div className="flex h-screen">
+      <AdminSidebar presidentHasRequests={requests.length > 0} />
+      <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            <input
-              type="text"
-              value={searchValue}
-              onChange={e => setSearchValue(e.target.value)}
-              placeholder="Search requests..."
-              className="px-3 py-2 border rounded-lg bg-white text-gray-700 w-64"
-            />
-            <button
-              onClick={() => setSearchTerm(searchValue)}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-            >
-              Search
-            </button>
-            <button
-              onClick={() => { setSearchValue(""); setSearchTerm(""); }}
-              className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400"
-            >
-              Clear
-            </button>
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">President Dashboard</h1>
+                <p className="text-gray-600 mt-1">
+                  Final approval stage for PPGS Head-endorsed requests
+                </p>
+              </div>
+              <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <div className="relative w-full md:w-64">
+                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    className="pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700 w-full"
+                    placeholder="Search requests..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <FaSync className="mr-2" />
+                  Refresh
+                </button>
+                {requests.length > 0 && (
+                  <div className="flex items-center px-4 py-2.5 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
+                    <FaExclamationTriangle className="mr-2" />
+                    <span className="font-medium">{requests.length} pending</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+              <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="p-3 bg-blue-50 rounded-lg mr-4">
+                    <FaFileAlt className="text-xl text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium">Total Requests</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{requests.length}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+                <div className="flex items-center">
+                  <div className="p-3 bg-yellow-50 rounded-lg mr-4">
+                    <FaHourglassHalf className="text-xl text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium">Awaiting Review</p>
+                    <p className="text-2xl font-bold text-yellow-600 mt-1">{requests.length}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          {requests.filter(r =>
-            searchTerm === "" ||
-            r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
-          ).length === 0 ? (
+
+          {/* Urgency Filter Options */}
+          <div className="flex items-center space-x-4 mb-4">
+            <select
+              value={urgencyFilter}
+              onChange={(e) => setUrgencyFilter(e.target.value)}
+              className="px-3 py-2 border rounded-lg bg-white text-gray-700"
+            >
+              <option value="All">All</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+
+          {urgencyFilteredRequests.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center max-w-3xl mx-auto">
-              <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FaCheckCircle className="w-12 h-12 text-blue-400" />
+              <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaClipboardList className="w-12 h-12 text-blue-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">No pending presidential approvals</h3>
               <p className="text-gray-500 max-w-md mx-auto">
@@ -322,139 +315,110 @@ function President() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ml-5">
-              {requests.filter(r =>
-                searchTerm === "" ||
-                r.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                r.requested_by?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                r.type_of_concern?.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((req) => (
-                <div 
-                  key={req.id} 
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden group"
-                >
-                  {/* Card Header */}
-                  <div className="px-6 py-5 border-b border-gray-100 bg-linear-to-r from-gray-50 to-purple-50">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="p-2 bg-linear-to-r from-purple-100 to-blue-100 rounded-lg">
-                            <FaFileAlt className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-semibold text-blue-600">
-                            Request #{req.id}
-                          </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {urgencyFilteredRequests.map((req) => (
+                <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                  <div className="px-5 py-4 bg-linear-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                          <FaFileAlt className="text-blue-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">{req.type_of_concern}</h3>
+                        <div>
+                          <h3 className="font-bold text-gray-900">Request #{req.id}</h3>
+                          <p className="text-gray-600 text-xs mt-1">Final Presidential Approval</p>
+                        </div>
                       </div>
-                      <span className="px-3 py-1 bg-linear-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold rounded-full border border-blue-200">
-                        Final Review
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                        Pending Review
                       </span>
                     </div>
                   </div>
-
-                  {/* Card Body */}
-                  <div className="px-6 py-5">
+                  <div className="p-5">
                     <div className="space-y-4">
-                      {/* Dates */}
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <FaCalendarAlt className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs font-medium text-gray-500">Date Filed</span>
-                          </div>
-                          <p className="text-gray-900 font-medium pl-6">{formatDate(req.date_filed)}</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <FaCalendarDay className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs font-medium text-gray-500">Date Needed</span>
-                          </div>
-                          <p className="text-gray-900 font-medium pl-6">{formatDate(req.date_needed)}</p>
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <div>
-                        <div className="flex items-start gap-2 mb-2">
-                          <FaAlignLeft className="w-4 h-4 text-gray-400 mt-0.5" />
-                          <span className="text-sm font-medium text-gray-500">Description</span>
-                        </div>
-                        <p className="text-gray-700 line-clamp-3 pl-6">{req.description}</p>
-                      </div>
-
-                      {/* Requester */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <FaUser className="w-4 h-4 text-gray-400" />
-                          <span className="text-xs font-medium text-gray-500">Requested By</span>
-                        </div>
-                        <p className="text-gray-900 font-medium pl-6">{req.requested_by}</p>
-                      </div>
-
-                      {/* Approval Chain */}
-                      <div className="pt-4 border-t border-gray-100">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                <FaBuilding className="w-3 h-3 text-blue-600" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-700">Dept Head</span>
-                            </div>
-                            <span className="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                              {req.noted_by || "Noted"}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                                <FaUserTie className="w-3 h-3 text-green-600" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-700">PPGS Head</span>
-                            </div>
-                            <span className="px-2.5 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                              Approved
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
-                                <FaCrown className="w-3 h-3 text-purple-600" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-700">President</span>
-                            </div>
-                            <span className="px-2.5 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">
-                              Pending
-                            </span>
+                        <div className="flex items-center text-gray-700">
+                          <div>
+                            <p className="text-xs text-black">Date Filed</p>
+                            <p className="font-medium text-sm text-black">{formatDate(req.date_filed)}</p>
                           </div>
                         </div>
+                        <div className="flex items-center text-gray-700">
+                          <div>
+                            <p className="text-xs text-black">Date Needed</p>
+                            <p className="font-medium text-sm text-black">{formatDate(req.date_needed)}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <div>
+                            <p className="text-xs text-black">Concern Type</p>
+                            <p className="font-medium text-sm text-black">{req.type_of_concern}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <div>
+                            <p className="text-xs text-black">Requested By</p>
+                            <p className="font-medium text-sm text-black">{req.requested_by}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <div className="text-gray-400 mr-2 mt-1" />
+                          <div>
+                            <p className="text-xs text-black">Description</p>
+                            <p className="font-medium text-sm  text-black">{req.description}</p>
+                          </div>
+                        </div>
+                         {/* Urgency Display */}
+                      <div className="flex flex-col items-left">
+                        <span className="text-sm font-medium text-gray-900">Urgency</span>
+                        <span className={`px-2.5 py-1 rounded-full text-m font-semibold ${
+                          req.urgency === "Critical" ? "bg-white-100 text-red-800" :
+                          req.urgency === "High" ? "bg-white-100 text-orange-800" :
+                          req.urgency === "Medium" ? "bg-white-100 text-yellow-600" :
+                          "bg-green-100 text-green-800"
+                        }`}>  
+                          {req.urgency} 
+                        </span>
                       </div>
                     </div>
-
-                    {/* Action Buttons */}
+                        <div className="flex items-center text-gray-700">
+                          <div className="text-green-500 mr-2" />
+                          <div>
+                            <p className="text-xs text-green-600">PPGS Head</p>
+                            <p className="font-medium text-sm text-green-700">{req.ppgshead || "—"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <div className="text-blue-500 mr-2" />
+                          <div>
+                            <p className="text-xs text-green-600">Dept Head</p>
+                            <p className="font-medium text-sm text-green-700">{req.noted_by || "—"}</p>
+                          </div>
+                        </div>
+                      </div>
+                 
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <div className="flex gap-3">
                         <button
-                          onClick={() => { console.log('Approve clicked', req.id, {processingId, updating}); openConfirmModal(req.id, "Approved"); }}
-                          // disabled={processingId === req.id || updating}
-                          className="flex-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-all shadow-sm hover:shadow flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => openConfirmModal(req.id, "Approved")}
+                          disabled={processingId === req.id}
+                          className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingId === req.id ? (
                             <>
-                              <FaSync className="w-3 h-3 animate-spin" />
+                              <FaSync className="w-4 h-4 animate-spin" />
                               Processing...
                             </>
                           ) : (
                             <>
-                              <FaCheck className="w-3 h-3" />
+                              <div className="w-4 h-4" />
                               Approve
                             </>
                           )}
                         </button>
                         <button
-                          onClick={() => { console.log('Reject clicked', req.id, {processingId, updating}); openConfirmModal(req.id, "Rejected"); }}
-                          // disabled={processingId === req.id || updating}
+                          onClick={() => openConfirmModal(req.id, "Rejected")}
+                          disabled={processingId === req.id}
                           className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingId === req.id ? (
@@ -464,7 +428,7 @@ function President() {
                             </>
                           ) : (
                             <>
-                              <FaBan className="w-4 h-4" />
+                              <div className="w-4 h-4" />
                               Reject
                             </>
                           )}
@@ -479,165 +443,7 @@ function President() {
         </div>
       </div>
 
-      {/* Details Modal */}
-      {showDetails && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* Modal Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Request Details</h2>
-                  <p className="text-gray-600">Request #{selectedRequest.id}</p>
-                </div>
-                <button
-                  onClick={() => setShowDetails(false)}
-                  className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
 
-              {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaTools className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Type of Concern</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{selectedRequest.type_of_concern}</p>
-                </div>
-                
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaCalendarAlt className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Date Filed</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_filed)}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaCalendarDay className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Date Needed</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{formatDate(selectedRequest.date_needed)}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FaUser className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-gray-700">Requested By</h3>
-                  </div>
-                  <p className="text-gray-900 font-medium">{selectedRequest.requested_by}</p>
-                </div>
-              </div>
-
-              {/* Approval Chain */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Approval Chain</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between bg-blue-50 p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <FaBuilding className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Department Head</p>
-                        <p className="text-sm text-gray-600">First level approval</p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
-                      {selectedRequest.noted_by || "Noted"}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between bg-green-50 p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <FaUserTie className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">PPGS Head</p>
-                        <p className="text-sm text-gray-600">Second level approval</p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
-                      Approved
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between bg-purple-50 p-4 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <FaCrown className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">President</p>
-                        <p className="text-sm text-gray-600">Final approval</p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-semibold rounded-full">
-                      Pending Your Decision
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Full Description */}
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <FaAlignLeft className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-lg font-semibold text-gray-900">Full Description</h3>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-5">
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedRequest.description}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-6 border-t">
-                <button
-                  onClick={() => { console.log('Approve (details) clicked', selectedRequest.id, {processingId, updating}); openConfirmModal(selectedRequest.id, "Approved"); }}
-                  // disabled={processingId === selectedRequest.id || updating}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {processingId === selectedRequest.id ? (
-                    <>
-                      <FaSync className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <FaCheck className="w-5 h-5" />
-                      Approve Request
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => { console.log('Reject (details) clicked', selectedRequest.id, {processingId, updating}); openConfirmModal(selectedRequest.id, "Rejected"); }}
-                  // disabled={processingId === selectedRequest.id || updating}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {processingId === selectedRequest.id ? (
-                    <>
-                      <FaSync className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <FaBan className="w-5 h-5" />
-                      Reject Request
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Approve Confirmation Modal */}
       {showApproveConfirm && (
@@ -658,10 +464,10 @@ function President() {
               <button
                 onClick={confirmApprove}
                 className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
-                disabled={updating}
+                disabled={processingId}
               >
                 <FaCheckCircle className="mr-2" />
-                {updating ? "Processing..." : "Yes, Approve"}
+                {processingId ? "Processing..." : "Yes, Approve"}
               </button>
             </div>
           </div>
@@ -687,24 +493,24 @@ function President() {
                 onChange={e => setRejectReason(e.target.value)}
                 placeholder="Please provide a reason..."
                 required
-                disabled={updating}
+                disabled={processingId}
               />
             </div>
             <div className="flex justify-end gap-3">
               <button
                 onClick={closeConfirmModal}
                 className="px-5 py-2.5 bg-gray-100 text-gray-800 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                disabled={updating}
+                disabled={processingId}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmReject}
                 className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
-                disabled={updating}
+                disabled={processingId}
               >
                 <FaTimesCircle className="mr-2" />
-                {updating ? "Processing..." : "Yes, Reject"}
+                {processingId ? "Processing..." : "Yes, Reject"}
               </button>
             </div>
           </div>

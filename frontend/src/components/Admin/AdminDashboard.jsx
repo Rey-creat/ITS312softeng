@@ -43,6 +43,65 @@ export default function AdminDashboard() {
     });
   };
 
+  const getPresidentStatus = (req) => {
+    if (req.ppgshead === "Rejected") {
+      return "—";
+    } else if (req.status === "Approved" || req.status === "Done") {
+      return "Approved";
+    } else if (req.status === "Rejected") {
+      return "Rejected";
+    } else if (req.ppgshead === "Pending" || !req.ppgshead || req.ppgshead === "") {
+      return "—";
+    } else {
+      return "Pending";
+    }
+  };
+
+  const getCompletionStatus = (req) => {
+    if (req.ppgshead === "Rejected" || req.status === "Rejected") {
+      return "—";
+    } else if (req.done_by) {
+      return "Completed";
+    } else {
+      return "Pending";
+    }
+  };
+
+  // Helper function to determine if a request is actually pending
+  const isActuallyPending = (request) => {
+    // If any level has rejected, it's not pending
+    if (request.ppgshead === "Rejected" || request.status === "Rejected") {
+      return false;
+    }
+    
+    // Check different pending scenarios
+    
+    // Scenario 1: Dept Head hasn't noted yet
+    if (!request.noted_by || request.noted_by === "Pending") {
+      return true;
+    }
+    
+    // Scenario 2: PPGS hasn't decided yet (and Dept Head approved)
+    if ((request.ppgshead === "Pending" || !request.ppgshead) && 
+        request.noted_by && request.noted_by !== "Pending") {
+      return true;
+    }
+    
+    // Scenario 3: President hasn't decided yet (and PPGS approved)
+    if ((request.status === "Pending" || !request.status) && 
+        request.ppgshead === "Approved") {
+      return true;
+    }
+    
+    // Scenario 4: Not done yet (and President approved)
+    if (!request.done_by && 
+        (request.status === "Approved" || request.status === "Done")) {
+      return true;
+    }
+    
+    return false;
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -71,11 +130,11 @@ export default function AdminDashboard() {
       const needsNote = requestsRes.data.some(r => !r.noted_by || r.noted_by === "Pending");
       setDeptHeadNeedsToNote(needsNote);
 
+      // Calculate stats
       const counts = {
         total: requestsRes.data.length,
-        pending: requestsRes.data.filter((r) => r.status === "Pending").length,
-        approved: requestsRes.data.filter((r) => r.status === "Done").length, // Updated to count completed requests
-        // Count as rejected if either status or ppgshead is 'Rejected'
+        pending: requestsRes.data.filter(isActuallyPending).length,
+        approved: requestsRes.data.filter((r) => r.status === "Done").length,
         rejected: requestsRes.data.filter((r) => r.status === "Rejected" || r.ppgshead === "Rejected").length,
       };
 
@@ -224,8 +283,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions removed */}
-
           {/* All Requests Table */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
@@ -258,6 +315,7 @@ export default function AdminDashboard() {
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Requester</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
+                      <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">PPGS Status</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
                       <th className="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
                     </tr>
@@ -265,57 +323,88 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-gray-200">
                     {allRequests
                       .sort((a, b) => b.id - a.id)
-                      .map((req) => (
-                        <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-5 py-4 font-medium text-blue-700">
-                            {req.reference_code || `REQ-${req.id}`}
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_filed)}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_needed)}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-gray-700 whitespace-nowrap">{req.type_of_concern}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-gray-700 whitespace-nowrap">{req.urgency}</span>
-                          </td>
-                          <td className="px-5 py-4 max-w-xs">
-                            <span className="text-gray-700 whitespace-nowrap">{req.description}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="text-gray-700 whitespace-nowrap">{req.requested_by}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className={`font-medium whitespace-nowrap ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
-                              {req.noted_by || "—"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
-                              req.status === "Approved" || req.status === "Done"
-                                ? "bg-green-100 text-green-800"
-                                : (req.status === "Rejected" || req.ppgshead === "Rejected")
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}>
-                              {(req.status === "Rejected" || req.ppgshead === "Rejected")
-                                ? "Rejected"
-                                : req.status === "Approved" || req.status === "Done"
-                                ? "Approved"
-                                : "Pending"}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${req.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
-                              {req.done_by ? <FaCheckCircle className="mr-1 text-green-700" /> : <FaClock className="mr-1 text-amber-700" />}
-                              {req.done_by ? "Done" : "Pending"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      .map((req) => {
+                        const presidentStatus = getPresidentStatus(req);
+                        const completionStatus = getCompletionStatus(req);
+                        
+                        return (
+                          <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-5 py-4 font-medium text-blue-700">
+                              {req.reference_code || `REQ-${req.id}`}
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_filed)}</span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-gray-700 whitespace-nowrap">{formatDate(req.date_needed)}</span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-gray-700 whitespace-nowrap">{req.type_of_concern}</span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-gray-700 whitespace-nowrap">{req.urgency}</span>
+                            </td>
+                            <td className="px-5 py-4 max-w-xs">
+                              <span className="text-gray-700 whitespace-nowrap">{req.description}</span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className="text-gray-700 whitespace-nowrap">{req.requested_by}</span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className={`font-medium whitespace-nowrap ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
+                                {req.noted_by || "—"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                                req.ppgshead === "Approved" 
+                                  ? "bg-green-100 text-green-800" 
+                                  : req.ppgshead === "Rejected" 
+                                  ? "bg-red-100 text-red-800" 
+                                  : req.noted_by === "Pending" || !req.noted_by || req.noted_by === ""
+                                  ? "bg-gray-100 text-gray-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}>
+                                {req.ppgshead === "Rejected" 
+                                  ? "Rejected" 
+                                  : (req.noted_by === "Pending" || !req.noted_by || req.noted_by === "")
+                                  ? "—"
+                                  : req.ppgshead || "Pending"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                                presidentStatus === "Approved"
+                                  ? "bg-green-100 text-green-800"
+                                  : presidentStatus === "Rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : presidentStatus === "—"
+                                  ? "bg-gray-100 text-gray-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}>
+                                {presidentStatus}
+                              </span>
+                            </td>
+                            <td className="px-5 py-4">
+                              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
+                                completionStatus === "—"
+                                  ? "bg-gray-100 text-gray-800"
+                                  : completionStatus === "Completed"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}>
+                                {completionStatus === "Completed" ? 
+                                  <div className="mr-1 text-green-700" /> : 
+                                  completionStatus === "—" ?
+                                  null :
+                                  <div className="mr-1 text-amber-700" />
+                                }
+                                {completionStatus}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               ) : (

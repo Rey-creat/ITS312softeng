@@ -369,7 +369,7 @@ export default function AdminNotifications() {
                                             <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Noted By</th>
                                             <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">President Status</th>
                                             <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Personnel</th>
-                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Done</th>
+                                            <th className="px-0.5 py-1 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Admin</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -394,17 +394,17 @@ export default function AdminNotifications() {
                                                     <td className="px-0.5 py-1 min-w-[100px] text-center">
                                                         {req.status === 'Done' ? (
                                                             <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold bg-green-200 text-green-800 border border-green-300">
-                                                                Completed
+                                                                Done
                                                             </span>
                                                         ) : req.assigned_to ? (
                                                             <div className="flex flex-col gap-1">
                                                                 <div className="flex items-center gap-2">
-                                                                    <FaUser className="text-green-600 text-sm" />
+                                                                    <div className="text-green-600 text-sm" />
                                                                     <span className="font-medium text-green-700 text-sm">{req.assigned_to}</span>
                                                                 </div>
                                                                 {req.assigned_role && (
                                                                     <div className="flex items-center gap-2">
-                                                                        <FaHardHat className="text-blue-600 text-sm" />
+                                                                        <div className="text-blue-600 text-sm" />
                                                                         <span className="text-xs text-gray-600 font-medium">{req.assigned_role}</span>
                                                                     </div>
                                                                 )}
@@ -424,7 +424,8 @@ export default function AdminNotifications() {
                                                                     if (!isReassignDisabled(req)) openAssignModal(req.id);
                                                                 }}
                                                                 disabled={assigning[req.id] || isReassignDisabled(req)}
-                                                                className={`px-4 py-2 text-sm font-small text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`px-4 py-2 text-sm font-small text-white bg-blue-600 hover:bg-blue-700 rounded-lg 
+                                                                    transition-colors shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${isReassignDisabled(req) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                             >
                                                                 {assigning[req.id] ? (
                                                                     <>
@@ -433,7 +434,7 @@ export default function AdminNotifications() {
                                                                     </>
                                                                 ) : (
                                                                     <>
-                                                                        <FaUserPlus />
+                                                                        <div />
                                                                         Assign Personnel
                                                                     </>
                                                                 )}
@@ -443,7 +444,7 @@ export default function AdminNotifications() {
                                                     <td className="px-2 py-2">
                                                         {req.status === 'Done' ? (
                                                             <button
-                                                                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                                className="px-2 py-2 text-sm font-sm text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                                                                 disabled
                                                             >
                                                                 Completed
@@ -454,9 +455,9 @@ export default function AdminNotifications() {
                                                                 disabled={isMarkDoneDisabled(req)}
                                                                 className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isMarkDoneDisabled(req) ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                                                             >
-                                                                {isMarkDoneDisabled(req) ? 'Assign Personnel First' : 'Mark as Done'}
+                                                                {isMarkDoneDisabled(req) ? 'Done' : 'Mark as Done'}
                                                             </button>
-                                                        )}
+                                                        )}  
                                                     </td>
                                                 </tr>
                                             ))}
@@ -545,8 +546,8 @@ export default function AdminNotifications() {
                                             Assigning...
                                         </>
                                     ) : (
-                                        <>
-                                            <FaUserPlus />
+                                        <>  
+                                            <div />
                                             Assign Personnel
                                         </>
                                     )}

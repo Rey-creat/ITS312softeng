@@ -262,9 +262,33 @@ const SuperadminDashboard = () => {
     }
   };
 
+  // Helper function to check if a request is rejected at any level
+  const isRequestRejected = (req) => {
+    // Check if any approval level has "reject" in it
+    const deptHeadRejected = req.noted_by && req.noted_by.toLowerCase().includes("reject");
+    const ppgsHeadRejected = req.ppgshead && req.ppgshead.toLowerCase().includes("reject");
+    const presidentRejected = req.status && req.status.toLowerCase().includes("reject");
+    
+    return deptHeadRejected || ppgsHeadRejected || presidentRejected;
+  };
+
+  // Helper function to get overall request status
+  const getOverallStatus = (req) => {
+    if (isRequestRejected(req)) {
+      return "Rejected";
+    }
+    if (req.done_by) {
+      return "Completed";
+    }
+    if (req.status === "Approved") {
+      return "Approved";
+    }
+    return "Pending";
+  };
+
   const filteredRequests = requests.filter(req => {
     if (statusFilter !== "all") {
-      const status = req.status || (req.done_by ? "Approved" : "In Progress");
+      const status = getOverallStatus(req);
       if (!status.toLowerCase().includes(statusFilter.toLowerCase())) return false;
     }
     if (searchTerm.trim() !== "") {
@@ -286,25 +310,21 @@ const SuperadminDashboard = () => {
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Statistics data for pie chart
+  // Statistics data for pie chart - updated to use overall status
   const stats = {
     counts: {
       total: requests.length,
-      pending: requests.filter(
-        (r) => !r.done_by && (r.status?.toLowerCase() === "pending" || !r.status)
-      ).length,
-      completed: requests.filter(
-        (r) => r.done_by || (r.status && r.status.toLowerCase().includes("approve"))
-      ).length,
-      rejected: requests.filter(
-        (r) => r.status && r.status.toLowerCase().includes("reject")
-      ).length,
+      pending: requests.filter(req => getOverallStatus(req) === "Pending").length,
+      completed: requests.filter(req => getOverallStatus(req) === "Completed").length,
+      rejected: requests.filter(req => getOverallStatus(req) === "Rejected").length,
+      approved: requests.filter(req => getOverallStatus(req) === "Approved").length,
     },
     recent: requests.slice().reverse().slice(0, 5),
   };
 
   const pieChartData = [
     { name: 'Completed', value: stats.counts.completed, color: '#10b981' },
+    { name: 'Approved', value: stats.counts.approved, color: '#3b82f6' },
     { name: 'Pending', value: stats.counts.pending, color: '#f59e0b' },
     { name: 'Rejected', value: stats.counts.rejected, color: '#ef4444' },
   ];
@@ -443,7 +463,7 @@ const SuperadminDashboard = () => {
                 </div>
               </div>
 
-              {/* Complete Card */}
+              {/* Completed Card */}
               <div className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-sm border border-green-100 p-6 hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center justify-between">
                   <div>
@@ -528,6 +548,7 @@ const SuperadminDashboard = () => {
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="approved">Approved</option>
+                            <option value="completed">Completed</option>
                             <option value="rejected">Rejected</option>
                           </select>
                         </div>
@@ -560,96 +581,192 @@ const SuperadminDashboard = () => {
 
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Needed</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head Noted</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Personnel</th>
-                        <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Done</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {loading ? (
-                        <tr>
-                          <td colSpan="10" className="px-6 py-8 text-center">
-                            <div className="flex justify-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : filteredRequests.length > 0 ? (
-                        filteredRequests.sort((a, b) => b.id - a.id).map((req) => (
-                          <tr key={req.id} className="hover:bg-gray-50 transition-colors duration-150">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">#{req.id}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{formatDate(req.date_filed)}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">{req.date_needed ? formatDate(req.date_needed) : "—"}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900 font-medium">{req.type_of_concern}</div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{req.requested_by || req.requester_name || "N/A"}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(req.noted_by)}`}>
-                                {req.noted_by && req.noted_by !== "Pending" ? req.noted_by : "Pending"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(req.ppgshead)}`}>
-                                {req.ppgshead && req.ppgshead !== "Pending" ? req.ppgshead : "Pending"}
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                req.status === "Approved" || req.status === "Done"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : req.status === "Rejected"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-amber-100 text-amber-800"
-                              }`}>
-                                {req.status === "Approved" || req.status === "Done"
-                                  ? "Approved"
-                                  : req.status === "Rejected"
-                                  ? "Rejected"
-                                  : "Pending"}
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs">
-                              {req.assigned_personnel_name ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{req.assigned_personnel_name}</span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
-                              )}
-                            </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${req.done_by ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>{req.done_by ? "Done" : "Pending"}</span>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="10" className="px-6 py-12 text-center">
-                            <div className="text-gray-400">
-                              <FiFileText className="mx-auto text-4xl mb-3" />
-                              <p className="text-lg font-medium text-gray-900">No requests found</p>
-                              <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
+                   <thead className="bg-gray-50">
+  <tr>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Filed</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Needed</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requester</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept Head</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PPGS Head</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">President</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personnel</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+  </tr>
+</thead>
+                 <tbody className="divide-y divide-gray-200">
+  {loading ? (
+    <tr>
+      <td colSpan="11" className="px-6 py-8 text-center">
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </td>
+    </tr>
+  ) : filteredRequests.length > 0 ? (
+    filteredRequests.sort((a, b) => b.id - a.id).map((req) => {
+      const deptHeadRejected = req.noted_by && req.noted_by.toLowerCase().includes("reject");
+      const ppgsHeadRejected = req.ppgshead && req.ppgshead.toLowerCase().includes("reject");
+      const presidentRejected = req.status && req.status.toLowerCase().includes("reject");
+      const isRejected = deptHeadRejected || ppgsHeadRejected || presidentRejected;
+      
+      return (
+        <tr key={req.id} className="hover:bg-gray-50 transition-colors duration-150">
+          {/* ID with blue color */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-sm font-medium text-blue-600">#{req.id}</div>
+          </td>
+          
+          {/* Date Filed */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-sm text-gray-900">{formatDate(req.date_filed)}</div>
+          </td>
+          
+          {/* Date Needed */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-sm text-gray-900">{req.date_needed ? formatDate(req.date_needed) : "—"}</div>
+          </td>
+          
+          {/* Type */}
+          <td className="px-6 py-4">
+            <div className="text-sm text-gray-900 font-medium">{req.type_of_concern}</div>
+          </td>
+          
+          {/* Requester */}
+          <td className="px-6 py-4">
+            <div className="text-sm text-gray-900">{req.requested_by || req.requester_name || "N/A"}</div>
+          </td>
+          
+          {/* Dept Head Column */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            {req.noted_by ? (
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                req.noted_by.toLowerCase().includes("reject")
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : req.noted_by.toLowerCase().includes("approve")
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}>
+                {req.noted_by}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
+                Pending
+              </span>
+            )}
+          </td>
+          
+          {/* PPGS Head Column - Show dash if rejected at Dept Head */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            {deptHeadRejected ? (
+              <span className="text-gray-400 text-sm">—</span>
+            ) : req.ppgshead ? (
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                req.ppgshead.toLowerCase().includes("reject")
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : req.ppgshead.toLowerCase().includes("approve")
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}>
+                {req.ppgshead}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200">
+                Pending
+              </span>
+            )}
+          </td>
+          
+          {/* President Column - Show dash if rejected at PPGS Head */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            {deptHeadRejected || ppgsHeadRejected ? (
+              <span className="text-gray-400 text-sm">—</span>
+            ) : req.status ? (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                req.status === "Approved" || req.status === "Completed" || req.done_by
+                  ? "bg-emerald-100 text-emerald-800"
+                  : req.status === "Rejected"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-amber-100 text-amber-800"
+              }`}>
+                {req.status === "Approved" || req.status === "Completed" || req.done_by
+                  ? req.status === "Completed" ? "Completed" : "Approved"
+                  : req.status === "Rejected"
+                  ? "Rejected"
+                  : "Pending"}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                Pending
+              </span>
+            )}
+          </td>
+          
+          {/* Assigned Personnel Column - Show dash if rejected */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            {isRejected ? (
+              <span className="text-gray-400 text-sm">—</span>
+            ) : req.assigned_personnel_name ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                {req.assigned_personnel_name}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
+            )}
+          </td>
+          
+          {/* Role Column - Show dash if rejected */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            {isRejected ? (
+              <span className="text-gray-400 text-sm">—</span>
+            ) : req.specialization ? (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                req.specialization === "Carpentry" ? "bg-amber-100 text-amber-800" :
+                req.specialization === "Aircon Technician" ? "bg-blue-100 text-blue-800" :
+                req.specialization === "Electrical" ? "bg-yellow-100 text-yellow-800" :
+                req.specialization === "Plumbing" ? "bg-cyan-100 text-cyan-800" :
+                "bg-gray-100 text-gray-800"
+              }`}>
+                {req.specialization}
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">—</span>
+            )}
+          </td>
+          
+          {/* Completed Column */}
+          <td className="px-6 py-4 whitespace-nowrap">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+              req.done_by 
+                ? "bg-green-100 text-green-800"
+                : isRejected
+                ? "bg-red-100 text-red-800"
+                : "bg-amber-100 text-amber-800"
+            }`}>
+              {req.done_by 
+                ? "Completed"
+                : isRejected
+                ? "Rejected"
+                : "Pending"}
+            </span>
+          </td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan="11" className="px-6 py-12 text-center">
+        <div className="text-gray-400">
+          <FiFileText className="mx-auto text-4xl mb-3" />
+          <p className="text-lg font-medium text-gray-900">No requests found</p>
+          <p className="text-sm text-gray-500 mt-1">Try adjusting your search or filters</p>
+        </div>
+      </td>
+    </tr>
+  )}
+</tbody>
                   </table>
                 </div>
               </div>
@@ -763,32 +880,6 @@ const SuperadminDashboard = () => {
                                 >
                                   <FiTrash2 />
                                 </button>
-                                    {/* Delete Confirmation Modal (single instance, outside table) */}
-                                    {deleteModal.show && (
-                                      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-                                        <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
-                                          <div className="flex items-center mb-4">
-                                            <FiTrash2 className="text-red-500 text-2xl mr-2" />
-                                            <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
-                                          </div>
-                                          <p className="text-gray-700 mb-6">Are you sure you want to delete <span className="font-semibold">{deleteModal.user?.fullname}</span>? This action cannot be undone.</p>
-                                          <div className="flex justify-end space-x-3">
-                                            <button
-                                              onClick={() => setDeleteModal({ show: false, user: null })}
-                                              className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                                            >
-                                              Cancel
-                                            </button>
-                                            <button
-                                              onClick={() => handleDeleteUser(deleteModal.user.id)}
-                                              className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200"
-                                            >
-                                              Yes, Delete
-                                            </button>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
                               </div>
                             </td>
                           </tr>
@@ -859,7 +950,7 @@ const SuperadminDashboard = () => {
                       </ResponsiveContainer>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-4 gap-4">
                         {pieChartData.map((item) => (
                           <div key={item.name} className="text-center">
                             <div className="text-2xl font-bold" style={{ color: item.color }}>
@@ -882,7 +973,7 @@ const SuperadminDashboard = () => {
                           { label: "Total Requests", value: stats.counts.total, icon: <FiFileText className="text-blue-600" /> },
                           { label: "Pending Actions", value: stats.counts.pending, icon: <FiClock className="text-amber-600" /> },
                           { label: "Completed Requests", value: stats.counts.completed, icon: <FiCheckCircle className="text-green-600" /> },
-                          { label: "Rejection Rate", value: `${((stats.counts.rejected / stats.counts.total) * 100 || 0).toFixed(1)}%`, icon: <FiTrendingUp className="text-red-600" /> },
+                          { label: "Rejected Requests", value: stats.counts.rejected, icon: <FiXCircle className="text-red-600" /> },
                         ].map((stat) => (
                           <div key={stat.label} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                             <div className="flex items-center">
@@ -912,16 +1003,20 @@ const SuperadminDashboard = () => {
                               </div>
                             </div>
                             <span className={`px-2 py-1 rounded text-xs font-medium border ${
-                              req.status === "Approved" || req.status === "Done"
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : req.status === "Rejected"
+                              req.done_by
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : isRequestRejected(req)
                                 ? "bg-red-50 text-red-700 border-red-200"
+                                : req.status === "Approved"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                 : "bg-amber-50 text-amber-700 border-amber-200"
                             }`}>
-                              {req.status === "Approved" || req.status === "Done"
-                                ? "Approved"
-                                : req.status === "Rejected"
+                              {req.done_by
+                                ? "Completed"
+                                : isRequestRejected(req)
                                 ? "Rejected"
+                                : req.status === "Approved"
+                                ? "Approved"
                                 : "Pending"}
                             </span>
                           </div>
@@ -976,7 +1071,7 @@ const SuperadminDashboard = () => {
                             </p>
                             <p className="text-sm text-gray-500 mt-1">
                               {item.type_of_concern 
-                                ? `${item.assigned_to ? `Assigned to ${item.assigned_to}` : 'Unassigned'} • Status: ${item.status || 'Pending'}`
+                                ? `${item.assigned_to ? `Assigned to ${item.assigned_to}` : 'Unassigned'} • Status: ${getOverallStatus(item)}`
                                 : `${item.role} account • ${item.email}`
                               }
                             </p>
@@ -1143,6 +1238,33 @@ const SuperadminDashboard = () => {
                   {editUser ? "Save Changes" : "Create User"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+            <div className="flex items-center mb-4">
+              <FiTrash2 className="text-red-500 text-2xl mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+            </div>
+            <p className="text-gray-700 mb-6">Are you sure you want to delete <span className="font-semibold">{deleteModal.user?.fullname}</span>? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteModal({ show: false, user: null })}
+                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteUser(deleteModal.user.id)}
+                className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200"
+              >
+                Yes, Delete
+              </button>
             </div>
           </div>
         </div>

@@ -219,7 +219,7 @@ export default function Dashboard() {
                   COMPLETED
                 </span>
               </div>
-              <h3 className="text-gray-600 text-sm font-medium mb-2">Complete</h3>
+              <h3 className="text-gray-600 text-sm font-medium mb-2">Completed</h3>
               <div className="flex items-end justify-between">
                 <p className="text-2xl font-bold text-green-600">
                   {stats.counts.approved}
@@ -286,12 +286,12 @@ export default function Dashboard() {
                       statusIcon = <FaTimesCircle className="text-red-600" />;
                       statusBorder = "border-l-4 border-red-500";
                     } else if (req.done_by) {
-                      statusLabel = "Approved";
+                      statusLabel = "Completed";
                       statusColor = "bg-green-100 text-green-800";
                       statusIcon = <FaCheckCircle className="text-green-600" />;
                       statusBorder = "border-l-4 border-green-500";
                     }
-                    
+
                     return (
                       <div 
                         key={req.id} 

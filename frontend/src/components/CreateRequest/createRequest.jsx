@@ -165,7 +165,7 @@ export default function CreateRequest() {
                 {/* Date Filed - Left */}
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <label htmlFor="date_filed" className="flex items-center text-base font-medium text-gray-700 mb-2">
-                    <FaCalendarAlt className="mr-2 text-blue-500 text-sm" />
+                    <div className="mr-2 text-blue-500 text-sm" />
                     Date Filed <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -189,7 +189,7 @@ export default function CreateRequest() {
                 {/* Date Needed - Right */}
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <label htmlFor="date_needed" className="flex items-center text-base font-medium text-gray-700 mb-2">
-                    <FaCalendarCheck className="mr-2 text-green-500 text-sm" />
+                    <div className="mr-2 text-green-500 text-sm" />
                     Date Needed <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -214,9 +214,9 @@ export default function CreateRequest() {
               {/* Type of Concern - Radio Buttons */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label className="flex items-center text-base font-medium text-gray-700 mb-3">
-                  <FaTools className="mr-2 text-purple-500 text-sm" />
+                  <div className="mr-2 text-purple-500 text-sm" />
                   Type of Concern <span className="text-red-500 ml-1">*</span>
-                </label>
+                </label>  
                 {errors.type_of_concern && <p className="text-red-500 text-xs mb-2 font-medium">{errors.type_of_concern}</p>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {/* Repair */}
@@ -308,7 +308,7 @@ export default function CreateRequest() {
               {/* Urgency Level */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label htmlFor="urgency" className="flex items-center text-base font-medium text-gray-700 mb-2">
-                  <FaTools className="mr-2 text-red-500 text-sm" />
+                  <div className="mr-2 text-red-500 text-sm" />
                   Urgency Level <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
@@ -316,7 +316,7 @@ export default function CreateRequest() {
                   name="urgency"
                   value={formData.urgency}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-gray-700"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700"
                   required
                 >
                   <option value="">Select urgency</option>
@@ -329,7 +329,7 @@ export default function CreateRequest() {
               {/* Description */}
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                 <label htmlFor="description" className="flex items-center text-base font-medium text-gray-700 mb-2">
-                  <FaAlignLeft className="mr-2 text-amber-500 text-sm" />
+                  <div className="mr-2 text-amber-500 text-sm" />
                   Description <span className="text-red-500 ml-1">*</span>
                 </label>
                 <textarea
@@ -366,7 +366,7 @@ export default function CreateRequest() {
                     </span>
                   ) : (
                     <span className="flex items-center justify-center">
-                      <FaPaperPlane className="mr-2" />
+                      <div className="mr-2" />
                       Submit Repair Request
                     </span>
                   )}

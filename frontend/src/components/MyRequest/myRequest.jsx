@@ -13,7 +13,11 @@ import {
   FaCalendarAlt,
   FaCheckCircle,
   FaClock,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaLock,
+  FaUserTie,
+  FaUserCheck,
+  FaUserShield
 } from "react-icons/fa";
 
 export default function MyRequest() {
@@ -79,8 +83,65 @@ export default function MyRequest() {
     fetchDashboard();
   }, []);
 
+  // Check if request can be edited/deleted
+  const canEditDelete = (request) => {
+    // Cannot edit/delete if:
+    // 1. Department head has noted it (and not "Pending")
+    if (request.noted_by && request.noted_by !== "" && request.noted_by !== "Pending") {
+      return false;
+    }
+    // 2. PPGS Head has processed it
+    if (request.ppgshead === "Approved" || request.ppgshead === "Rejected") {
+      return false;
+    }
+    // 3. President has processed it
+    if (request.status === "Approved" || request.status === "Rejected" || request.status === "Done") {
+      return false;
+    }
+    // 4. Admin has marked it as done
+    if (request.done_by) {
+      return false;
+    }
+    return true;
+  };
+
+  // Get lock reason message
+  const getLockReason = (request) => {
+    if (request.noted_by && request.noted_by !== "" && request.noted_by !== "Pending") {
+      return `Locked - Noted by Department Head (${request.noted_by})`;
+    }
+    if (request.ppgshead === "Approved") {
+      return "";
+    }
+    if (request.ppgshead === "Rejected") {
+      return "";
+    }
+    if (request.status === "Approved") {
+      return "Locked - Approved by President";
+    }
+    if (request.status === "Rejected") {
+      return "Locked - Rejected by President";
+    }
+    if (request.status === "Done") {
+      return "Locked - Completed by Admin";
+    }
+    if (request.done_by) {
+      return `Locked - Marked as done by Admin (${request.done_by})`;
+    }
+    return "";
+  };
+
   const handleDelete = async (id) => {
+    const request = stats.recent.find(r => r.id === id);
+    
+    if (!canEditDelete(request)) {
+      const reason = getLockReason(request);
+      alert(`Cannot delete this request. ${reason}`);
+      return;
+    }
+    
     if (!window.confirm("Are you sure you want to delete this request? This action cannot be undone.")) return;
+    
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:5000/api/requests/${id}`, {
@@ -103,6 +164,15 @@ export default function MyRequest() {
   };
 
   const handleUpdate = async () => {
+    const request = stats.recent.find(r => r.id === form.id);
+    
+    if (!canEditDelete(request)) {
+      const reason = getLockReason(request);
+      alert(`Cannot edit this request. ${reason}`);
+      setEditing(false);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem("token");
       await axios.put(
@@ -146,22 +216,22 @@ export default function MyRequest() {
     return "Pending";
   };
 
-  // Filter requests
+  // Get status icon
+  const getStatusIcon = (req) => {
+    const isLocked = !canEditDelete(req);
+    if (isLocked) return <FaLock className="inline-block mr-1 text-gray-500" />;
+    if (req.ppgshead === "Rejected" || req.status === "Rejected") return <FaTimes className="inline-block mr-1 text-red-600" />;
+    if (req.ppgshead === "Approved" && req.status === "Approved") return <FaCheckCircle className="inline-block mr-1 text-green-600" />;
+    if (req.ppgshead === "Approved" || req.noted_by) return <FaUserCheck className="inline-block mr-1 text-blue-600" />;
+    return <FaClock className="inline-block mr-1 text-yellow-600" />;
+  };
+
+  // Filter requests by ID
   const filteredRequests = stats.recent.filter(req => {
     if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = 
-        req.reference_code?.toLowerCase().includes(searchLower) ||
-        req.type_of_concern?.toLowerCase().includes(searchLower) ||
-        req.description?.toLowerCase().includes(searchLower);
-      if (!matchesSearch) return false;
+      return req.id.toString().includes(searchTerm) || 
+             (req.reference_code && req.reference_code.includes(searchTerm));
     }
-    
-    if (filter !== "all") {
-      const status = getStatusText(req).toLowerCase();
-      if (filter !== status) return false;
-    }
-    
     return true;
   });
 
@@ -183,17 +253,54 @@ export default function MyRequest() {
       <div className="flex-1 ml-72 p-6 overflow-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
-          <p className="text-gray-600 mt-2">Manage and track all your submitted repair requests</p>
+          <div className="flex items-center mb-2">
+            <div className="text-3xl text-blue-600 mr-3" />
+            <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start">
+              <div className="text-blue-600 mr-3 mt-1" />
+              <div>
+                <p className="text-gray-700 font-medium mb-1">Request Locking Policy</p>
+                <p className="text-gray-600 text-sm">
+                  Once a request has been noted by the department head, approved/rejected by PPGS Head or President, 
+                  or marked as done by Admin, it cannot be edited or deleted.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+       
+          <div className="flex items-center">
+            <div className="relative flex-1">
+              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search requests by Id ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-60 pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+        
         </div>
 
         {/* Requests Table */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 bg-gradient from-gray-50 to-blue-50 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Request List</h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Showing {filteredRequests.length} of {stats.recent.length} requests
-            </p>
+          <div className="px-6 py-5 bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Request List</h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  Showing {filteredRequests.length} of {stats.recent.length} requests
+                </p>
+              </div>
+              <div className="text-sm text-gray-500">
+                
+              </div>
+            </div>
           </div>
           
           {filteredRequests.length > 0 ? (
@@ -211,29 +318,44 @@ export default function MyRequest() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredRequests.map((req) => {
-                    const isLocked = req.ppgshead === "Approved" || req.status === "Approved" || req.status === "Done" || req.status === "Rejected" || req.ppgshead === "Rejected" || req.status === "Personnel" || req.status === "President";
+                    const isLocked = !canEditDelete(req);
+                    const lockReason = getLockReason(req);
+                    
                     return (
                       <tr key={req.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 font-medium text-blue-700">
-                          <FaFileAlt className="inline-block text-blue-600" /> {req.reference_code || `REQ-${req.id}`}
+                          <div className="flex items-center">
+                            <div className="text-blue-600 mr-2" /> 
+                            <span>{req.reference_code || `REQ-${req.id}`}</span>
+                            {isLocked && <div className="ml-2 text-gray-400" />}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-gray-700">
-                          {formatShortDate(req.date_filed)}
+                          <div className="flex items-center">
+                            <div className="text-gray-400 mr-2" />
+                            {formatShortDate(req.date_filed)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-gray-700">
-                          {formatShortDate(req.date_needed)}
+                          <div className="flex items-center">
+                            <div className="text-gray-400 mr-2" />
+                            {formatShortDate(req.date_needed)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {req.type_of_concern}
                         </td>
-                        <td className="px-6 py-4 text-gray-700 break-words whitespace-pre-line max-w-xs">
+                        <td className="px-6 py-4 text-gray-700">
                           {req.description}
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex space-x-2">
                             <button
                               onClick={() => {
-                                if (isLocked) return;
+                                if (isLocked) {
+                                  alert(`Cannot edit this request. ${lockReason}`);
+                                  return;
+                                }
                                 setForm({
                                   id: req.id,
                                   date_filed: req.date_filed,
@@ -244,31 +366,36 @@ export default function MyRequest() {
                                 setEditing(true);
                               }}
                               disabled={isLocked}
-                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                              className={`flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 ${
                                 isLocked
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 border border-blue-200'
                               }`}
+                              title={isLocked ? lockReason : "Edit request"}
                             >
-                              <FaEdit className="mr-2" />
+                              <div className="mr-2" />
                               Edit
                             </button>
                             <button
-                              onClick={() => {
-                                if (isLocked) return;
-                                handleDelete(req.id);
-                              }}
+                              onClick={() => handleDelete(req.id)}
                               disabled={isLocked}
-                              className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 ${
+                              className={`flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 ${
                                 isLocked
-                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                  : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                                  : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200'
                               }`}
+                              title={isLocked ? lockReason : "Delete request"}
                             >
-                              <FaTrash className="mr-2" />
+                              <div className="mr-2" />
                               Delete
                             </button>
                           </div>
+                          {isLocked && (
+                            <div className="text-xs text-gray-500 mt-2 flex items-center">
+                              <div className="mr-1" />
+                              {lockReason}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );
@@ -283,8 +410,8 @@ export default function MyRequest() {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No requests found</h3>
               <p className="text-gray-600 mb-6">
-                {searchTerm || filter !== "all" 
-                  ? "Try adjusting your search or filter criteria" 
+                {searchTerm 
+                  ? "Try adjusting your search criteria" 
                   : "You haven't submitted any requests yet"}
               </p>
             </div>
@@ -311,7 +438,7 @@ export default function MyRequest() {
                   onClick={() => setEditing(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                 >
-                  <FaTimes className="text-gray-500" />
+                  <div className="text-gray-500" />
                 </button>
               </div>
             </div>
@@ -375,13 +502,9 @@ export default function MyRequest() {
                 </button>
                 <button
                   onClick={handleUpdate}
-                  disabled={form.status === "Rejected" || form.ppgshead === "Rejected"}
-                  className={`px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center ${
-                    form.status === "Rejected" || form.ppgshead === "Rejected" ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  title={form.status === "Rejected" || form.ppgshead === "Rejected" ? "Cannot edit a rejected request" : ""}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center"
                 >
-                  <FaSave className="mr-2" />
+                  <div className="mr-2" />
                   Save Changes
                 </button> 
               </div>

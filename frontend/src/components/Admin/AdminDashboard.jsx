@@ -43,6 +43,22 @@ export default function AdminDashboard() {
     });
   };
 
+  const getUrgencyStyle = (urgency) => {
+    const urgencyLower = urgency?.toLowerCase();
+    switch (urgencyLower) {
+      case "critical":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "high":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
   const getPresidentStatus = (req) => {
     if (req.ppgshead === "Rejected") {
       return "—";
@@ -177,7 +193,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center w-full">
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <span className="w-3 h-3 bg-red-500 rounded-full animate-ping inline-block ml-2" title="You have requests to review"></span>
+          
             </div>
             <p className="text-gray-600 text-sm mt-1">
               Welcome, <span className="font-semibold text-blue-600">{user?.fullname}</span>! 
@@ -342,7 +358,9 @@ export default function AdminDashboard() {
                               <span className="text-gray-700 whitespace-nowrap">{req.type_of_concern}</span>
                             </td>
                             <td className="px-5 py-4">
-                              <span className="text-gray-700 whitespace-nowrap">{req.urgency}</span>
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getUrgencyStyle(req.urgency)}`}>
+                                {req.urgency}
+                              </span>
                             </td>
                             <td className="px-5 py-4 max-w-xs">
                               <span className="text-gray-700 whitespace-nowrap">{req.description}</span>

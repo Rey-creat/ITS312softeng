@@ -109,6 +109,22 @@ export default function AdminNotifications() {
         });
     };
 
+    const getUrgencyStyle = (urgency) => {
+        const urgencyLower = urgency?.toLowerCase();
+        switch (urgencyLower) {
+            case "critical":
+                return "bg-red-100 text-red-800 border-red-200";
+            case "high":
+                return "bg-orange-100 text-orange-800 border-orange-200";
+            case "medium":
+                return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            case "low":
+                return "bg-green-100 text-green-800 border-green-200";
+            default:
+                return "bg-gray-100 text-gray-800 border-gray-200";
+        }
+    };
+
     const openAssignModal = (requestId) => {
         setModalRequestId(requestId);
         setPersonnelName("");
@@ -381,7 +397,11 @@ export default function AdminNotifications() {
                                                     <td className="px-0.5 py-1 text-xs text-gray-700">{formatDate(req.date_filed)}</td>
                                                     <td className={`px-0.5 py-1 text-xs font-medium ${new Date(req.date_needed) < new Date() ? "text-red-600" : "text-gray-700"}`}>{formatDate(req.date_needed)}</td>
                                                     <td className="px-0.5 py-1 text-xs text-gray-700 font-medium">{req.type_of_concern}</td>
-                                                    <td className="px-0.5 py-1 text-xs text-gray-700 font-medium">{req.urgency}</td>
+                                                    <td className="px-0.5 py-1">
+                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold border ${getUrgencyStyle(req.urgency)}`}>
+                                                            {req.urgency}
+                                                        </span>
+                                                    </td>
                                                     <td className="px-0.5 py-1 text-xs text-gray-700">{req.description}</td>
                                                     <td className="px-0.5 py-1 text-xs font-medium text-gray-900">{req.requested_by}</td>
                                                     <td className="px-0.5 py-1 font-medium text-green-700">{req.noted_by || "—"}</td>

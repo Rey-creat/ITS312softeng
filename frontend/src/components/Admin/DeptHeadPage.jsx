@@ -365,11 +365,11 @@ const DeptHeadPage = () => {
                      {/* Urgency Level */}
   <div className="flex items-center text-gray-700">
     <div className="mr-2">
-      <div className={`w-1 h-1 rounded-full ${
-        req.urgency === "Critical" ? "bg-white-500" :
-        req.urgency === "High" ? "bg-white-500" :
-        req.urgency === "Medium" ? "bg-white-500" :
-        "bg-white-500"
+      <div className={`w-3 h-3 rounded-full ${
+        req.urgency === "Critical" ? "bg-red-500" :
+        req.urgency === "High" ? "bg-orange-500" :
+        req.urgency === "Medium" ? "bg-yellow-500" :
+        "bg-green-500"
       }`} />
     </div>
   <div>

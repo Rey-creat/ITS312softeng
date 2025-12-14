@@ -35,6 +35,23 @@ function formatDate(dateString) {
   });
 }
 
+// Utility function for urgency styling
+function getUrgencyStyle(urgency) {
+  const urgencyLower = urgency?.toLowerCase();
+  switch (urgencyLower) {
+    case "critical":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "high":
+      return "bg-orange-100 text-orange-800 border-orange-200";
+    case "medium":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "low":
+      return "bg-green-100 text-green-800 border-green-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+}
+
 function President() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -371,13 +388,8 @@ function President() {
                          {/* Urgency Display */}
                       <div className="flex flex-col items-left">
                         <span className="text-sm font-medium text-gray-900">Urgency</span>
-                        <span className={`px-2.5 py-1 rounded-full text-m font-semibold ${
-                          req.urgency === "Critical" ? "bg-white-100 text-red-800" :
-                          req.urgency === "High" ? "bg-white-100 text-orange-800" :
-                          req.urgency === "Medium" ? "bg-white-100 text-yellow-600" :
-                          "bg-green-100 text-green-800"
-                        }`}>  
-                          {req.urgency} 
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-semibold border ${getUrgencyStyle(req.urgency)}`}>
+                          {req.urgency}
                         </span>
                       </div>
                     </div>

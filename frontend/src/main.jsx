@@ -24,6 +24,7 @@ import PPGSHeadPage from "./components/Admin/PPGSHeadPage.jsx";
 import President from "./components/Admin/President.jsx";
 import AdminNotifications from "./components/Admin/AdminNotifications.jsx";
 import SuperadminDashboard from "./components/Admin/SuperadminDashboard.jsx";
+import MonthlyReports from "./components/Admin/MonthlyReports.jsx";
 
 // --------------------
 // ProtectedRoute: ensures user is logged in
@@ -99,6 +100,10 @@ createRoot(document.getElementById("root")).render(
         <Route
           path="/PPGSHeadPage"
           element={<RoleRoute element={PPGSHeadPage} allowedRoles={["PPGSHead", "PPGS Head", "ppgshead", "PPGSHEAD"]} />}
+        />
+        <Route
+          path="/MonthlyReports"
+          element={<RoleRoute element={MonthlyReports} allowedRoles={["PPGSHead", "PPGS Head", "ppgshead", "PPGSHEAD"]} />}
         />
         <Route
           path="/President"

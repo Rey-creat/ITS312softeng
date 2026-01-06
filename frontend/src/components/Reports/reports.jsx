@@ -293,15 +293,15 @@ export default function Reports() {
                 // Determine President status for expanded view
                 const getPresidentStatus = () => {
                   if (report.ppgshead === "Rejected") {
-                    return { text: "—", color: "red" };
+                    return { text: "Rejected", color: "red" };
                   } else if (report.president_reject_reason || report.status === "Rejected") {
                     return { text: "Rejected", color: "red" };
                   } else if (report.status === "Approved" || report.status === "Done" || report.done_by) {
                     return { text: "Approved", color: "green" };
                   } else if (report.ppgshead === "Pending" || !report.ppgshead || report.ppgshead === "") {
-                    return { text: "—", color: "red" };
+                    return { text: "Pending", color: "yellow" };
                   } else {
-                    return { text: "Pending", color: "amber" };
+                    return { text: "Pending", color: "yellow" };
                   }
                 };
                 
@@ -333,12 +333,12 @@ export default function Reports() {
                               <span>{report.requested_by}</span>
                               <span className="mx-2">•</span>
                               <div className="mr-1 text-gray-400" />
-                              <span>{formatDate(report.date_filed)}</span>
+                              <span>{formatDate(report.date_needed)}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          {/* Show FINAL status badge in main row */}
+                          {/* Show final status in main row */}
                           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold ${
                             finalStatus.color === "red"
                               ? "bg-red-100 text-red-800"
@@ -346,7 +346,6 @@ export default function Reports() {
                               ? "bg-green-100 text-green-800"
                               : "bg-amber-100 text-amber-800"
                           }`}>
-                            {finalStatus.icon}
                             {finalStatus.text}
                           </span>
                           <div>
@@ -394,6 +393,12 @@ export default function Reports() {
                                 <p className="text-xs font-semibold text-gray-500 uppercase">Description</p>
                                 <p className="text-gray-900 mt-1">{report.description}</p>
                               </div>
+                              {report.reopen_reason && (
+                                <div>
+                                  <p className="text-xs font-semibold text-orange-500 uppercase">Reopen Reason</p>
+                                  <p className="text-gray-900 mt-1">{report.reopen_reason}</p>
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -409,8 +414,8 @@ export default function Reports() {
                                 <span className="text-gray-700">Dept Head</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                                   report.noted_by && report.noted_by !== "Pending" 
-                                    ? "bg-emerald-100 text-emerald-800" 
-                                    : "bg-amber-100 text-amber-800"
+                                    ? "bg-green-100 text-green-800" 
+                                    : "bg-yellow-100 text-yellow-800"
                                 }`}>
                                   {report.noted_by && report.noted_by !== "Pending" ? report.noted_by : "Pending"}
                                 </span>
@@ -421,17 +426,17 @@ export default function Reports() {
                                 <span className="text-gray-700">PPGS Head</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                                   report.ppgshead === "Approved" 
-                                    ? "bg-emerald-100 text-emerald-800" 
+                                    ? "bg-green-100 text-green-800" 
                                     : report.ppgshead === "Rejected" 
                                     ? "bg-red-100 text-red-800" 
                                     : report.noted_by === "Pending" || !report.noted_by || report.noted_by === ""
-                                    ? "bg-gray-100 text-gray-800"
-                                    : "bg-amber-100 text-amber-800"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-yellow-100 text-yellow-800"
                                 }`}>
                                   {report.ppgshead === "Rejected" 
                                     ? "Rejected" 
                                     : (report.noted_by === "Pending" || !report.noted_by || report.noted_by === "")
-                                    ? "—"
+                                    ? "Pending"
                                     : report.ppgshead || "Pending"}
                                 </span>
                               </div>
@@ -452,9 +457,9 @@ export default function Reports() {
                                     ? "bg-red-100 text-red-800"
                                     : presidentStatus.color === "green"
                                     ? "bg-green-100 text-green-800"
-                                    : presidentStatus.color === "amber"
-                                    ? "bg-amber-100 text-amber-800"
-                                    : "bg-gray-100 text-gray-800"
+                                    : presidentStatus.color === "yellow"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-yellow-100 text-yellow-800"
                                 }`}>
                                   {presidentStatus.text}
                                 </span>
@@ -478,7 +483,7 @@ export default function Reports() {
                             </h3>
                             <div className="space-y-4">
                               <div className="flex items-center justify-between">
-                                <span className="text-gray-700">Marked by Admin</span>
+                                <span className="text-gray-700">PPGS Head</span>
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                                   report.ppgshead === "Rejected" || presidentStatus.text === "Rejected"
                                     ? "bg-red-100 text-red-800"
@@ -487,12 +492,23 @@ export default function Reports() {
                                     : "bg-amber-100 text-amber-800"
                                 }`}>
                                   {report.ppgshead === "Rejected" || presidentStatus.text === "Rejected"
-                                    ? "—"
+                                    ? "Rejected"
                                     : report.done_by
-                                    ? "Done"
+                                    ? "Complete"
                                     : "Pending"}
                                 </span>
                               </div>
+
+                              {/* Show assigned personnel if exists */}
+                              {report.assigned_personnel_name && (
+                                <div>
+                                  <p className="text-s font-semibold text-gray-700 uppercase">Assigned Personnel:</p>
+                                  <p className="text-gray-900 mt-1">{report.assigned_personnel_name}</p>
+                                  {report.assigned_role && (
+                                    <p className="text-m text-gray-700 mt-1">Role: <span className="font-semibold text-gray-700">{report.assigned_role}</span></p>
+                                  )}
+                                </div>
+                              )}
                               
                               {report.done_by && report.ppgshead !== "Rejected" && presidentStatus.text !== "Rejected" && (
                                 <div>
@@ -502,7 +518,17 @@ export default function Reports() {
                                     <p className="text-m text-gray-700 mt-1">Role: <span className="font-semibold text-gray-700">{report.assigned_role}</span></p>
                                   )}
                                   {report.date_done && (
-                                    <p className="text-m text-gray-700 mt-1">Marked done by Admin on: <span className="font-semibold text-gray-700">{report.date_done}</span></p>
+                                    <p className="text-m text-gray-700 mt-1">Marked complete by PPGS Head on: <span className="font-semibold text-gray-700">{report.date_done}</span></p>
+                                  )}
+                                  {report.proof_image && (
+                                    <div className="mt-4">
+                                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Proof Image</p>
+                                      <img 
+                                        src={`http://localhost:5000/uploads/${report.proof_image}`} 
+                                        alt="Proof" 
+                                        className="max-w-full h-auto rounded-lg border border-gray-200" 
+                                      />
+                                    </div>
                                   )}
                                 </div>
                               )}  

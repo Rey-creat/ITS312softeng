@@ -1,6 +1,20 @@
 
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, path.join(__dirname, "../uploads"));
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadProof = multer({ storage: storage });
 const { verifyToken } = require("../controllers/authController");
 const {
   createRequest,
@@ -10,7 +24,8 @@ const {
   assignPersonnel,
   listAllRequests,
   listPresidentApprovedRequests,
-  deleteAllRequests
+  deleteAllRequests,
+  uploadProof: uploadProofController
 } = require("../controllers/requestController");
 
 // BULK DELETE ALL REQUESTS (Admin only)
@@ -54,6 +69,12 @@ router.delete("/requests", verifyToken, deleteAllRequests);
 
    // ASSIGN PERSONNEL - Protected
    router.post("/requests/:id/assign", verifyToken, assignPersonnel);
+
+   // UPLOAD PROOF - Protected
+   router.post("/requests/:id/proof", verifyToken, uploadProof.single("proof"), uploadProofController);
+
+   // REOPEN REQUEST - Protected
+   router.put("/requests/:id/reopen", verifyToken, require("../controllers/requestController").reopenRequest);
 
    // DELETE - Protected
    router.delete("/requests/:id", verifyToken, deleteRequest);

@@ -1,17 +1,31 @@
-// Direct password reset handler for /auth/direct-reset-password (no token, no email link)
 const directResetPassword = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: "Email and new password are required." });
+  const { email, password, confirmPassword } = req.body;
+  
+  if (!email || !password || !confirmPassword) {
+    return res.status(400).json({ message: "Email, password, and confirm password are required." });
+  }
+  
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match." });
+  }
+  
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters long." });
+  }
+  
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], (err, result) => {
-      if (err) {
-        return res.status(500).json({ message: "DB error", error: err });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(400).json({ message: "No user found with that email." });
-      }
-      return res.status(200).json({ message: "Password reset successful." });
+    // Check if user exists
+    db.query("SELECT id FROM users WHERE email = ?", [email], (err, results) => {
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (results.length === 0) return res.status(400).json({ message: "No user found with that email." });
+
+      // User exists, hash and update password
+      const hashedPassword = bcrypt.hashSync(password, 10);
+      db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], (err2, result) => {
+        if (err2) return res.status(500).json({ message: "DB error", error: err2 });
+        
+        res.status(200).json({ message: "Password reset successful. You can now log in with your new password." });
+      });
     });
   } catch (err) {
     return res.status(500).json({ message: "Error resetting password." });
@@ -202,6 +216,8 @@ const getSessionInfo = (req, res) => {
     },
   });
 };
+
+
 
 // Direct password reset handler for /reset-password (token-based or legacy)
 const resetPassword = async (req, res) => {

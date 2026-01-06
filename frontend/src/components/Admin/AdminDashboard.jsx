@@ -32,6 +32,8 @@ export default function AdminDashboard() {
   const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deptHeadNeedsToNote, setDeptHeadNeedsToNote] = useState(false);
+  const [ppgsHeadCount, setPpgsHeadCount] = useState(0);
+  const [notificationsCount, setNotificationsCount] = useState(0);
 
   const formatDate = (isoDate) => {
     if (!isoDate) return "";
@@ -146,6 +148,14 @@ export default function AdminDashboard() {
       const needsNote = requestsRes.data.some(r => !r.noted_by || r.noted_by === "Pending");
       setDeptHeadNeedsToNote(needsNote);
 
+      // Calculate PPGS Head pending count
+      const ppgsPending = requestsRes.data.filter(r => r.ppgshead === "Pending" && r.noted_by && r.noted_by !== "Pending").length;
+      setPpgsHeadCount(ppgsPending);
+
+      // Calculate notifications count (requests needing personnel assignment)
+      const notificationsPending = requestsRes.data.filter(r => r.status === "Approved" && (!r.assigned_to || r.assigned_to === "")).length;
+      setNotificationsCount(notificationsPending);
+
       // Calculate stats
       const counts = {
         total: requestsRes.data.length,
@@ -184,7 +194,7 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="h-screen sticky top-0 left-0">
-        <AdminSidebar role="Admin" deptHeadHasRequests={deptHeadNeedsToNote} />
+        <AdminSidebar deptHeadHasRequests={deptHeadNeedsToNote} ppgsHeadCount={ppgsHeadCount} notificationsCount={notificationsCount} />
       </div>
 
       <div className="flex-1 h-screen overflow-y-auto">
@@ -369,38 +379,40 @@ export default function AdminDashboard() {
                               <span className="text-gray-700 whitespace-nowrap">{req.requested_by}</span>
                             </td>
                             <td className="px-5 py-4">
-                              <span className={`font-medium whitespace-nowrap ${req.noted_by ? 'text-green-600' : 'text-gray-500'}`}>
+                              <span className={`font-medium whitespace-nowrap ${
+                                req.noted_by && req.noted_by !== "Pending" 
+                                  ? 'text-green-600' 
+                                  : req.noted_by === "Pending" || !req.noted_by 
+                                  ? 'text-yellow-600' 
+                                  : 'text-gray-500'
+                              }`}>
                                 {req.noted_by || "—"}
                               </span>
                             </td>
                             <td className="px-5 py-4">
-                              <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                              <span className={`font-medium whitespace-nowrap ${
                                 req.ppgshead === "Approved" 
-                                  ? "bg-green-100 text-green-800" 
+                                  ? "text-green-600" 
                                   : req.ppgshead === "Rejected" 
-                                  ? "bg-red-100 text-red-800" 
-                                  : req.noted_by === "Pending" || !req.noted_by || req.noted_by === ""
-                                  ? "bg-gray-100 text-gray-800"
-                                  : "bg-yellow-100 text-yellow-800"
+                                  ? "text-red-600" 
+                                  : "text-yellow-600"
                               }`}>
                                 {req.ppgshead === "Rejected" 
                                   ? "Rejected" 
                                   : (req.noted_by === "Pending" || !req.noted_by || req.noted_by === "")
-                                  ? "—"
+                                  ? "Pending"
                                   : req.ppgshead || "Pending"}
                               </span>
                             </td>
                             <td className="px-5 py-4">
-                              <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
+                              <span className={`font-medium whitespace-nowrap ${
                                 presidentStatus === "Approved"
-                                  ? "bg-green-100 text-green-800"
+                                  ? "text-green-600"
                                   : presidentStatus === "Rejected"
-                                  ? "bg-red-100 text-red-800"
-                                  : presidentStatus === "—"
-                                  ? "bg-gray-100 text-gray-800"
-                                  : "bg-yellow-100 text-yellow-800"
+                                  ? "text-red-600"
+                                  : "text-yellow-600"
                               }`}>
-                                {presidentStatus}
+                                {presidentStatus === "—" ? "Pending" : presidentStatus}
                               </span>
                             </td>
                             <td className="px-5 py-4">

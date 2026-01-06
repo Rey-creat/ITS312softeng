@@ -17,10 +17,11 @@ import {
   FaFileAlt,
   FaChartPie,
   FaCog,
-  FaUniversity
+  FaUniversity,
+  FaExclamationTriangle
 } from "react-icons/fa";
 
-export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasRequests = false, presidentHasRequests = false }) {
+export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasRequests = false, presidentHasRequests = false, deptHeadCount = 0, ppgsHeadCount = 0, presidentCount = 0, notificationsCount = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -57,6 +58,8 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
         return <FaListAlt className="text-xl" />;
       case "Reports":
         return <FaChartPie className="text-xl" />;
+      case "Monthly Reports":
+        return <FaChartBar className="text-xl" />;
       case "System Settings":
         return <FaCog className="text-xl" />;
       case "Personnel Dashboard":
@@ -70,27 +73,29 @@ export default function AdminSidebar({ deptHeadHasRequests = false, ppgsHeadHasR
   const roleMenus = {
     Admin: [
       { name: "Superadmin Dashboard", path: "/SuperadminDashboard", exact: true },
-      { name: "Notifications", path: "/AdminNotifications" },
+      { name: `Notifications ${location.pathname !== "/SuperadminDashboard" && notificationsCount > 0 ? `(${notificationsCount})` : ''}`, path: "/AdminNotifications" },
       { name: "Dept. Office Head", path: "/DeptHeadPage" },
 
-      { name: "Head of PPGS", path: "/PPGSHeadPage" },
-      { name: "School President", path: "/President" },
+      { name: `Head of PPGS ${ppgsHeadCount > 0 ? `(${ppgsHeadCount})` : ''}`, path: "/PPGSHeadPage" },
+      { name: `School President ${presidentCount > 0 ? `(${presidentCount})` : ''}`, path: "/President" },
     ],
     "Dept Head": [
-      { name: "Requests ", path: "/DeptHeadPage", exact: true },
+      { name: `Requests ${location.pathname !== "/DeptHeadPage" && deptHeadCount > 0 ? `(${deptHeadCount})` : ''}`, path: "/DeptHeadPage", exact: true },
     ],
     "PPGS Head": [
       { name: "Dashboard", path: "/AdminDashboard" },
-      { name: "Requests", path: "/PPGSHeadPage" },
-      { name: "Notifications", path: "/AdminNotifications" },
+      { name: `Requests ${ppgsHeadCount > 0 ? `(${ppgsHeadCount})` : ''}`, path: "/PPGSHeadPage" },
+      { name: `Notifications ${notificationsCount > 0 ? `(${notificationsCount})` : ''}`, path: "/AdminNotifications" },
+      { name: "Monthly Reports", path: "/MonthlyReports" },
     ],
     PPGSHead: [
       { name: "Dashboard", path: "/AdminDashboard" },
-      { name: "Requests", path: "/PPGSHeadPage" },
-      { name: "Notifications", path: "/AdminNotifications" },
+      { name: `Requests ${ppgsHeadCount > 0 ? `(${ppgsHeadCount})` : ''}`, path: "/PPGSHeadPage" },
+      { name: `Notifications ${notificationsCount > 0 ? `(${notificationsCount})` : ''}`, path: "/AdminNotifications" },
+      { name: "Monthly Reports", path: "/MonthlyReports" },
     ],
     President: [
-      { name: "Requests", path: "/President", exact: true },
+      { name: `Requests ${location.pathname !== "/President" && presidentCount > 0 ? `(${presidentCount})` : ''}`, path: "/President", exact: true },
     ],
     Personnel: [
       { name: "Requests", path: "/PersonnelDashboard", exact: true },

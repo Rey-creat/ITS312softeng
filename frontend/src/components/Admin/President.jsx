@@ -63,6 +63,7 @@ function President() {
   const [processingId, setProcessingId] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState("All");
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Fetch requests
   useEffect(() => {
@@ -103,6 +104,10 @@ function President() {
 
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
+
+  useEffect(() => {
+    setPendingCount(requests.length);
+  }, [requests]);
 
   // Modal logic handlers
   const openConfirmModal = (id, action) => {
@@ -168,8 +173,8 @@ function President() {
       if (res.ok) {
         setRequests((prev) => prev.filter((r) => r.id !== id));
         showNotification(
-          `Request ${decision === "Approved" ? "approved" : "rejected"} successfully`,
-          "success"
+          `Request ${decision === "Approved" ? "approved" : "rejected"}`,
+          decision === "Approved" ? "success" : "error"
         );
         setShowDetails(false);
       } else {
@@ -226,7 +231,7 @@ function President() {
   if (loading) {
     return (
       <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
-        <AdminSidebar presidentHasRequests={requests.length > 0} />
+        <AdminSidebar presidentHasRequests={requests.length > 0} presidentCount={pendingCount} notificationsCount={0} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -239,7 +244,7 @@ function President() {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar presidentHasRequests={requests.length > 0} />
+      <AdminSidebar presidentHasRequests={requests.length > 0} presidentCount={pendingCount} notificationsCount={0} />
       <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
           {/* Header Section */}

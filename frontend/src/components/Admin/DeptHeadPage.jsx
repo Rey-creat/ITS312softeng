@@ -31,6 +31,7 @@ const DeptHeadPage = () => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [feedbackType, setFeedbackType] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pendingCount, setPendingCount] = useState(0);
 
   // Get the logged-in user's department from localStorage
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -52,7 +53,11 @@ const DeptHeadPage = () => {
       console.log('[DEBUG] Filtering for department:', department);
       const filtered = res.data.filter(req => req.department?.toLowerCase() === department?.toLowerCase());
       console.log('[DEBUG] Filtered requests:', filtered);
-      setRequests(filtered.sort((a, b) => b.id - a.id));
+      // Only show requests that haven't been noted yet
+      const unnotedRequests = filtered.filter(req => !req.noted_by || req.noted_by === "Pending" || req.noted_by === "");
+      console.log('[DEBUG] Unnoted requests:', unnotedRequests);
+      setRequests(unnotedRequests.sort((a, b) => b.id - a.id));
+      setPendingCount(unnotedRequests.length);
       const uniqueDepartments = Array.from(new Set(filtered.map(r => r.department).filter(Boolean)));
       setDepartments(uniqueDepartments);
     } catch (err) {
@@ -95,6 +100,7 @@ const DeptHeadPage = () => {
         { noted_by: user.fullname || "DeptHead" }
       );
       setRequests(prev => prev.filter(req => req.id !== pendingNotedId));
+      setPendingCount(prev => prev - 1);
       setFeedbackMessage("Request marked as Noted.");
       setFeedbackType("success");
       setTimeout(() => setFeedbackMessage(""), 3000);
@@ -117,6 +123,10 @@ const DeptHeadPage = () => {
     fetchRequests();
   }, []);
 
+  useEffect(() => {
+    setPendingCount(requests.filter(r => r.noted_by === "Pending").length);
+  }, [requests]);
+
   const formatDate = (date) =>
     new Date(date).toLocaleDateString(undefined, {
       year: "numeric",
@@ -127,7 +137,7 @@ const DeptHeadPage = () => {
   if (loading) {
     return (
       <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
-        <AdminSidebar deptHeadHasRequests={false} />
+        <AdminSidebar deptHeadHasRequests={false} deptHeadCount={0} notificationsCount={0} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -143,7 +153,7 @@ const DeptHeadPage = () => {
   return (
     <div className="flex h-screen">
       <div className="relative h-screen">
-        <AdminSidebar deptHeadHasRequests={requests.length > 0} />
+        <AdminSidebar deptHeadHasRequests={requests.length > 0} deptHeadCount={pendingCount} notificationsCount={0} />
       </div>
       <div className="flex-1 p-6 bg-gray-100 overflow-y-auto h-screen">
         {/* Noted Confirmation Modal */}

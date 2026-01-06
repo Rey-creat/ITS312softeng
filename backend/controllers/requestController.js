@@ -1,3 +1,5 @@
+const db = require("../db");
+
 // BULK DELETE ALL REQUESTS
 exports.deleteAllRequests = (req, res) => {
   db.query("DELETE FROM requests", (err, result) => {
@@ -67,7 +69,6 @@ exports.setPresidentDecision = (req, res) => {
     }
   );
 };
-const db = require("../db");
 
 // Helper to format date as YYYY-MM-DD
 const formatDate = (date) => {
@@ -119,6 +120,7 @@ exports.getRequests = (req, res) => {
       assigned_personnel_name: r.assigned_personnel_name || null,
       assigned_role: r.assigned_role || null,
       date_done: r.date_done ? formatDate(r.date_done) : null,
+      proof_image: r.proof_image || null,
     }));
 
     res.status(200).json(formatted);
@@ -161,23 +163,27 @@ exports.updateRequest = (req, res) => {
 
   // If marking as done (either by personnel or admin), set date_done
   if ((done_by !== undefined) || (status && status.toLowerCase() === 'done')) {
-    let query, params;
-    if (done_by !== undefined) {
-      query = "UPDATE requests SET done_by = ?, status = 'Done', date_done = NOW() WHERE id = ?";
-      params = [done_by, id];
-    } else {
-      query = "UPDATE requests SET status = 'Done', date_done = NOW() WHERE id = ?";
-      params = [id];
-    }
-    db.query(
-      query,
-      params,
-      (err, result) => {
+    // Check if proof_image exists
+    db.query("SELECT proof_image FROM requests WHERE id = ?", [id], (err, rows) => {
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (!rows[0] || !rows[0].proof_image) {
+        return res.status(400).json({ message: "Proof image is required before marking as done" });
+      }
+      // Proceed with update
+      let query, params;
+      if (done_by !== undefined) {
+        query = "UPDATE requests SET done_by = ?, status = 'Done', date_done = NOW() WHERE id = ?";
+        params = [done_by, id];
+      } else {
+        query = "UPDATE requests SET status = 'Done', date_done = NOW() WHERE id = ?";
+        params = [id];
+      }
+      db.query(query, params, (err, result) => {
         if (err) return res.status(500).json({ message: "DB error", error: err });
         if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
         res.status(200).json({ message: "Request marked as Done successfully" });
-      }
-    );
+      });
+    });
     return;
   }
 
@@ -204,4 +210,44 @@ exports.deleteRequest = (req, res) => {
     if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
     res.status(200).json({ message: "Request deleted successfully" });
   });
+};
+
+// UPLOAD PROOF IMAGE
+exports.uploadProof = (req, res) => {
+  const { id } = req.params;
+  const requestId = parseInt(id, 10);
+  if (!req.file) {
+    return res.status(400).json({ message: "Proof image is required" });
+  }
+  const proofImage = req.file.filename;
+  db.query(
+    "UPDATE requests SET proof_image = ? WHERE id = ?",
+    [proofImage, requestId],
+    (err, result) => {
+      if (err) {
+        console.error("DB error in uploadProof:", err);
+        return res.status(500).json({ message: "DB error", error: err.message });
+      }
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+      res.status(200).json({ message: "Proof uploaded successfully", proofImage });
+    }
+  );
+};
+
+// REOPEN REQUEST
+exports.reopenRequest = (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  if (!reason || typeof reason !== 'string' || !reason.trim()) {
+    return res.status(400).json({ message: "Reopen reason required" });
+  }
+  db.query(
+    "UPDATE requests SET status = 'Approved', ppgshead = 'Approved', done_by = NULL, assigned_to = NULL, assigned_role = NULL, assigned_personnel_name = NULL, proof_image = NULL, reopen_reason = ? WHERE id = ?",
+    [reason.trim(), id],
+    (err, result) => {
+      if (err) return res.status(500).json({ message: "DB error", error: err });
+      if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+      res.status(200).json({ message: "Request reopened successfully" });
+    }
+  );
 };

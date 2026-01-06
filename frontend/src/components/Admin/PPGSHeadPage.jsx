@@ -29,28 +29,52 @@ const PPGSHeadPage = () => {
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
     const [pendingApproveId, setPendingApproveId] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [rejectReason, setRejectReason] = useState("");
   const [urgencyFilter, setUrgencyFilter] = useState("All");
+  const [pendingCount, setPendingCount] = useState(0);
+  const [notificationsCount, setNotificationsCount] = useState(0);
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/ppgshead/approved-requests");
+        const token = localStorage.getItem("token");
+        const [ppgsRes, allRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/ppgshead/approved-requests", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://localhost:5000/api/requests", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
         // Only use backend data, ignore localStorage
-        setRequests(res.data.sort((a, b) => b.id - a.id));
+        setRequests(ppgsRes.data.sort((a, b) => b.id - a.id));
+        setAllRequests(allRes.data);
+
+        // Calculate notifications count (requests needing personnel assignment)
+        const notificationsPending = allRes.data.filter(r => r.status === "Approved" && (!r.assigned_to || r.assigned_to === "")).length;
+        setNotificationsCount(notificationsPending);
       } catch (err) {
         console.error("Error fetching requests:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchRequests();
   }, []);
+
+  useEffect(() => {
+    setPendingCount(requests.filter(r => r.ppgshead === "Pending" && r.noted_by !== "Pending").length);
+  }, [requests]);
+
+  // Calculate total requests needing review
+  const totalRequestsNeedingReview = requests.filter(r => (r.ppgshead === null || r.ppgshead === undefined || r.ppgshead === "Pending") && r.noted_by).length;
 
   const handleApprove = (id) => {
     setPendingApproveId(id);
@@ -99,10 +123,10 @@ const PPGSHeadPage = () => {
         { headers: { 'Content-Type': 'application/json' } }
       );
       setRequests(prev =>
-        prev.map(req => (req.id === pendingRejectId ? { ...req, ppgshead: "Rejected", reject_reason: rejectReason } : req))
+        prev.map(req => (req.id === pendingRejectId ? { ...req, ppgshead: "Rejected", ppgs_reject_reason: rejectReason, status: "Rejected", president_reject_reason: "Automatically rejected due to PPGS Head rejection" } : req))
       );
       setShowDetails(false);
-      showNotification("Request rejected successfully", "success");
+      showNotification("Request rejected", "error");
     } catch (err) {
       console.error("Error rejecting request:", err);
       showNotification("Error rejecting request", "error");
@@ -166,8 +190,8 @@ const PPGSHeadPage = () => {
 
   // Filter requests for display
   const notedRequests = requests.filter(req => req.noted_by);
-  // Show requests needing PPGS action: ppgshead is null or 'Pending', and also allow 'Rejected' for review
-  let reviewRequests = notedRequests.filter(req => req.ppgshead === null || req.ppgshead === undefined || req.ppgshead === "Pending" || req.ppgshead === "Rejected");
+  // Show requests needing PPGS action: ppgshead is null or 'Pending'
+  let reviewRequests = notedRequests.filter(req => req.ppgshead === null || req.ppgshead === undefined || req.ppgshead === "Pending");
   // Apply search filter
   if (searchQuery.trim()) {
     const query = searchQuery.toLowerCase();
@@ -186,8 +210,8 @@ const PPGSHeadPage = () => {
   if (loading) {
     return (
       <div className="flex h-screen">
-        <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} ppgsHeadCount={totalRequestsNeedingReview} notificationsCount={notificationsCount} />
+        <div className="flex-1 flex items-center justify-center bg-linear-to-br from-gray-50 to-blue-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading requests...</p>
@@ -199,8 +223,8 @@ const PPGSHeadPage = () => {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} />
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-blue-50">
+      <AdminSidebar ppgsHeadHasRequests={reviewRequests.length > 0} ppgsHeadCount={totalRequestsNeedingReview} notificationsCount={notificationsCount} />
+      <div className="flex-1 overflow-y-auto bg-linear-to-br from-gray-50 to-blue-50">
         <div className="px-8 py-6">
           {/* Header Section */}
           <div className="mb-8">
@@ -226,10 +250,10 @@ const PPGSHeadPage = () => {
                   <FaSync className="mr-2" />
                   Refresh
                 </button>
-                {reviewRequests.filter(r => r.ppgshead === "Pending").length > 0 && (
+                {totalRequestsNeedingReview > 0 && (
                   <div className="flex items-center px-4 py-2 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
                     <FaExclamationTriangle className="mr-2" />
-                    <span className="font-medium">{reviewRequests.filter(r => r.ppgshead === "Pending").length} pending</span>
+                    <span className="font-medium">{totalRequestsNeedingReview} requests need review</span>
                   </div>
                 )}
               </div>
@@ -266,7 +290,7 @@ const PPGSHeadPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {reviewRequests.map((req) => (
                 <div key={req.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                  <div className={`px-5 py-4 ${req.ppgshead === "Rejected" ? "bg-gradient-to-r from-red-50 to-red-100" : "bg-gradient-to-r from-gray-50 to-blue-50"} border-b border-gray-200`}>
+                  <div className={`px-5 py-4 ${req.ppgshead === "Rejected" ? "bg-linear-to-r from-red-50 to-red-100" : "bg-linear-to-r from-gray-50 to-blue-50"} border-b border-gray-200`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className={`p-2 ${req.ppgshead === "Rejected" ? "bg-red-100" : "bg-blue-100"} rounded-lg mr-3`}>
@@ -355,14 +379,14 @@ const PPGSHeadPage = () => {
                         <div className="flex gap-3">
                           <button
                             onClick={() => handleApprove(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
                             <FaCheck className="mr-2" />
                             Approve
                           </button>
                           <button
                             onClick={() => handleReject(req.id)}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
                           >
                             <FaTimesCircle className="mr-2" />
                             Reject
@@ -475,14 +499,14 @@ const PPGSHeadPage = () => {
               <div className="flex gap-3 pt-6 border-t">
                 <button
                   onClick={() => handleApprove(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
                   <FaCheckCircle className="w-5 h-5" />
                   Approve Request
                 </button>
                 <button
                   onClick={() => handleReject(selectedRequest.id)}
-                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
+                  className="flex-1 px-6 py-3 text-base font-medium text-white bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl transition-all shadow-sm hover:shadow flex items-center justify-center gap-3"
                 >
                   <FaTimesCircle className="w-5 h-5" />
                   Reject Request
@@ -511,7 +535,7 @@ const PPGSHeadPage = () => {
               </button>
               <button
                 onClick={confirmApprove}
-                className="px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
+                className="px-5 py-2.5 bg-linear-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 flex items-center"
               >
                 <FaCheckCircle className="mr-2" />
                 Yes, Approve
@@ -551,7 +575,7 @@ const PPGSHeadPage = () => {
               </button>
               <button
                 onClick={confirmReject}
-                className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
+                className="px-5 py-2.5 bg-linear-to-r from-red-600 to-red-700 text-white font-medium rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center"
               >
                 <FaTimesCircle className="mr-2" />
                 Yes, Reject

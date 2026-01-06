@@ -176,7 +176,7 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* REMEMBER ME & FORGOT PASSWORD */}
+              {/* REMEMBER ME */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <div className="relative">
@@ -192,12 +192,6 @@ export default function Login() {
                   </div>
                   <span className="text-sm text-gray-700 select-none">Remember me</span>
                 </label>
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline transition duration-200"
-                >
-                  Forgot password?
-                </Link>
               </div>
 
               {/* SIGN IN BUTTON */}

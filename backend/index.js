@@ -20,7 +20,9 @@ app.use(cors());
 // Ensure express.json() middleware is used for JSON body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(upload.single("profile_picture"));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // Root route
 app.get("/", (req, res) => res.send("Backend running!"));

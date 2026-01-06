@@ -35,7 +35,14 @@ export default function AdminNotifications() {
     const [personnelRole, setPersonnelRole] = useState("Carpentry"); // Default role
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [showProofModal, setShowProofModal] = useState(false);
+    const [proofRequestId, setProofRequestId] = useState(null);
+    const [proofFile, setProofFile] = useState(null);
+    const [uploadingProof, setUploadingProof] = useState(false);
+    const [agreeToUpload, setAgreeToUpload] = useState(false);
     const navigate = useNavigate();
+    const [ppgsHeadCount, setPpgsHeadCount] = useState(0);
+    const [notificationsCount, setNotificationsCount] = useState(0);
 
     // Role options for dropdown
     const roleOptions = ["Carpentry", "Aircon Technician", "Plumbing", "Electrical"];
@@ -56,6 +63,14 @@ export default function AdminNotifications() {
 
                 setRequests(filtered);
                 setFilteredRequests(filtered);
+
+                // Calculate PPGS Head pending count
+                const ppgsPending = res.data.filter(r => r.ppgshead === "Pending" && r.noted_by && r.noted_by !== "Pending").length;
+                setPpgsHeadCount(ppgsPending);
+
+                // Calculate notifications count (requests needing personnel assignment)
+                const notificationsPending = res.data.filter(r => r.status === "Approved" && (!r.assigned_to || r.assigned_to === "")).length;
+                setNotificationsCount(notificationsPending);
             } catch (err) {
                 if (err.response?.status === 401) {
                     setError("Session expired. Please log in again.");
@@ -95,8 +110,7 @@ export default function AdminNotifications() {
         // Disable if:
         // 1. Status is already 'Done'
         // 2. No personnel is assigned
-        // 3. Personnel name is empty
-        return req.status === 'Done' || !req.assigned_to || req.assigned_to.trim() === '';
+        // 3. Personnel name is empty        // 4. No proof image provided        return req.status === 'Done' || !req.assigned_to || req.assigned_to.trim() === '';
     };
 
     const formatDate = (dateString) => {
@@ -130,6 +144,15 @@ export default function AdminNotifications() {
         setPersonnelName("");
         setPersonnelRole("Carpentry"); // Reset to default
         setShowModal(true);
+        setError("");
+        setSuccess("");
+    };
+
+    const openProofModal = (requestId) => {
+        setProofRequestId(requestId);
+        setProofFile(null);
+        setAgreeToUpload(false);
+        setShowProofModal(true);
         setError("");
         setSuccess("");
     };
@@ -197,6 +220,96 @@ export default function AdminNotifications() {
         }
         
         setAssigning((prev) => ({ ...prev, [modalRequestId]: false }));
+    };
+
+
+    const handleUploadProof = async () => {
+        if (!proofFile) {
+            setError("Please select a proof image.");
+            return;
+        }
+        
+        if (!agreeToUpload) {
+            setError("Please agree to upload the proof image.");
+            return;
+        }
+        
+        setUploadingProof(true);
+        setError("");
+        setSuccess("");
+
+        try {
+            const token = localStorage.getItem("token");
+            const formData = new FormData();
+            formData.append("proof", proofFile);
+
+            const response = await axios.post(
+                `http://localhost:5000/api/requests/${proofRequestId}/proof`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            const proofImage = response.data.proofImage;
+
+            setSuccess("Proof uploaded successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+            setShowProofModal(false);
+            // Update the state instead of reload
+            setRequests((prev) =>
+                prev.map((r) =>
+                    r.id === proofRequestId ? { ...r, proof_image: proofImage } : r
+                )
+            );
+            setFilteredRequests((prev) =>
+                prev.map((r) =>
+                    r.id === proofRequestId ? { ...r, proof_image: proofImage } : r
+                )
+            );
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || "Error uploading proof.";
+            if (err.response?.status === 401) {
+                setError("Session expired. Please log in again.");
+                setTimeout(() => navigate("/login"), 2000);
+            } else {
+                setError(errorMsg);
+            }
+        }
+        
+        setUploadingProof(false);
+    };
+
+    const printRequestDetails = (req) => {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Request Details - REQ-${req.id}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1 { color: #333; }
+                    p { margin: 10px 0; }
+                    strong { display: inline-block; width: 150px; }
+                </style>
+            </head>
+            <body>
+                <h1>Request Details</h1>
+                <p><strong>Request ID:</strong> REQ-${req.id}</p>
+                <p><strong>Date Filed:</strong> ${req.date_filed}</p>
+                <p><strong>Date Needed:</strong> ${req.date_needed}</p>
+                <p><strong>Type:</strong> ${req.type_of_concern}</p>
+                <p><strong>Urgency:</strong> ${req.urgency}</p>
+                <p><strong>Description:</strong> ${req.description}</p>
+                <p><strong>Requester:</strong> ${req.requested_by}</p>
+                <p><strong>Assigned Personnel:</strong> ${req.assigned_to} (${req.assigned_role})</p>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
     };
 
 
@@ -273,7 +386,7 @@ export default function AdminNotifications() {
     if (loading) {
         return (
             <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50">
-                <AdminSidebar />
+                <AdminSidebar ppgsHeadCount={ppgsHeadCount} notificationsCount={notificationsCount} />
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -287,7 +400,7 @@ export default function AdminNotifications() {
     return (
         <div className="flex h-screen bg-linear-to-br from-gray-50 to-blue-50 overflow-hidden">
             <div className="fixed top-0 left-0 h-screen z-20">
-                <AdminSidebar />
+                <AdminSidebar ppgsHeadCount={ppgsHeadCount} notificationsCount={notificationsCount} />
             </div>
             <div className="flex-1 ml-72">
                 {/* Header */}
@@ -437,6 +550,12 @@ export default function AdminNotifications() {
                                                                 >
                                                                     Reassign
                                                                 </button>
+                                                                <button
+                                                                    onClick={() => printRequestDetails(req)}
+                                                                    className="px-3 py-1 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors mt-1"
+                                                                >
+                                                                    Print
+                                                                </button>
                                                             </div>
                                                         ) : (
                                                             <button
@@ -469,15 +588,22 @@ export default function AdminNotifications() {
                                                             >
                                                                 Completed
                                                             </button>
-                                                        ) : (
+                                                        ) : req.proof_image ? (
                                                             <button
                                                                 onClick={() => handleMarkAsDone(req.id)}
                                                                 disabled={isMarkDoneDisabled(req)}
                                                                 className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isMarkDoneDisabled(req) ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                                                             >
-                                                                {isMarkDoneDisabled(req) ? 'Done' : 'Mark as Done'}
+                                                                Mark as Done
                                                             </button>
-                                                        )}  
+                                                        ) : req.assigned_to ? (
+                                                            <button
+                                                                onClick={() => openProofModal(req.id)}
+                                                                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                                                            >
+                                                                Provide Proof
+                                                            </button>
+                                                        ) : null}  
                                                     </td>
                                                 </tr>
                                             ))}
@@ -569,6 +695,89 @@ export default function AdminNotifications() {
                                         <>  
                                             <div />
                                             Assign Personnel
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* Modal for Provide Proof */}
+                {showProofModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-blue bg-opacity-40">
+                        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900">Provide Proof</h2>
+                                    <p className="text-gray-600 text-sm mt-1">
+                                        Request #{proofRequestId}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowProofModal(false)}
+                                    className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <FaTimes className="w-5 h-5" />
+                                </button>
+                            </div>
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 flex items-center gap-2">
+                                    <FaExclamationCircle />
+                                    {error}
+                                </div>
+                            )}
+                            {success && (
+                                <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 flex items-center gap-2">
+                                    <FaCheck />
+                                    {success}
+                                </div>
+                            )}
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Proof Image
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setProofFile(e.target.files[0])}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="agree"
+                                        checked={agreeToUpload}
+                                        onChange={(e) => setAgreeToUpload(e.target.checked)}
+                                        className="mr-2"
+                                    />
+                                    <label htmlFor="agree" className="text-sm text-gray-700">
+                                        I agree to upload this proof image for verification purposes.
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setShowProofModal(false)}
+                                    className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleUploadProof}
+                                    disabled={uploadingProof || !proofFile || !agreeToUpload}
+                                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-linear-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {uploadingProof ? (
+                                        <>
+                                            <FaSync className="animate-spin" />
+                                            Uploading...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div />
+                                            Upload Proof
                                         </>
                                     )}
                                 </button>

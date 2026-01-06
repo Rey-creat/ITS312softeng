@@ -343,10 +343,7 @@ export default function CreateRequest() {
                   placeholder="Please provide a detailed description of your request. Include specific locations, items needing attention, and any relevant details about the issue..."
                 />
                 {errors.description && <p className="text-red-500 text-xs mt-1 font-medium">{errors.description}</p>}
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-base text-gray-500">
-                    Character count: {formData.description.length}
-                  </span>
+                <div className="flex justify-end items-center mt-2">
                   <span className="text-base text-gray-500">
                     Be as specific as possible for faster processing
                   </span>

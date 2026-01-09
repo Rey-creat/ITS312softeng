@@ -163,43 +163,35 @@ exports.updateRequest = (req, res) => {
 
   // If marking as done (either by personnel or admin), set date_done
   if ((done_by !== undefined) || (status && status.toLowerCase() === 'done')) {
-    // Check if proof_image exists
-    db.query("SELECT proof_image FROM requests WHERE id = ?", [id], (err, rows) => {
-      if (err) return res.status(500).json({ message: "DB error", error: err });
-      if (!rows[0] || !rows[0].proof_image) {
-        return res.status(400).json({ message: "Proof image is required before marking as done" });
-      }
-      // Proceed with update
-      let query, params;
-      if (done_by !== undefined) {
-        query = "UPDATE requests SET done_by = ?, status = 'Done', date_done = NOW() WHERE id = ?";
-        params = [done_by, id];
-      } else {
-        query = "UPDATE requests SET status = 'Done', date_done = NOW() WHERE id = ?";
-        params = [id];
-      }
-      db.query(query, params, (err, result) => {
-        if (err) return res.status(500).json({ message: "DB error", error: err });
-        if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-        res.status(200).json({ message: "Request marked as Done successfully" });
-      });
-    });
-    return;
-  }
-
-  if (!date_needed || !type_of_concern || !description) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  db.query(
-    "UPDATE requests SET date_needed = ?, type_of_concern = ?, description = ? WHERE id = ?",
-    [date_needed, type_of_concern, description, id],
-    (err, result) => {
+    // Proceed with update
+    let query, params;
+    if (done_by !== undefined) {
+      query = "UPDATE requests SET done_by = ?, status = 'Done', date_done = NOW() WHERE id = ?";
+      params = [done_by, id];
+    } else {
+      query = "UPDATE requests SET status = 'Done', date_done = NOW() WHERE id = ?";
+      params = [id];
+    }
+    db.query(query, params, (err, result) => {
       if (err) return res.status(500).json({ message: "DB error", error: err });
       if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
-      res.status(200).json({ message: "Request updated successfully" });
+      res.status(200).json({ message: "Request marked as Done successfully" });
+    });
+  } else {
+    if (!date_needed || !type_of_concern || !description) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-  );
+
+    db.query(
+      "UPDATE requests SET date_needed = ?, type_of_concern = ?, description = ? WHERE id = ?",
+      [date_needed, type_of_concern, description, id],
+      (err, result) => {
+        if (err) return res.status(500).json({ message: "DB error", error: err });
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Request not found" });
+        res.status(200).json({ message: "Request updated successfully" });
+      }
+    );
+  }
 };
 
 // DELETE REQUEST

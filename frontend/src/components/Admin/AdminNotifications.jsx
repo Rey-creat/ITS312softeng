@@ -110,7 +110,7 @@ export default function AdminNotifications() {
         // Disable if:
         // 1. Status is already 'Done'
         // 2. No personnel is assigned
-        // 3. Personnel name is empty        // 4. No proof image provided        return req.status === 'Done' || !req.assigned_to || req.assigned_to.trim() === '';
+        return req.status === 'Done' || !req.assigned_to || req.assigned_to.trim() === '';
     };
 
     const formatDate = (dateString) => {
@@ -588,21 +588,24 @@ export default function AdminNotifications() {
                                                             >
                                                                 Completed
                                                             </button>
-                                                        ) : req.proof_image ? (
-                                                            <button
-                                                                onClick={() => handleMarkAsDone(req.id)}
-                                                                disabled={isMarkDoneDisabled(req)}
-                                                                className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isMarkDoneDisabled(req) ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-                                                            >
-                                                                Mark as Done
-                                                            </button>
                                                         ) : req.assigned_to ? (
-                                                            <button
-                                                                onClick={() => openProofModal(req.id)}
-                                                                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-                                                            >
-                                                                Provide Proof
-                                                            </button>
+                                                            <div className="flex flex-col space-y-2">
+                                                                <button
+                                                                    onClick={() => handleMarkAsDone(req.id)}
+                                                                    disabled={isMarkDoneDisabled(req)}
+                                                                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${isMarkDoneDisabled(req) ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                                                >
+                                                                    Mark as Done
+                                                                </button>
+                                                                {!req.proof_image && (
+                                                                    <button
+                                                                        onClick={() => openProofModal(req.id)}
+                                                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                                                    >
+                                                                        Provide Proof
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         ) : null}  
                                                     </td>
                                                 </tr>
@@ -767,7 +770,7 @@ export default function AdminNotifications() {
                                 <button
                                     onClick={handleUploadProof}
                                     disabled={uploadingProof || !proofFile || !agreeToUpload}
-                                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-linear-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-3 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg transition-all shadow-sm hover:shadow flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {uploadingProof ? (
                                         <>
